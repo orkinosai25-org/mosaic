@@ -49,6 +49,11 @@ public class AzureBlobStorageOptions
     /// Key name for connection string in configuration or Key Vault
     /// </summary>
     public string ConnectionStringKey { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Maximum file size in bytes (default 10 MB)
+    /// </summary>
+    public long MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024;
 }
 
 public class EndpointsOptions

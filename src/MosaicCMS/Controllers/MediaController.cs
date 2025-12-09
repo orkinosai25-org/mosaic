@@ -16,7 +16,6 @@ public class MediaController : ControllerBase
     private readonly IBlobStorageService _blobStorageService;
     private readonly ILogger<MediaController> _logger;
     private readonly AzureBlobStorageOptions _storageOptions;
-    private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB limit
 
     private static readonly string[] AllowedImageTypes = 
     {
@@ -68,10 +67,10 @@ public class MediaController : ControllerBase
             return BadRequest(new { error = "No file provided" });
         }
 
-        if (file.Length > MaxFileSize)
+        if (file.Length > _storageOptions.MaxFileSizeBytes)
         {
             return StatusCode(StatusCodes.Status413PayloadTooLarge,
-                new { error = $"File size exceeds maximum limit of {MaxFileSize / (1024 * 1024)} MB" });
+                new { error = $"File size exceeds maximum limit of {_storageOptions.MaxFileSizeBytes / (1024 * 1024)} MB" });
         }
 
         if (!AllowedImageTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
@@ -141,10 +140,10 @@ public class MediaController : ControllerBase
             return BadRequest(new { error = "No file provided" });
         }
 
-        if (file.Length > MaxFileSize)
+        if (file.Length > _storageOptions.MaxFileSizeBytes)
         {
             return StatusCode(StatusCodes.Status413PayloadTooLarge,
-                new { error = $"File size exceeds maximum limit of {MaxFileSize / (1024 * 1024)} MB" });
+                new { error = $"File size exceeds maximum limit of {_storageOptions.MaxFileSizeBytes / (1024 * 1024)} MB" });
         }
 
         if (!AllowedDocumentTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))

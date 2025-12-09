@@ -165,7 +165,7 @@ public class BlobStorageService : IBlobStorageService
             await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: tenantPrefix, cancellationToken: cancellationToken))
             {
                 // Remove tenant prefix from blob name for cleaner file names
-                var fileName = blobItem.Name.Substring(tenantPrefix.Length);
+                var fileName = blobItem.Name[tenantPrefix.Length..];
                 files.Add(fileName);
             }
 
@@ -282,11 +282,14 @@ public class BlobStorageService : IBlobStorageService
             .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
             .ToArray());
 
-        // Remove any remaining path traversal attempts
-        while (sanitized.Contains(".."))
+        // Remove any consecutive dots (path traversal attempts)
+        // Repeat until no more consecutive dots exist
+        string previous;
+        do
         {
+            previous = sanitized;
             sanitized = sanitized.Replace("..", string.Empty);
-        }
+        } while (previous != sanitized);
 
         // Trim dots and dashes from start/end
         sanitized = sanitized.Trim('.', '-', '_');

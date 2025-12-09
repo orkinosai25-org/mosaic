@@ -152,7 +152,8 @@ public static class FileValidationService
             if (contentType == SvgContentType)
             {
                 var trimmed = content.TrimStart();
-                return trimmed.StartsWith("<?xml") || trimmed.StartsWith("<svg");
+                return trimmed.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase) || 
+                       trimmed.StartsWith("<svg", StringComparison.OrdinalIgnoreCase);
             }
 
             // For text files, just verify no null bytes (already checked above)
