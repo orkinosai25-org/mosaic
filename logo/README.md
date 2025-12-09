@@ -108,7 +108,7 @@ Use any SVG conversion tool or command line:
 
 ```bash
 # Using ImageMagick
-convert -background none logo/src/mosaic-icon.svg -resize 512x512 logo/exports/icon-512.png
+convert -background transparent logo/src/mosaic-icon.svg -resize 512x512 logo/exports/icon-512.png
 
 # Using Inkscape
 inkscape logo/src/mosaic-icon.svg --export-type=png --export-filename=logo/exports/icon-512.png -w 512 -h 512

@@ -33,7 +33,13 @@ elif command_exists convert; then
     echo "✓ Using ImageMagick"
 else
     echo "❌ Error: No SVG converter found!"
-    echo "Please install one of: rsvg-convert, inkscape, or imagemagick"
+    echo "Please install one of the following:"
+    echo ""
+    echo "  Ubuntu/Debian:  sudo apt-get install librsvg2-bin"
+    echo "  macOS:          brew install librsvg"
+    echo "  or"
+    echo "  Ubuntu/Debian:  sudo apt-get install imagemagick"
+    echo "  macOS:          brew install imagemagick"
     exit 1
 fi
 echo ""
@@ -53,7 +59,7 @@ convert_svg() {
             inkscape "$input" --export-type=png --export-filename="$output" -w "$width" -h "$height" 2>/dev/null
             ;;
         imagemagick)
-            convert -background none "$input" -resize "${width}x${height}" "$output"
+            convert -background transparent "$input" -resize "${width}x${height}" "$output"
             ;;
     esac
 }
