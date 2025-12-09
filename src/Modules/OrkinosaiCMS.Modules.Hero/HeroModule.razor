@@ -1,0 +1,55 @@
+@using OrkinosaiCMS.Modules.Abstractions
+@inherits ModuleBase
+
+<section class="hero-section fade-in">
+    <div class="container">
+        <h1 class="hero-title">@HeroTitle</h1>
+        @if (!string.IsNullOrEmpty(Subtitle))
+        {
+            <p class="hero-subtitle">@Subtitle</p>
+        }
+        @if (!string.IsNullOrEmpty(ButtonText) && !string.IsNullOrEmpty(ButtonUrl))
+        {
+            <a href="@ButtonUrl" class="hero-cta">@ButtonText</a>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public string HeroTitle { get; set; } = "Welcome to OrkinosaiCMS";
+    
+    [Parameter]
+    public string Subtitle { get; set; } = "A modern, modular Content Management System built on .NET 10 and Blazor";
+    
+    [Parameter]
+    public string ButtonText { get; set; } = "Get Started";
+    
+    [Parameter]
+    public string ButtonUrl { get; set; } = "/about";
+
+    public override string ModuleName => "Hero";
+    public override string Title => "Hero Section";
+    public override string Description => "Hero section with title, subtitle and call-to-action button";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        // Load settings from module configuration
+        if (Settings != null)
+        {
+            if (Settings.TryGetValue("HeroTitle", out var heroTitle))
+                HeroTitle = heroTitle?.ToString() ?? HeroTitle;
+            
+            if (Settings.TryGetValue("Subtitle", out var subtitle))
+                Subtitle = subtitle?.ToString() ?? Subtitle;
+            
+            if (Settings.TryGetValue("ButtonText", out var buttonText))
+                ButtonText = buttonText?.ToString() ?? ButtonText;
+            
+            if (Settings.TryGetValue("ButtonUrl", out var buttonUrl))
+                ButtonUrl = buttonUrl?.ToString() ?? ButtonUrl;
+        }
+    }
+}

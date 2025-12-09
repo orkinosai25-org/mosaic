@@ -1,0 +1,262 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Administrator")]
+@layout OrkinosaiCMS.Web.Components.Layout.Admin.AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@using OrkinosaiCMS.Web.Services
+@inject IAuthenticationService AuthService
+
+<PageTitle>Admin Dashboard - OrkinosaiCMS</PageTitle>
+
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h1>Welcome to Admin Dashboard</h1>
+        <p>Manage your CMS content, pages, and settings with Zoota AI Assistant</p>
+    </div>
+
+    <div class="dashboard-cards">
+        <div class="dashboard-card">
+            <div class="card-icon">📄</div>
+            <h3>Pages</h3>
+            <p class="card-stat">12</p>
+            <p class="card-label">Total Pages</p>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">📝</div>
+            <h3>Content</h3>
+            <p class="card-stat">45</p>
+            <p class="card-label">Content Items</p>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">🖼️</div>
+            <h3>Media</h3>
+            <p class="card-stat">23</p>
+            <p class="card-label">Media Files</p>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-icon">👥</div>
+            <h3>Users</h3>
+            <p class="card-stat">5</p>
+            <p class="card-label">Active Users</p>
+        </div>
+    </div>
+
+    <div class="zoota-info">
+        <div class="zoota-banner">
+            <div class="zoota-banner-content">
+                <div class="zoota-icon">🦜</div>
+                <div>
+                    <h3>Zoota AI Assistant is Active</h3>
+                    <p>Your AI-powered CMS assistant is ready to help. Look for the chat button in the bottom-right corner!</p>
+                    <ul class="zoota-features">
+                        <li>✨ Create, update, and delete pages</li>
+                        <li>📋 Manage content and media</li>
+                        <li>🔍 Search and navigate your CMS</li>
+                        <li>💡 Get AI-powered suggestions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="action-buttons">
+            <button class="action-btn" @onclick='() => ShowMessage("Create Page functionality")'>
+                <span class="action-icon">➕</span>
+                Create New Page
+            </button>
+            <button class="action-btn" @onclick='() => ShowMessage("Manage Content functionality")'>
+                <span class="action-icon">📝</span>
+                Manage Content
+            </button>
+            <button class="action-btn" @onclick='() => ShowMessage("Upload Media functionality")'>
+                <span class="action-icon">🖼️</span>
+                Upload Media
+            </button>
+            <button class="action-btn" @onclick='() => ShowMessage("User Management functionality")'>
+                <span class="action-icon">👥</span>
+                Manage Users
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard {
+        padding: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .dashboard-header {
+        margin-bottom: 40px;
+    }
+
+    .dashboard-header h1 {
+        color: #0078D4;
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-header p {
+        color: #666;
+        font-size: 16px;
+    }
+
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .dashboard-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(0, 120, 212, 0.2);
+    }
+
+    .card-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .dashboard-card h3 {
+        color: #333;
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .card-stat {
+        color: #0078D4;
+        font-size: 36px;
+        font-weight: 600;
+        margin: 12px 0;
+    }
+
+    .card-label {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .zoota-info {
+        margin-bottom: 40px;
+    }
+
+    .zoota-banner {
+        background: linear-gradient(135deg, #0078D4, #00BCF2);
+        border-radius: 12px;
+        padding: 32px;
+        color: white;
+    }
+
+    .zoota-banner-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+    }
+
+    .zoota-icon {
+        font-size: 64px;
+        flex-shrink: 0;
+    }
+
+    .zoota-banner h3 {
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+
+    .zoota-banner p {
+        font-size: 16px;
+        margin-bottom: 16px;
+        opacity: 0.95;
+    }
+
+    .zoota-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .zoota-features li {
+        padding: 8px 0;
+        font-size: 15px;
+        opacity: 0.95;
+    }
+
+    .quick-actions h2 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .action-btn {
+        background: white;
+        border: 2px solid #0078D4;
+        border-radius: 8px;
+        padding: 16px 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #0078D4;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .action-btn:hover {
+        background: #0078D4;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    }
+
+    .action-icon {
+        font-size: 24px;
+    }
+
+    @@media (max-width: 768px) {
+        .admin-dashboard {
+            padding: 20px;
+        }
+
+        .dashboard-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .zoota-banner-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    private void ShowMessage(string message)
+    {
+        // This would integrate with actual functionality
+        Console.WriteLine($"Action: {message}");
+    }
+}

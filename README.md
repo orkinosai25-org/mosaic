@@ -4,6 +4,31 @@
 
 ![MOSAIC Logo](./logo/src/mosaic-logo-main.svg)
 
+## 🏛️ Heritage & Foundation
+
+MOSAIC is built upon **OrkinosaiCMS**, a modern, modular Content Management System built on .NET 10 and Blazor. We've taken the solid foundation of OrkinosaiCMS and transformed it into a comprehensive multi-tenant SaaS platform while preserving its core architectural strengths:
+
+- **Modular Architecture**: Plugin-based system for unlimited extensibility
+- **Clean Architecture**: Clear separation between Core, Infrastructure, and UI layers
+- **SharePoint-Inspired Design**: Familiar concepts like Master Pages, Web Parts (Modules), and permission levels
+- **Modern Stack**: Built on .NET 10, Blazor, and Entity Framework Core
+- **Flexible Permissions**: Fine-grained, SharePoint-style permission system
+
+### OrkinosaiCMS to MOSAIC Evolution
+
+The transformation from OrkinosaiCMS to MOSAIC represents a strategic evolution:
+
+| Aspect | OrkinosaiCMS (Foundation) | MOSAIC (SaaS Platform) |
+|--------|---------------------------|------------------------|
+| **Purpose** | Single-tenant CMS | Multi-tenant SaaS platform |
+| **Target Users** | Individual websites | Businesses and creators |
+| **Architecture** | Modular monolith | Multi-tenant with tenant isolation |
+| **Deployment** | Self-hosted | Cloud-native (Azure) |
+| **Theming** | Generic themes | Ottoman/Iznik-inspired design system |
+| **AI Integration** | Basic (Zoota chat) | Dual AI agents (MOSAIC + Zoota Admin) |
+| **Payment** | Not included | Integrated Stripe + Microsoft Founder Hub |
+| **Onboarding** | Manual setup | Streamlined sign-up with guided wizard |
+
 ## 🎯 Vision
 
 MOSAIC reimagines website and content management as a service by blending:
@@ -78,7 +103,7 @@ Our goal is to make powerful web infrastructure accessible to everyone while cel
 - **Accessibility checks**: Ensure sites meet WCAG standards
 - **24/7 availability**: Always-on support for common questions
 
-#### Zoota Admin Agent
+#### Zoota Admin Agent (Inherited from OrkinosaiCMS)
 - **Administrative automation**: Streamline platform management tasks
 - **User support**: Intelligent ticket routing and response suggestions
 - **System monitoring**: Proactive issue detection and resolution
@@ -106,24 +131,113 @@ MOSAIC's visual identity is deeply rooted in Ottoman architectural masterpieces:
 
 Learn more about our design inspiration in the [logo documentation](./logo/README.md) and [Ottoman inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md).
 
-## 📚 Documentation
+## 📋 Requirements
 
-- **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
-- **[Onboarding Guide](./docs/ONBOARDING.md)**: Complete user journey from sign-up to launch
-- **[Logo & Branding](./logo/README.md)**: Official brand assets and usage guidelines
-- **[Design Concept](./logo/concept/DESIGN_CONCEPT.md)**: Logo design philosophy
-- **[Ottoman Inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md)**: Cultural and architectural heritage
+- .NET 10 SDK
+- SQL Server 2019+ / Azure SQL (for production)
+- Visual Studio 2022 (17.12+) or Visual Studio 2026 (recommended)
+- Azure account (for deployment)
+- Stripe account (for payment processing)
 
 ## 🚀 Getting Started
+
+### For End Users (Coming Soon)
 
 1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
 2. **Choose your plan**: Select a subscription tier that fits your needs
 3. **Create your first site**: Follow the guided setup wizard
-4. **Customize**: Apply themes and branding
+4. **Customize**: Apply Ottoman-inspired themes and branding
 5. **Launch**: Go live with your new website
 6. **Integrate**: Add the MOSAIC script to existing sites if needed
 
 For detailed onboarding instructions, see our [Onboarding Guide](./docs/ONBOARDING.md).
+
+### For Developers
+
+#### 1. Clone the Repository
+
+```bash
+git clone https://github.com/orkinosai25-org/mosaic.git
+cd mosaic
+```
+
+#### 2. Restore Dependencies
+
+```bash
+dotnet restore OrkinosaiCMS.sln
+```
+
+#### 3. Configure Multi-Tenancy
+
+Update `appsettings.json` to enable multi-tenant mode:
+```json
+{
+  "MultiTenancy": {
+    "Enabled": true,
+    "TenantIdentificationStrategy": "Host"
+  }
+}
+```
+
+#### 4. Apply Database Migrations
+
+```bash
+# Install EF Core tools (first time only)
+dotnet tool install --global dotnet-ef --version 10.0.0
+
+# Apply migrations
+cd src/OrkinosaiCMS.Infrastructure
+dotnet ef database update --startup-project ../OrkinosaiCMS.Web
+```
+
+#### 5. Run the Application
+
+```bash
+cd ../OrkinosaiCMS.Web
+dotnet run
+```
+
+Navigate to `https://localhost:5001`
+
+## 📚 Documentation
+
+### MOSAIC SaaS Documentation
+- **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
+- **[Onboarding Guide](./docs/ONBOARDING.md)**: Complete user journey from sign-up to launch
+- **[Multi-Tenancy Guide](./docs/MULTI_TENANCY.md)**: Architecture and implementation (coming soon)
+- **[Payment Integration](./docs/PAYMENT_INTEGRATION.md)**: Stripe setup and configuration (coming soon)
+
+### OrkinosaiCMS Core Documentation (Inherited)
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - Understand the system design and architecture
+- **[Setup Guide](docs/SETUP.md)** - Detailed setup and configuration instructions
+- **[Database Guide](docs/DATABASE.md)** - Database architecture and data access patterns
+- **[Extensibility Guide](docs/EXTENSIBILITY.md)** - Creating custom modules, themes, and extensions
+
+### Design & Branding
+- **[Logo & Branding](./logo/README.md)**: Official brand assets and usage guidelines
+- **[Design Concept](./logo/concept/DESIGN_CONCEPT.md)**: Logo design philosophy
+- **[Ottoman Inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md)**: Cultural and architectural heritage
+
+### Migration & Deployment
+- **[Azure Deployment](docs/AZURE_DEPLOYMENT.md)** - Deploy to Azure Web Apps with Azure SQL
+- **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment procedures
+
+## 🏗️ Project Structure
+
+```
+mosaic/
+├── src/
+│   ├── OrkinosaiCMS.Core/              # Domain entities and interfaces
+│   ├── OrkinosaiCMS.Infrastructure/    # Data access and services
+│   ├── OrkinosaiCMS.Modules.Abstractions/  # Module base classes
+│   ├── OrkinosaiCMS.Shared/            # Shared DTOs
+│   ├── OrkinosaiCMS.Web/               # Blazor Web App
+│   └── Modules/
+│       └── OrkinosaiCMS.Modules.Content/  # Sample content module
+├── docs/                                # Documentation
+├── logo/                                # MOSAIC branding and design assets
+└── scripts/                             # Utility scripts
+```
 
 ## 💼 For Startups
 
@@ -134,6 +248,44 @@ MOSAIC is proud to support startups through the **Microsoft for Startups Founder
 - Scalability consulting
 
 [Learn more about startup benefits](./docs/SaaS_FEATURES.md#startup-support)
+
+## 🛣️ Next Steps in SaaS Development
+
+### Phase 1: Multi-Tenancy Foundation (In Progress)
+- [ ] Implement tenant isolation at database level
+- [ ] Add tenant identification middleware
+- [ ] Create tenant provisioning workflow
+- [ ] Implement tenant-specific data access
+
+### Phase 2: User Onboarding & Authentication
+- [ ] Streamlined sign-up flow with email verification
+- [ ] OAuth integration (Google, Microsoft, GitHub)
+- [ ] User profile management
+- [ ] Guided setup wizard
+
+### Phase 3: Payment & Subscription Management
+- [ ] Stripe integration for payment processing
+- [ ] Subscription tier management
+- [ ] Usage tracking and billing
+- [ ] Invoice generation
+
+### Phase 4: Ottoman Design System
+- [ ] Implement 6+ Ottoman-inspired themes
+- [ ] Iznik tile pattern library
+- [ ] Theme customization UI
+- [ ] Brand asset management
+
+### Phase 5: AI Agent Enhancement
+- [ ] Deploy MOSAIC Public Agent
+- [ ] Enhance Zoota Admin Agent
+- [ ] AI-powered content suggestions
+- [ ] Automated SEO optimization
+
+### Phase 6: Analytics & Monitoring
+- [ ] Real-time analytics dashboard
+- [ ] Performance monitoring
+- [ ] User behavior tracking
+- [ ] Custom reporting
 
 ## 🤝 Contributing
 
@@ -149,6 +301,14 @@ Please check our contribution guidelines (coming soon).
 
 This project is proprietary software by Orkinosai. See LICENSE file for details.
 
+## 🙏 Acknowledgments
+
+- **OrkinosaiCMS** - The foundational CMS that powers MOSAIC
+- **Oqtane CMS** - Inspiration for the modular architecture
+- **SharePoint** - Inspiration for page model and permission system
+- **.NET Team** - For the amazing .NET 10 and Blazor frameworks
+- **Ottoman Architects** - Mimar Sinan and the masters who created timeless beauty
+
 ## 📞 Contact & Support
 
 - **Website**: [orkinosai.com](https://orkinosai.com) (coming soon)
@@ -156,7 +316,21 @@ This project is proprietary software by Orkinosai. See LICENSE file for details.
 - **Email**: support@orkinosai.com (coming soon)
 - **Documentation**: See [docs](./docs/) folder
 
+## 🔧 SaaS Compatibility Notes
+
+### Configurations Requiring Adjustment
+
+1. **Connection Strings**: Update for multi-tenant database strategy
+2. **Authentication**: Configure for SaaS identity provider
+3. **Secrets Management**: Use Azure Key Vault for production
+4. **Branding**: Apply Ottoman-inspired theme system
+5. **Domain Configuration**: Set up custom domain routing per tenant
+6. **Email Service**: Configure SendGrid/similar for transactional emails
+7. **Payment Gateway**: Set up Stripe with webhook endpoints
+
+See [Setup Guide](docs/SETUP.md) for detailed configuration instructions.
+
 ---
 
 **Built with ❤️ by [Orkinosai](https://github.com/orkinosai25-org)**  
-**Inspired by Ottoman heritage** • **Powered by modern technology**
+**Inspired by Ottoman heritage** • **Powered by OrkinosaiCMS** • **Crafted with modern technology**

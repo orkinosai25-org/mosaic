@@ -1,0 +1,74 @@
+@* Standard Master Page with Header, Main, Sidebar, and Footer zones *@
+@layout MainLayout
+
+<div class="master-page-standard">
+    <!-- Header Zone -->
+    <header class="site-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <h1 class="site-title">@SiteTitle</h1>
+                </div>
+                <div class="col-md-9">
+                    @HeaderZone
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Zone -->
+    <nav class="main-nav">
+        <div class="container">
+            @NavigationZone
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="container">
+            <div class="row">
+                <!-- Main Content Zone -->
+                <div class="col-lg-8">
+                    @MainZone
+                </div>
+                
+                <!-- Sidebar Zone -->
+                <div class="col-lg-4">
+                    @SidebarZone
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Zone -->
+    <footer class="site-footer">
+        <div class="container">
+            @FooterZone
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; @DateTime.Now.Year @SiteTitle. All rights reserved. Powered by OrkinosaiCMS.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? HeaderZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? NavigationZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? MainZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? SidebarZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? FooterZone { get; set; }
+    
+    [Parameter]
+    public string SiteTitle { get; set; } = "OrkinosaiCMS";
+}

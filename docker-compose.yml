@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=OrkinosaiCMS;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+      - CMS__SiteName=OrkinosaiCMS Docker
+      - CMS__DefaultTheme=Default
+      - CMS__EnableModuleDiscovery=true
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - orkinosai-network
+    restart: unless-stopped
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    networks:
+      - orkinosai-network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+networks:
+  orkinosai-network:
+    driver: bridge
+
+volumes:
+  sqldata:
+    driver: local

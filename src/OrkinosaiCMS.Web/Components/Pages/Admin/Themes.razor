@@ -1,0 +1,512 @@
+@page "/admin/themes"
+@attribute [Authorize(Roles = "Administrator")]
+@layout OrkinosaiCMS.Web.Components.Layout.Admin.AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@using OrkinosaiCMS.Core.Entities.Sites
+@using OrkinosaiCMS.Core.Interfaces.Services
+@inject IThemeService ThemeService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Theme Management - OrkinosaiCMS</PageTitle>
+
+<div class="themes-page">
+    <div class="page-header">
+        <div>
+            <h1>Theme Management</h1>
+            <p>Select and customize themes for your website</p>
+        </div>
+        <button class="btn-primary" @onclick="ShowCreateTheme">
+            <span>➕</span> Create Custom Theme
+        </button>
+    </div>
+
+    @if (themes == null)
+    {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading themes...</p>
+        </div>
+    }
+    else
+    {
+        <div class="theme-categories">
+            <button class="category-btn @(selectedCategory == "All" ? "active" : "")" @onclick='() => FilterThemes("All")'>
+                All Themes
+            </button>
+            <button class="category-btn @(selectedCategory == "Modern" ? "active" : "")" @onclick='() => FilterThemes("Modern")'>
+                Modern
+            </button>
+            <button class="category-btn @(selectedCategory == "SharePoint" ? "active" : "")" @onclick='() => FilterThemes("SharePoint")'>
+                SharePoint
+            </button>
+            <button class="category-btn @(selectedCategory == "Dashboard" ? "active" : "")" @onclick='() => FilterThemes("Dashboard")'>
+                Dashboard
+            </button>
+            <button class="category-btn @(selectedCategory == "Minimal" ? "active" : "")" @onclick='() => FilterThemes("Minimal")'>
+                Minimal
+            </button>
+            <button class="category-btn @(selectedCategory == "Marketing" ? "active" : "")" @onclick='() => FilterThemes("Marketing")'>
+                Marketing
+            </button>
+        </div>
+
+        <div class="themes-grid">
+            @foreach (var theme in filteredThemes)
+            {
+                <div class="theme-card @(theme.IsEnabled ? "" : "disabled")">
+                    <div class="theme-preview">
+                        @if (!string.IsNullOrEmpty(theme.ThumbnailUrl))
+                        {
+                            <img src="@theme.ThumbnailUrl" alt="@theme.Name" />
+                        }
+                        else
+                        {
+                            <div class="theme-placeholder">
+                                <span class="theme-icon">🎨</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="theme-info">
+                        <div class="theme-header">
+                            <h3>@theme.Name</h3>
+                            @if (theme.IsSystem)
+                            {
+                                <span class="badge system">System</span>
+                            }
+                            @if (!theme.IsEnabled)
+                            {
+                                <span class="badge disabled">Disabled</span>
+                            }
+                        </div>
+                        <p class="theme-description">@theme.Description</p>
+                        <div class="theme-meta">
+                            <span class="meta-item">
+                                <strong>Category:</strong> @theme.Category
+                            </span>
+                            <span class="meta-item">
+                                <strong>Layout:</strong> @theme.LayoutType
+                            </span>
+                            @if (theme.IsMobileResponsive)
+                            {
+                                <span class="badge responsive">📱 Mobile Responsive</span>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(theme.PrimaryColor))
+                        {
+                            <div class="theme-colors">
+                                <div class="color-swatch" style="background: @theme.PrimaryColor" title="Primary"></div>
+                                @if (!string.IsNullOrEmpty(theme.SecondaryColor))
+                                {
+                                    <div class="color-swatch" style="background: @theme.SecondaryColor" title="Secondary"></div>
+                                }
+                                @if (!string.IsNullOrEmpty(theme.AccentColor))
+                                {
+                                    <div class="color-swatch" style="background: @theme.AccentColor" title="Accent"></div>
+                                }
+                            </div>
+                        }
+                        <div class="theme-actions">
+                            <button class="btn-action preview" @onclick="() => PreviewTheme(theme)">
+                                👁️ Preview
+                            </button>
+                            <button class="btn-action apply" @onclick="() => ApplyTheme(theme)">
+                                ✓ Apply Theme
+                            </button>
+                            @if (!theme.IsSystem)
+                            {
+                                <button class="btn-action edit" @onclick="() => EditTheme(theme)">
+                                    ✏️ Edit
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-action clone" @onclick="() => CloneTheme(theme)">
+                                    📋 Clone
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .themes-page {
+        padding: 30px;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .page-header h1 {
+        color: #1e293b;
+        font-size: 32px;
+        margin: 0 0 8px 0;
+    }
+
+    .page-header p {
+        color: #64748b;
+        margin: 0;
+    }
+
+    .btn-primary {
+        background: #0078D4;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+        background: #005a9e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    }
+
+    .loading {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #e5e7eb;
+        border-top-color: #0078D4;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .theme-categories {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+    }
+
+    .category-btn {
+        background: white;
+        border: 2px solid #e5e7eb;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        color: #475569;
+        transition: all 0.2s;
+    }
+
+    .category-btn:hover {
+        border-color: #0078D4;
+        color: #0078D4;
+    }
+
+    .category-btn.active {
+        background: #0078D4;
+        color: white;
+        border-color: #0078D4;
+    }
+
+    .themes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 24px;
+    }
+
+    .theme-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+
+    .theme-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+        border-color: #0078D4;
+    }
+
+    .theme-card.disabled {
+        opacity: 0.6;
+    }
+
+    .theme-preview {
+        height: 200px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .theme-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .theme-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .theme-icon {
+        font-size: 64px;
+        opacity: 0.8;
+    }
+
+    .theme-info {
+        padding: 20px;
+    }
+
+    .theme-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .theme-header h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+        flex: 1;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge.system {
+        background: #e0e7ff;
+        color: #4f46e5;
+    }
+
+    .badge.disabled {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .badge.responsive {
+        background: #dcfce7;
+        color: #16a34a;
+        font-size: 12px;
+        text-transform: none;
+    }
+
+    .theme-description {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 16px;
+    }
+
+    .theme-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+    }
+
+    .meta-item {
+        color: #64748b;
+    }
+
+    .meta-item strong {
+        color: #475569;
+    }
+
+    .theme-colors {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .color-swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .color-swatch:hover {
+        transform: scale(1.1);
+    }
+
+    .theme-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        flex: 1;
+        min-width: 100px;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-action.preview {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .btn-action.preview:hover {
+        background: #e2e8f0;
+    }
+
+    .btn-action.apply {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-action.apply:hover {
+        background: #059669;
+    }
+
+    .btn-action.edit {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-action.edit:hover {
+        background: #2563eb;
+    }
+
+    .btn-action.clone {
+        background: #8b5cf6;
+        color: white;
+    }
+
+    .btn-action.clone:hover {
+        background: #7c3aed;
+    }
+
+    @@media (max-width: 768px) {
+        .themes-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            gap: 16px;
+        }
+    }
+</style>
+
+@code {
+    private List<Theme>? themes;
+    private List<Theme> filteredThemes = new();
+    private string selectedCategory = "All";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadThemes();
+    }
+
+    private async Task LoadThemes()
+    {
+        var allThemes = await ThemeService.GetAllThemesAsync();
+        themes = allThemes.ToList();
+        FilterThemes(selectedCategory);
+    }
+
+    private void FilterThemes(string category)
+    {
+        selectedCategory = category;
+        if (themes == null) return;
+
+        if (category == "All")
+        {
+            filteredThemes = themes.ToList();
+        }
+        else
+        {
+            filteredThemes = themes.Where(t => t.Category == category).ToList();
+        }
+    }
+
+    private void PreviewTheme(Theme theme)
+    {
+        // TODO: Implement theme preview
+        Console.WriteLine($"Preview theme: {theme.Name}");
+    }
+
+    private async Task ApplyTheme(Theme theme)
+    {
+        try
+        {
+            // Get the default site ID (in a production system, this would come from context or configuration)
+            const int defaultSiteId = 1; // TODO: Replace with ISiteContext or IConfiguration service
+            await ThemeService.ApplyThemeToSiteAsync(defaultSiteId, theme.Id);
+            Console.WriteLine($"Applied theme: {theme.Name}");
+            // TODO: Add toast notification or success message to UI
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error applying theme: {ex.Message}");
+            // TODO: Add error notification to UI
+        }
+    }
+
+    private void EditTheme(Theme theme)
+    {
+        NavigationManager.NavigateTo($"/admin/themes/edit/{theme.Id}");
+    }
+
+    private async Task CloneTheme(Theme theme)
+    {
+        try
+        {
+            var clonedTheme = await ThemeService.CloneThemeAsync(theme.Id, $"{theme.Name} (Custom)", $"Customized version of {theme.Name}");
+            await LoadThemes();
+            Console.WriteLine($"Cloned theme: {clonedTheme.Name}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cloning theme: {ex.Message}");
+        }
+    }
+
+    private void ShowCreateTheme()
+    {
+        NavigationManager.NavigateTo("/admin/themes/create");
+    }
+}
