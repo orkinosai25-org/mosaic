@@ -1,0 +1,6 @@
+@MosaicCMS_HostAddress = http://localhost:5093
+
+GET {{MosaicCMS_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
