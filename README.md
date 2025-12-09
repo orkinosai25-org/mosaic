@@ -108,10 +108,21 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 📚 Documentation
 
-- **[Quick Start - CMS](./docs/QUICK_START_CMS.md)**: Get started with CMS and Azure Blob Storage in minutes
+### Platform Documentation
+- **[Architecture](./docs/architecture.md)**: Platform architecture, multi-tenant design, and tier specifications
 - **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
+- **[Application Settings](./docs/appsettings.md)**: Configuration guide for appsettings.json and Azure Key Vault
+- **[Portal UI Design](./docs/portal-ui.md)**: Azure-style portal interface and Ottoman-inspired design elements
+
+### Getting Started
+- **[Quick Start - CMS](./docs/QUICK_START_CMS.md)**: Get started with CMS and Azure Blob Storage in minutes
 - **[Onboarding Guide](./docs/ONBOARDING.md)**: Complete user journey from sign-up to launch
+- **[Migration Toolkit](./docs/migration.md)**: Migrate from Wix, Umbraco, or SharePoint with guided workflows
+
+### Integration & Storage
 - **[Azure Blob Storage Integration](./docs/AZURE_BLOB_STORAGE.md)**: Media storage, security, and usage guide
+
+### Branding & Design
 - **[Logo & Branding](./logo/README.md)**: Official brand assets and usage guidelines
 - **[Design Concept](./logo/concept/DESIGN_CONCEPT.md)**: Logo design philosophy
 - **[Ottoman Inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md)**: Cultural and architectural heritage
