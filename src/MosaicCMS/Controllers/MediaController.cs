@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using MosaicCMS.Models;
 using MosaicCMS.Services.Storage;
 
 namespace MosaicCMS.Controllers;
@@ -13,6 +15,7 @@ public class MediaController : ControllerBase
 {
     private readonly IBlobStorageService _blobStorageService;
     private readonly ILogger<MediaController> _logger;
+    private readonly AzureBlobStorageOptions _storageOptions;
     private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB limit
 
     private static readonly string[] AllowedImageTypes = 
@@ -31,9 +34,11 @@ public class MediaController : ControllerBase
 
     public MediaController(
         IBlobStorageService blobStorageService,
+        IOptions<AzureBlobStorageOptions> storageOptions,
         ILogger<MediaController> logger)
     {
         _blobStorageService = blobStorageService;
+        _storageOptions = storageOptions.Value;
         _logger = logger;
     }
 
@@ -77,6 +82,14 @@ public class MediaController : ControllerBase
         try
         {
             using var stream = file.OpenReadStream();
+            
+            // Validate file signature (magic number) to prevent malicious files
+            var isValidSignature = await FileValidationService.ValidateFileSignatureAsync(stream, file.ContentType);
+            if (!isValidSignature)
+            {
+                return BadRequest(new { error = "File signature does not match declared content type. File may be corrupted or malicious." });
+            }
+
             var uri = await _blobStorageService.UploadFileAsync(
                 "images",
                 tenantId,
@@ -142,6 +155,14 @@ public class MediaController : ControllerBase
         try
         {
             using var stream = file.OpenReadStream();
+            
+            // Validate file signature (magic number) to prevent malicious files
+            var isValidSignature = await FileValidationService.ValidateFileSignatureAsync(stream, file.ContentType);
+            if (!isValidSignature)
+            {
+                return BadRequest(new { error = "File signature does not match declared content type. File may be corrupted or malicious." });
+            }
+
             var uri = await _blobStorageService.UploadFileAsync(
                 "documents",
                 tenantId,
@@ -188,7 +209,15 @@ public class MediaController : ControllerBase
             return BadRequest(new { error = "Tenant ID is required in X-Tenant-Id header" });
         }
 
-        var allowedContainers = new[] { "images", "documents", "user-uploads", "backups" };
+        // Get allowed containers from configuration
+        var allowedContainers = new[]
+        {
+            _storageOptions.Containers.Images,
+            _storageOptions.Containers.Documents,
+            _storageOptions.Containers.UserUploads,
+            _storageOptions.Containers.Backups
+        };
+
         if (!allowedContainers.Contains(containerType.ToLower()))
         {
             return BadRequest(new { error = $"Invalid container type. Allowed: {string.Join(", ", allowedContainers)}" });

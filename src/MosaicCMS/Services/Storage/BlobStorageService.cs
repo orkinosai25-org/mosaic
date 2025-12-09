@@ -268,6 +268,7 @@ public class BlobStorageService : IBlobStorageService
 
     /// <summary>
     /// Sanitizes path components to prevent directory traversal attacks
+    /// Uses allowlist approach to only permit safe characters
     /// </summary>
     private static string SanitizePath(string path)
     {
@@ -276,11 +277,25 @@ public class BlobStorageService : IBlobStorageService
             throw new ArgumentException("Path cannot be null or whitespace", nameof(path));
         }
 
-        // Remove any path traversal attempts and invalid characters
-        return path
-            .Replace("..", string.Empty)
-            .Replace("//", "/")
-            .Replace("\\", "/")
-            .Trim('/', ' ');
+        // Only allow alphanumeric, dash, underscore, and dot (but not ..)
+        var sanitized = new string(path
+            .Where(c => char.IsLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
+            .ToArray());
+
+        // Remove any remaining path traversal attempts
+        while (sanitized.Contains(".."))
+        {
+            sanitized = sanitized.Replace("..", string.Empty);
+        }
+
+        // Trim dots and dashes from start/end
+        sanitized = sanitized.Trim('.', '-', '_');
+
+        if (string.IsNullOrWhiteSpace(sanitized))
+        {
+            throw new ArgumentException("Path contains only invalid characters", nameof(path));
+        }
+
+        return sanitized;
     }
 }

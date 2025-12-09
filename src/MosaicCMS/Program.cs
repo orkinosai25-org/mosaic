@@ -10,8 +10,8 @@ builder.Services.AddControllers();
 builder.Services.Configure<AzureBlobStorageOptions>(
     builder.Configuration.GetSection("AzureBlobStorage"));
 
-// Register Blob Storage Service
-builder.Services.AddSingleton<IBlobStorageService, BlobStorageService>();
+// Register Blob Storage Service as Scoped for proper lifecycle management
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
