@@ -77,7 +77,6 @@ function App() {
   };
 
   const handleQuickAction = (action: string) => {
-    console.log('Quick action:', action);
     // Handle navigation based on action
     if (action === 'create-site') {
       setActiveNav('sites');
@@ -85,6 +84,8 @@ function App() {
       setActiveNav('billing');
     } else if (action === 'settings') {
       setActiveNav('settings');
+    } else if (action === 'analytics') {
+      setActiveNav('dashboard');
     }
   };
 
@@ -96,7 +97,7 @@ function App() {
           onLogin={handleShowLogin}
           onRegister={handleShowRegister}
           onLogout={handleLogout}
-          onProfileClick={() => console.log('Profile clicked')}
+          onProfileClick={() => setActiveNav('dashboard')}
           onSettingsClick={() => setActiveNav('settings')}
         />
 

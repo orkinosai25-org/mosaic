@@ -75,12 +75,26 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication
+    
+    // Basic validation
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
+    if (!password || password.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+    
+    // TODO: Replace with actual authentication API call
+    // Mock authentication for demonstration
     onAuthenticate(email, name || email.split('@')[0]);
   };
 
   const handleOAuthLogin = (provider: string) => {
-    // Mock OAuth login
+    // TODO: Implement proper OAuth flow with provider
+    // Mock OAuth login for demonstration only
     onAuthenticate(`user@${provider}.com`, `${provider} User`);
   };
 
