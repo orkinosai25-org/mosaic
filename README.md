@@ -116,7 +116,7 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 🚀 Getting Started
 
-1. **Sign up**: Visit [mosaic.orkinosai.com](https://mosaic.orkinosai.com) (coming soon)
+1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
 2. **Choose your plan**: Select a subscription tier that fits your needs
 3. **Create your first site**: Follow the guided setup wizard
 4. **Customize**: Apply themes and branding

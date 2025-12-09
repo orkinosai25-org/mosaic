@@ -408,10 +408,10 @@ Recommended action: Enable MFA and review activity logs"
 ## 🎓 Resources
 
 - **[Onboarding Guide](./ONBOARDING.md)**: Complete user journey documentation
-- **[API Documentation](https://api.mosaic.orkinosai.com/docs)**: Developer reference (coming soon)
+- **API Documentation**: Developer reference (launching soon at api.mosaic.orkinosai.com/docs)
 - **[Design System](../logo/README.md)**: Branding and visual guidelines
-- **[Support Portal](https://support.mosaic.orkinosai.com)**: Help center and tickets (coming soon)
-- **[Community Forum](https://community.mosaic.orkinosai.com)**: User discussions (coming soon)
+- **Support Portal**: Help center and tickets (launching soon)
+- **Community Forum**: User discussions (launching soon)
 
 ## 💬 Feedback
 

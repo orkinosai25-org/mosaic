@@ -25,7 +25,7 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
 
 ### Creating Your Account
 
-1. **Visit**: Navigate to [mosaic.orkinosai.com/signup](https://mosaic.orkinosai.com/signup)
+1. **Visit**: Navigate to mosaic.orkinosai.com/signup (example URL - platform launching soon)
 
 2. **Enter Details**:
    ```
@@ -43,8 +43,8 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
    - Not a commonly used password
 
 4. **Terms & Conditions**:
-   - Review our [Terms of Service](https://mosaic.orkinosai.com/terms)
-   - Review our [Privacy Policy](https://mosaic.orkinosai.com/privacy)
+   - Review our Terms of Service
+   - Review our Privacy Policy
    - Check the box to agree
 
 5. **Click**: "Create Account"
@@ -151,7 +151,7 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
 - Team collaboration (unlimited users)
 - Dedicated account manager
 
-**Price**: Custom pricing - [Contact Sales](https://mosaic.orkinosai.com/contact)
+**Price**: Custom pricing - Contact Sales (details coming soon)
 
 ### Microsoft Startup Founder Hub Benefits
 
@@ -468,14 +468,16 @@ Upload small icon for browser tabs:
    ```
    Type: A
    Name: @
-   Value: 76.76.21.21
+   Value: [IP address will be provided]
    TTL: 3600
    
    Type: A
    Name: @
-   Value: 76.76.21.22
+   Value: [Secondary IP will be provided]
    TTL: 3600
    ```
+   
+   **Note**: Actual IP addresses will be provided in your MOSAIC dashboard under Settings → Domains.
 
 3. **Popular DNS Providers**:
 
