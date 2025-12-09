@@ -74,7 +74,7 @@ public class MediaController : ControllerBase
                 new { error = $"File size exceeds maximum limit of {MaxFileSize / (1024 * 1024)} MB" });
         }
 
-        if (!AllowedImageTypes.Contains(file.ContentType.ToLower()))
+        if (!AllowedImageTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
         {
             return BadRequest(new { error = "Invalid image file type. Allowed types: JPEG, PNG, GIF, WebP, SVG" });
         }
@@ -147,7 +147,7 @@ public class MediaController : ControllerBase
                 new { error = $"File size exceeds maximum limit of {MaxFileSize / (1024 * 1024)} MB" });
         }
 
-        if (!AllowedDocumentTypes.Contains(file.ContentType.ToLower()))
+        if (!AllowedDocumentTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
         {
             return BadRequest(new { error = "Invalid document type. Allowed types: PDF, Word, Excel, Text, CSV" });
         }
@@ -218,7 +218,7 @@ public class MediaController : ControllerBase
             _storageOptions.Containers.Backups
         };
 
-        if (!allowedContainers.Contains(containerType.ToLower()))
+        if (!allowedContainers.Contains(containerType, StringComparer.OrdinalIgnoreCase))
         {
             return BadRequest(new { error = $"Invalid container type. Allowed: {string.Join(", ", allowedContainers)}" });
         }
