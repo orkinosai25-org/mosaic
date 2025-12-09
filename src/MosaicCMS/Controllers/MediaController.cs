@@ -91,7 +91,7 @@ public class MediaController : ControllerBase
             }
 
             var uri = await _blobStorageService.UploadFileAsync(
-                "images",
+                _storageOptions.Containers.Images,
                 tenantId,
                 file.FileName,
                 stream,
@@ -164,7 +164,7 @@ public class MediaController : ControllerBase
             }
 
             var uri = await _blobStorageService.UploadFileAsync(
-                "documents",
+                _storageOptions.Containers.Documents,
                 tenantId,
                 file.FileName,
                 stream,

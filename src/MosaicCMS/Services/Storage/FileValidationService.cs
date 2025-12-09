@@ -6,6 +6,12 @@ namespace MosaicCMS.Services.Storage;
 /// </summary>
 public static class FileValidationService
 {
+    // Content type constants
+    private const string SvgContentType = "image/svg+xml";
+    private const string PlainTextContentType = "text/plain";
+    private const string CsvContentType = "text/csv";
+    private const string WebPContentType = "image/webp";
+
     // File signatures (magic numbers) for allowed file types
     private static readonly Dictionary<string, List<byte[]>> FileSignatures = new()
     {
@@ -72,7 +78,7 @@ public static class FileValidationService
     public static async Task<bool> ValidateFileSignatureAsync(Stream stream, string contentType)
     {
         // SVG and text files don't have binary signatures
-        if (contentType == "image/svg+xml" || contentType == "text/plain" || contentType == "text/csv")
+        if (contentType == SvgContentType || contentType == PlainTextContentType || contentType == CsvContentType)
         {
             return await ValidateTextFileAsync(stream, contentType);
         }
@@ -105,7 +111,7 @@ public static class FileValidationService
             }
 
             // Special case for WebP - need to check RIFF + WEBP
-            if (contentType == "image/webp" && bytesRead >= 12)
+            if (contentType == WebPContentType && bytesRead >= 12)
             {
                 var isRiff = headerBytes.Take(4).SequenceEqual(new byte[] { 0x52, 0x49, 0x46, 0x46 });
                 var isWebP = headerBytes.Skip(8).Take(4).SequenceEqual(new byte[] { 0x57, 0x45, 0x42, 0x50 });
@@ -143,7 +149,7 @@ public static class FileValidationService
             }
 
             // For SVG, verify it starts with XML declaration or svg tag
-            if (contentType == "image/svg+xml")
+            if (contentType == SvgContentType)
             {
                 var trimmed = content.TrimStart();
                 return trimmed.StartsWith("<?xml") || trimmed.StartsWith("<svg");
@@ -170,9 +176,9 @@ public static class FileValidationService
         // Different size limits based on content type
         return contentType switch
         {
-            "image/svg+xml" => 1 * 1024 * 1024,  // 1 MB for SVG
-            "text/plain" => 5 * 1024 * 1024,      // 5 MB for text
-            "text/csv" => 5 * 1024 * 1024,        // 5 MB for CSV
+            SvgContentType => 1 * 1024 * 1024,       // 1 MB for SVG
+            PlainTextContentType => 5 * 1024 * 1024,  // 5 MB for text
+            CsvContentType => 5 * 1024 * 1024,        // 5 MB for CSV
             _ when contentType.StartsWith("image/") => 10 * 1024 * 1024,  // 10 MB for images
             _ => 10 * 1024 * 1024  // 10 MB default
         };

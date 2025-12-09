@@ -108,6 +108,7 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 📚 Documentation
 
+- **[Quick Start - CMS](./docs/QUICK_START_CMS.md)**: Get started with CMS and Azure Blob Storage in minutes
 - **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
 - **[Onboarding Guide](./docs/ONBOARDING.md)**: Complete user journey from sign-up to launch
 - **[Azure Blob Storage Integration](./docs/AZURE_BLOB_STORAGE.md)**: Media storage, security, and usage guide

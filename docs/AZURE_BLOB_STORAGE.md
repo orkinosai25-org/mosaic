@@ -319,11 +319,13 @@ if (string.IsNullOrEmpty(tenantId))
 ### 2. Input Validation
 
 The service automatically:
-- ✅ Validates file types
-- ✅ Checks file sizes
-- ✅ Sanitizes file names
-- ✅ Prevents path traversal attacks
-- ✅ Blocks directory traversal attempts
+- ✅ Validates MIME types against allowed types
+- ✅ Validates file signatures (magic numbers) to prevent malicious files
+- ✅ Checks file sizes against limits
+- ✅ Sanitizes file names using allowlist approach
+- ✅ Prevents path traversal attacks (removes `..`, `/`, `\`)
+- ✅ Blocks directory traversal attempts with character filtering
+- ✅ Rejects files with invalid or mismatched signatures
 
 ### 3. Connection String Security
 

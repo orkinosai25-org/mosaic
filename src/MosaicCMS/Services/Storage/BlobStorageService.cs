@@ -29,15 +29,15 @@ public class BlobStorageService : IBlobStorageService
         
         if (string.IsNullOrEmpty(connectionString))
         {
-            // Fallback to constructing from account name and endpoint
-            // In production, use Managed Identity or connection string from Key Vault
-            _logger.LogWarning("Connection string not found. Using account endpoint. Configure Managed Identity or connection string for production.");
-            _blobServiceClient = new BlobServiceClient(new Uri(_options.PrimaryEndpoint));
+            // In production, this should use Managed Identity via DefaultAzureCredential
+            // For now, throw an exception to ensure proper configuration
+            var errorMessage = $"Azure Blob Storage connection string '{_options.ConnectionStringKey}' not found. " +
+                             "Configure connection string in user secrets (development) or use Managed Identity (production).";
+            _logger.LogError(errorMessage);
+            throw new InvalidOperationException(errorMessage);
         }
-        else
-        {
-            _blobServiceClient = new BlobServiceClient(connectionString);
-        }
+        
+        _blobServiceClient = new BlobServiceClient(connectionString);
     }
 
     /// <inheritdoc/>
