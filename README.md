@@ -108,6 +108,8 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 📚 Documentation
 
+- **[Frontend Design](./docs/FRONTEND_DESIGN.md)**: SaaS portal UI/UX design and wireframes
+- **[Frontend README](./frontend/README.md)**: React + Fluent UI frontend application guide
 - **[Quick Start - CMS](./docs/QUICK_START_CMS.md)**: Get started with CMS and Azure Blob Storage in minutes
 - **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
 - **[Onboarding Guide](./docs/ONBOARDING.md)**: Complete user journey from sign-up to launch
@@ -118,6 +120,8 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 🚀 Getting Started
 
+### For End Users
+
 1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
 2. **Choose your plan**: Select a subscription tier that fits your needs
 3. **Create your first site**: Follow the guided setup wizard
@@ -126,6 +130,38 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 6. **Integrate**: Add the MOSAIC script to existing sites if needed
 
 For detailed onboarding instructions, see our [Onboarding Guide](./docs/ONBOARDING.md).
+
+### For Developers
+
+#### Frontend Development
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+See [Frontend README](./frontend/README.md) for detailed setup and architecture information.
+
+#### Backend Development
+
+```bash
+# Navigate to backend directory
+cd src/MosaicCMS
+
+# Restore dependencies
+dotnet restore
+
+# Run the application
+dotnet run
+```
+
+See [MosaicCMS README](./src/MosaicCMS/README.md) for API documentation.
 
 ## ☁️ Azure Blob Storage Integration
 

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Ottoman tile gradient - Dark mode -->
+    <linearGradient id="blueGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="turquoiseGradientDark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22d3ee;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGradientDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fcd34d;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Ottoman 8-pointed star pattern (common in Selimiye Mosque) -->
+    <g id="ottomanStarDark">
+      <path d="M 0,-20 L -5.9,-5.9 L -20,0 L -5.9,5.9 L 0,20 L 5.9,5.9 L 20,0 L 5.9,-5.9 Z" 
+            fill="url(#goldGradientDark)" stroke="#fcd34d" stroke-width="0.5"/>
+      <circle cx="0" cy="0" r="6" fill="#1e293b"/>
+    </g>
+    
+    <!-- Small geometric tile element -->
+    <g id="tileElementDark">
+      <path d="M 0,-8 L -8,0 L 0,8 L 8,0 Z" fill="url(#turquoiseGradientDark)" opacity="0.8"/>
+    </g>
+  </defs>
+  
+  <!-- Dark background -->
+  <rect width="800" height="300" fill="#0f172a"/>
+  
+  <!-- Ottoman mosaic decorative elements -->
+  <g opacity="0.2">
+    <use href="#tileElementDark" x="50" y="30" transform="scale(0.6)"/>
+    <use href="#tileElementDark" x="100" y="30" transform="scale(0.6)"/>
+    <use href="#tileElementDark" x="150" y="30" transform="scale(0.6)"/>
+    <use href="#tileElementDark" x="650" y="30" transform="scale(0.6)"/>
+    <use href="#tileElementDark" x="700" y="30" transform="scale(0.6)"/>
+    <use href="#tileElementDark" x="750" y="30" transform="scale(0.6)"/>
+  </g>
+  
+  <!-- Main logo mark -->
+  <g id="logoMark" transform="translate(100, 150)">
+    <!-- Central 8-pointed star -->
+    <use href="#ottomanStarDark" x="0" y="0" transform="scale(2.5)"/>
+    
+    <!-- Surrounding geometric elements -->
+    <g opacity="0.9">
+      <use href="#ottomanStarDark" x="-70" y="-70" transform="scale(1.2)"/>
+      <use href="#ottomanStarDark" x="70" y="-70" transform="scale(1.2)"/>
+      <use href="#ottomanStarDark" x="-70" y="70" transform="scale(1.2)"/>
+      <use href="#ottomanStarDark" x="70" y="70" transform="scale(1.2)"/>
+    </g>
+    
+    <!-- Decorative geometric frame -->
+    <circle cx="0" cy="0" r="75" fill="none" stroke="url(#blueGradientDark)" stroke-width="3" opacity="0.7"/>
+    <circle cx="0" cy="0" r="85" fill="none" stroke="url(#turquoiseGradientDark)" stroke-width="2" opacity="0.5"/>
+    
+    <!-- Small connecting tiles -->
+    <g opacity="0.8">
+      <use href="#tileElementDark" x="0" y="-90" transform="scale(0.8)"/>
+      <use href="#tileElementDark" x="0" y="90" transform="scale(0.8)"/>
+      <use href="#tileElementDark" x="-90" y="0" transform="scale(0.8)"/>
+      <use href="#tileElementDark" x="90" y="0" transform="scale(0.8)"/>
+    </g>
+  </g>
+  
+  <!-- MOSAIC wordmark -->
+  <g id="wordmark">
+    <text x="280" y="135" font-family="'Helvetica Neue', Arial, sans-serif" 
+          font-size="72" font-weight="700" letter-spacing="-2" fill="url(#blueGradientDark)">
+      MOSAIC
+    </text>
+    
+    <!-- Subtitle -->
+    <text x="280" y="170" font-family="'Helvetica Neue', Arial, sans-serif" 
+          font-size="18" font-weight="400" letter-spacing="4" fill="#22d3ee">
+      OTTOMAN HERITAGE
+    </text>
+    
+    <!-- Decorative tile accent -->
+    <g transform="translate(280, 180)">
+      <rect x="0" y="0" width="80" height="3" fill="url(#goldGradientDark)"/>
+      <rect x="90" y="0" width="40" height="3" fill="url(#turquoiseGradientDark)"/>
+      <rect x="140" y="0" width="25" height="3" fill="url(#goldGradientDark)"/>
+    </g>
+  </g>
+  
+  <!-- Orkinosai company mark -->
+  <g id="companyMark" transform="translate(730, 260)" opacity="0.8">
+    <circle cx="0" cy="0" r="18" fill="none" stroke="url(#blueGradientDark)" stroke-width="2.5"/>
+    <text x="0" y="0" font-family="'Helvetica Neue', Arial, sans-serif" 
+          font-size="16" font-weight="700" text-anchor="middle" 
+          dominant-baseline="central" fill="url(#goldGradientDark)">OK</text>
+    <use href="#ottomanStarDark" x="0" y="-25" transform="scale(0.3)"/>
+  </g>
+  
+  <!-- Bottom decorative elements -->
+  <g opacity="0.2">
+    <use href="#tileElementDark" x="50" y="270" transform="scale(0.6)"/>
+    <use href="#tileElementDark" x="100" y="270" transform="scale(0.6)"/>
+    <use href="#tileElementDark" x="150" y="270" transform="scale(0.6)"/>
+  </g>
+</svg>
