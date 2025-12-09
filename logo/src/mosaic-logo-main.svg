@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Ottoman tile gradient -->
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="turquoiseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Ottoman 8-pointed star pattern (common in Selimiye Mosque) -->
+    <g id="ottomanStar">
+      <path d="M 0,-20 L -5.9,-5.9 L -20,0 L -5.9,5.9 L 0,20 L 5.9,5.9 L 20,0 L 5.9,-5.9 Z" 
+            fill="url(#goldGradient)" stroke="#fbbf24" stroke-width="0.5"/>
+      <circle cx="0" cy="0" r="6" fill="#1e3a8a"/>
+    </g>
+    
+    <!-- Small geometric tile element -->
+    <g id="tileElement">
+      <path d="M 0,-8 L -8,0 L 0,8 L 8,0 Z" fill="url(#turquoiseGradient)" opacity="0.8"/>
+    </g>
+  </defs>
+  
+  <!-- Background with subtle tile pattern -->
+  <rect width="800" height="300" fill="#ffffff"/>
+  
+  <!-- Ottoman mosaic decorative elements (inspired by Iznik tiles) -->
+  <!-- Top decorative band -->
+  <g opacity="0.15">
+    <use href="#tileElement" x="50" y="30" transform="scale(0.6)"/>
+    <use href="#tileElement" x="100" y="30" transform="scale(0.6)"/>
+    <use href="#tileElement" x="150" y="30" transform="scale(0.6)"/>
+    <use href="#tileElement" x="650" y="30" transform="scale(0.6)"/>
+    <use href="#tileElement" x="700" y="30" transform="scale(0.6)"/>
+    <use href="#tileElement" x="750" y="30" transform="scale(0.6)"/>
+  </g>
+  
+  <!-- Main logo mark - Ottoman geometric pattern inspired by Selimiye tiles -->
+  <g id="logoMark" transform="translate(100, 150)">
+    <!-- Central 8-pointed star (Rub el Hizb inspired) -->
+    <use href="#ottomanStar" x="0" y="0" transform="scale(2.5)"/>
+    
+    <!-- Surrounding geometric elements creating mosaic effect -->
+    <g opacity="0.9">
+      <!-- Four corner stars -->
+      <use href="#ottomanStar" x="-70" y="-70" transform="scale(1.2)"/>
+      <use href="#ottomanStar" x="70" y="-70" transform="scale(1.2)"/>
+      <use href="#ottomanStar" x="-70" y="70" transform="scale(1.2)"/>
+      <use href="#ottomanStar" x="70" y="70" transform="scale(1.2)"/>
+    </g>
+    
+    <!-- Decorative geometric frame (inspired by Blue Mosque tile borders) -->
+    <circle cx="0" cy="0" r="75" fill="none" stroke="url(#blueGradient)" stroke-width="3" opacity="0.6"/>
+    <circle cx="0" cy="0" r="85" fill="none" stroke="url(#turquoiseGradient)" stroke-width="2" opacity="0.4"/>
+    
+    <!-- Small connecting tiles -->
+    <g opacity="0.7">
+      <use href="#tileElement" x="0" y="-90" transform="scale(0.8)"/>
+      <use href="#tileElement" x="0" y="90" transform="scale(0.8)"/>
+      <use href="#tileElement" x="-90" y="0" transform="scale(0.8)"/>
+      <use href="#tileElement" x="90" y="0" transform="scale(0.8)"/>
+    </g>
+  </g>
+  
+  <!-- MOSAIC wordmark -->
+  <g id="wordmark">
+    <text x="280" y="135" font-family="'Helvetica Neue', Arial, sans-serif" 
+          font-size="72" font-weight="700" letter-spacing="-2" fill="url(#blueGradient)">
+      MOSAIC
+    </text>
+    
+    <!-- Subtitle with Ottoman-inspired accent -->
+    <text x="280" y="170" font-family="'Helvetica Neue', Arial, sans-serif" 
+          font-size="18" font-weight="400" letter-spacing="4" fill="#0891b2">
+      OTTOMAN HERITAGE
+    </text>
+    
+    <!-- Decorative tile accent under wordmark -->
+    <g transform="translate(280, 180)">
+      <rect x="0" y="0" width="80" height="3" fill="url(#goldGradient)"/>
+      <rect x="90" y="0" width="40" height="3" fill="url(#turquoiseGradient)"/>
+      <rect x="140" y="0" width="25" height="3" fill="url(#goldGradient)"/>
+    </g>
+  </g>
+  
+  <!-- Orkinosai company mark/sigil (stylized OK in geometric form) -->
+  <g id="companyMark" transform="translate(730, 260)" opacity="0.7">
+    <circle cx="0" cy="0" r="18" fill="none" stroke="url(#blueGradient)" stroke-width="2.5"/>
+    <text x="0" y="0" font-family="'Helvetica Neue', Arial, sans-serif" 
+          font-size="16" font-weight="700" text-anchor="middle" 
+          dominant-baseline="central" fill="url(#goldGradient)">OK</text>
+    <!-- Small star accent -->
+    <use href="#ottomanStar" x="0" y="-25" transform="scale(0.3)"/>
+  </g>
+  
+  <!-- Bottom decorative elements -->
+  <g opacity="0.15">
+    <use href="#tileElement" x="50" y="270" transform="scale(0.6)"/>
+    <use href="#tileElement" x="100" y="270" transform="scale(0.6)"/>
+    <use href="#tileElement" x="150" y="270" transform="scale(0.6)"/>
+  </g>
+</svg>
