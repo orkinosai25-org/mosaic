@@ -147,11 +147,14 @@ MOSAIC leverages **Azure Blob Storage** for enterprise-grade media and asset man
 - **Multi-Tenant Isolation**: Automatic tenant data separation for security
 - **Scalable Storage**: Unlimited capacity for user uploads, images, and documents
 - **Geo-Redundant**: Data replicated across regions for high availability
+- **Automated Backups**: Built-in backup and restore functionality for tenant data
+- **Health Monitoring**: Real-time health checks for storage connectivity
 - **Secure by Default**: 
   - TLS 1.2 encryption in transit
   - Data encrypted at rest
   - No public access allowed
   - SAS tokens for temporary secure access
+  - File signature validation
 
 ### Storage Account Details
 
@@ -180,6 +183,15 @@ curl -X POST https://api.mosaic.app/api/media/images \
 # List tenant files
 curl -X GET "https://api.mosaic.app/api/media/list?containerType=images" \
   -H "X-Tenant-Id: your-tenant-id"
+
+# Create a backup
+curl -X POST https://api.mosaic.app/api/backup \
+  -H "X-Tenant-Id: your-tenant-id" \
+  -H "Content-Type: application/json" \
+  -d '{"containers": ["images", "documents"]}'
+
+# Check system health
+curl -X GET https://api.mosaic.app/api/health/detailed
 ```
 
 ### Security & Migration

@@ -34,7 +34,9 @@ The API will be available at `https://localhost:5001` (or the configured port).
 
 ## API Endpoints
 
-### Upload Image
+### Media Operations
+
+#### Upload Image
 ```http
 POST /api/media/images
 Headers:
@@ -44,7 +46,7 @@ Body:
   file: [binary file data]
 ```
 
-### Upload Document
+#### Upload Document
 ```http
 POST /api/media/documents
 Headers:
@@ -54,25 +56,72 @@ Body:
   file: [binary file data]
 ```
 
-### List Files
+#### List Files
 ```http
 GET /api/media/list?containerType=images
 Headers:
   X-Tenant-Id: your-tenant-id
 ```
 
-### Delete File
+#### Delete File
 ```http
 DELETE /api/media?containerType=images&fileName=logo.png
 Headers:
   X-Tenant-Id: your-tenant-id
 ```
 
-### Get SAS URL
+#### Get SAS URL
 ```http
 GET /api/media/sas-url?containerType=images&fileName=logo.png&expiryMinutes=60
 Headers:
   X-Tenant-Id: your-tenant-id
+```
+
+### Backup Operations
+
+#### Create Backup
+```http
+POST /api/backup
+Headers:
+  X-Tenant-Id: your-tenant-id
+  Content-Type: application/json
+Body:
+  {
+    "containers": ["images", "documents", "user-uploads"]
+  }
+```
+
+#### List Backups
+```http
+GET /api/backup
+Headers:
+  X-Tenant-Id: your-tenant-id
+```
+
+#### Restore Backup
+```http
+POST /api/backup/restore/{backupId}
+Headers:
+  X-Tenant-Id: your-tenant-id
+```
+
+#### Delete Backup
+```http
+DELETE /api/backup/{backupId}
+Headers:
+  X-Tenant-Id: your-tenant-id
+```
+
+### Health Monitoring
+
+#### Basic Health Check
+```http
+GET /api/health
+```
+
+#### Detailed Health Check (includes storage connectivity)
+```http
+GET /api/health/detailed
 ```
 
 ## Project Structure
@@ -80,13 +129,19 @@ Headers:
 ```
 MosaicCMS/
 ├── Controllers/
-│   └── MediaController.cs          # API endpoints for media operations
+│   ├── MediaController.cs          # API endpoints for media operations
+│   ├── BackupController.cs         # API endpoints for backup/restore
+│   └── HealthController.cs         # Health check endpoints
 ├── Models/
 │   └── AzureBlobStorageOptions.cs  # Configuration models
 ├── Services/
 │   └── Storage/
-│       ├── IBlobStorageService.cs  # Service interface
-│       └── BlobStorageService.cs   # Service implementation
+│       ├── IBlobStorageService.cs      # Blob storage interface
+│       ├── BlobStorageService.cs       # Blob storage implementation
+│       ├── IBackupService.cs           # Backup service interface
+│       ├── BackupService.cs            # Backup service implementation
+│       ├── IFileStorageService.cs      # Abstract file storage interface
+│       └── FileValidationService.cs    # File validation utilities
 ├── appsettings.json                # Application configuration
 └── Program.cs                      # Application startup
 ```
@@ -95,11 +150,14 @@ MosaicCMS/
 
 - ✅ Tenant isolation (files prefixed with tenant ID)
 - ✅ Input validation and sanitization
-- ✅ File type restrictions
-- ✅ File size limits (10 MB default)
-- ✅ Path traversal protection
+- ✅ File signature validation (magic number detection)
+- ✅ File type restrictions with MIME type verification
+- ✅ File size limits (10 MB default, configurable)
+- ✅ Path traversal protection with allowlist approach
 - ✅ HTTPS enforcement
 - ✅ SAS token generation for temporary access
+- ✅ No public blob access allowed
+- ✅ Encryption at rest and in transit (TLS 1.2+)
 
 ## Development
 

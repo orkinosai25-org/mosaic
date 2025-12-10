@@ -6,6 +6,167 @@ This document describes the Azure Blob Storage integration for the MOSAIC CMS pl
 
 MOSAIC CMS leverages **Azure Blob Storage** for scalable, secure, and multi-tenant media and asset management. All user-uploaded content (images, documents, backups) is stored in Azure Blob Storage with automatic tenant isolation.
 
+## Quick Start for CMS Users and Admins
+
+### For CMS Users
+
+As a CMS user, Azure Blob Storage integration is **transparent** - all file uploads automatically use blob storage with no additional configuration needed. Simply:
+
+1. **Upload files** through the CMS interface or API
+2. **Manage files** using the standard file management tools
+3. **Access files** via generated URLs or the CMS interface
+
+All files are automatically:
+- ✅ Stored securely in Azure Blob Storage
+- ✅ Isolated to your tenant (no cross-tenant access)
+- ✅ Backed up according to retention policies
+- ✅ Encrypted at rest and in transit
+
+### For CMS Administrators
+
+#### Initial Setup (One-Time)
+
+**Step 1: Obtain Azure Storage Credentials**
+
+You need either:
+- **Connection String** (for development/testing)
+- **Managed Identity** (recommended for production)
+
+To get your connection string:
+```bash
+# From Azure Portal
+1. Navigate to your Storage Account
+2. Go to "Access keys"
+3. Copy the connection string from key1 or key2
+```
+
+**Step 2: Configure the CMS**
+
+For **development** (using user secrets):
+```bash
+cd src/MosaicCMS
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:AzureBlobStorageConnectionString" "YOUR_CONNECTION_STRING"
+```
+
+For **production** (using Azure Key Vault):
+```bash
+# Add connection string to Key Vault
+az keyvault secret set \
+  --vault-name your-keyvault \
+  --name AzureBlobStorageConnectionString \
+  --value "YOUR_CONNECTION_STRING"
+
+# Configure CMS to use Key Vault (in appsettings.Production.json)
+{
+  "KeyVault": {
+    "VaultUri": "https://your-keyvault.vault.azure.net/"
+  }
+}
+```
+
+For **production with Managed Identity** (most secure):
+```bash
+# 1. Enable managed identity on your App Service/VM
+az webapp identity assign --name your-app --resource-group your-rg
+
+# 2. Grant "Storage Blob Data Contributor" role
+az role assignment create \
+  --role "Storage Blob Data Contributor" \
+  --assignee-object-id <managed-identity-object-id> \
+  --scope /subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.Storage/storageAccounts/mosaicsaas
+
+# 3. Update BlobStorageService to use DefaultAzureCredential instead of connection string
+```
+
+**Step 3: Verify Configuration**
+
+Test the setup:
+```bash
+# Start the CMS
+dotnet run
+
+# Check health endpoint
+curl http://localhost:5000/api/health/detailed
+
+# Should return: "status": "healthy"
+```
+
+**Step 4: Test File Upload**
+
+```bash
+# Upload a test image
+curl -X POST http://localhost:5000/api/media/images \
+  -H "X-Tenant-Id: test-tenant-001" \
+  -F "file=@test-image.jpg"
+
+# Verify in Azure Storage Explorer or Portal
+# Files appear as: images/test-tenant-001/test-image.jpg
+```
+
+#### Ongoing Management
+
+**Monitor Storage Usage**
+```bash
+# Check detailed health (includes storage status)
+curl http://localhost:5000/api/health/detailed
+
+# Monitor in Azure Portal
+# Navigate to: Storage Account > Metrics > Blob Capacity
+```
+
+**Create Tenant Backups**
+```bash
+# Backup all containers for a tenant
+curl -X POST http://localhost:5000/api/backup \
+  -H "X-Tenant-Id: tenant-001" \
+  -H "Content-Type: application/json" \
+  -d '{"containers": ["images", "documents", "user-uploads"]}'
+
+# List backups
+curl http://localhost:5000/api/backup \
+  -H "X-Tenant-Id: tenant-001"
+```
+
+**Restore from Backup**
+```bash
+# Restore specific backup
+curl -X POST http://localhost:5000/api/backup/restore/backup-20241210-123456-abc123 \
+  -H "X-Tenant-Id: tenant-001"
+```
+
+**Manage Storage Costs**
+- Monitor storage usage in Azure Portal
+- Set up lifecycle management to move old files to cool/archive tiers
+- Configure retention policies to auto-delete old backups
+- Use Azure Cost Management for billing alerts
+
+#### Troubleshooting for Admins
+
+**Connection Issues**
+```bash
+# Test 1: Verify connection string format
+# Should be: DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net
+
+# Test 2: Check network connectivity
+curl https://mosaicsaas.blob.core.windows.net
+
+# Test 3: Verify RBAC permissions (for Managed Identity)
+az role assignment list --assignee <identity-object-id> --scope <storage-account-resource-id>
+```
+
+**Upload Failures**
+- Check file size limits (default 10 MB)
+- Verify file type is allowed
+- Check tenant ID is valid
+- Review application logs for detailed errors
+
+**Performance Issues**
+- Enable Azure CDN for frequently accessed files
+- Use SAS tokens with appropriate expiry times
+- Monitor blob storage metrics in Azure Portal
+- Consider enabling blob versioning for critical files
+
 ## Azure Storage Account Details
 
 The MOSAIC platform uses the following Azure Storage account:
@@ -522,6 +683,52 @@ The storage account uses **Standard_RAGRS** which provides:
 2. **Versioning:** Enable blob versioning for critical containers
 3. **Snapshots:** Take periodic snapshots of important data
 4. **Cross-Region Backup:** Replicate critical data to separate storage account
+5. **Automated Tenant Backups:** Use the built-in backup API for tenant-level backups
+
+### Using the Backup API
+
+The CMS provides a dedicated backup service for tenant data management:
+
+**Create a Backup:**
+```bash
+curl -X POST https://your-cms.com/api/backup \
+  -H "X-Tenant-Id: your-tenant-id" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "containers": ["images", "documents", "user-uploads"]
+  }'
+```
+
+**Response:**
+```json
+{
+  "backupId": "backup-20241210-123456-abc123",
+  "tenantId": "your-tenant-id",
+  "fileCount": 150,
+  "totalSizeBytes": 52428800,
+  "createdAt": "2024-12-10T12:34:56Z",
+  "containers": ["images", "documents", "user-uploads"],
+  "message": "Backup created successfully"
+}
+```
+
+**List Backups:**
+```bash
+curl -X GET https://your-cms.com/api/backup \
+  -H "X-Tenant-Id: your-tenant-id"
+```
+
+**Restore a Backup:**
+```bash
+curl -X POST https://your-cms.com/api/backup/restore/backup-20241210-123456-abc123 \
+  -H "X-Tenant-Id: your-tenant-id"
+```
+
+**Delete a Backup:**
+```bash
+curl -X DELETE https://your-cms.com/api/backup/backup-20241210-123456-abc123 \
+  -H "X-Tenant-Id: your-tenant-id"
+```
 
 ### Recovery Procedures
 

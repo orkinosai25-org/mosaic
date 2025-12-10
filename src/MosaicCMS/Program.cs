@@ -13,6 +13,9 @@ builder.Services.Configure<AzureBlobStorageOptions>(
 // Register Blob Storage Service as Scoped for proper lifecycle management
 builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 
+// Register Backup Service for tenant backup and restore operations
+builder.Services.AddScoped<IBackupService, BackupService>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
