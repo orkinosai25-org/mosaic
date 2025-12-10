@@ -177,6 +177,7 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 
 ### Integration & Storage
 - **[Azure Blob Storage Integration](./docs/AZURE_BLOB_STORAGE.md)**: Media storage, security, and usage guide
+- **[Stripe API Keys Setup](./docs/STRIPE_SETUP.md)**: Complete guide for configuring Stripe payment integration
 
 ## 🚀 Getting Started
 
@@ -252,6 +253,24 @@ dotnet run
 ```
 
 See [MosaicCMS README](./src/MosaicCMS/README.md) for API documentation.
+
+#### Setting Up Environment Variables
+
+Before running the application, configure your environment variables:
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and add your API keys
+# - STRIPE_PUBLISHABLE_KEY: Get from Stripe Dashboard
+# - STRIPE_SECRET_KEY: Get from Stripe Dashboard (keep secret!)
+# - Other service keys as needed
+```
+
+**Important**: Never commit your `.env` file to Git. It's already in `.gitignore`.
+
+See [Stripe API Keys Setup Guide](./docs/STRIPE_SETUP.md) for detailed instructions.
 
 #### 1. Clone the Repository
 
