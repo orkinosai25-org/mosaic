@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Interfaces.Services;
 using OrkinosaiCMS.Shared.DTOs;
@@ -16,15 +17,22 @@ public class SiteController : ControllerBase
     private readonly ISiteService _siteService;
     private readonly IThemeService _themeService;
     private readonly ILogger<SiteController> _logger;
+    private readonly IConfiguration _configuration;
+    private readonly bool _showDetailedErrors;
+    private readonly bool _includeStackTrace;
 
     public SiteController(
         ISiteService siteService,
         IThemeService themeService,
-        ILogger<SiteController> logger)
+        ILogger<SiteController> logger,
+        IConfiguration configuration)
     {
         _siteService = siteService;
         _themeService = themeService;
         _logger = logger;
+        _configuration = configuration;
+        _showDetailedErrors = _configuration.GetValue<bool>("ErrorHandling:ShowDetailedErrors", false);
+        _includeStackTrace = _configuration.GetValue<bool>("ErrorHandling:IncludeStackTrace", false);
     }
 
     /// <summary>
@@ -185,21 +193,25 @@ public class SiteController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Invalid operation when creating site");
+            
             return BadRequest(new SiteProvisioningResultDto
             {
                 Success = false,
                 Message = "Failed to create site",
-                ErrorDetails = ex.Message
+                ErrorDetails = _showDetailedErrors ? ex.Message : "An error occurred during site creation",
+                StackTrace = _includeStackTrace ? ex.StackTrace : null
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating site");
+            
             return StatusCode(500, new SiteProvisioningResultDto
             {
                 Success = false,
                 Message = "An unexpected error occurred while creating the site",
-                ErrorDetails = ex.Message
+                ErrorDetails = _showDetailedErrors ? ex.Message : "Please contact support if this issue persists",
+                StackTrace = _includeStackTrace ? ex.StackTrace : null
             });
         }
     }
