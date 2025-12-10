@@ -229,6 +229,7 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
         const data = await response.json();
         setThemes(data);
       } else {
+        // Log error for debugging - in production, this helps developers diagnose API issues
         console.error('Failed to fetch themes');
         // Fallback to mock themes if API fails
         setThemes([
@@ -239,6 +240,7 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
         ]);
       }
     } catch (err) {
+      // Log error for debugging - in production, this helps developers diagnose API issues
       console.error('Error fetching themes:', err);
       // Fallback to mock themes if API fails
       setThemes([

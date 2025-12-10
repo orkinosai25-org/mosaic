@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Interfaces.Services;
 using OrkinosaiCMS.Shared.DTOs;
@@ -17,6 +18,8 @@ public class SiteController : ControllerBase
     private readonly IThemeService _themeService;
     private readonly ILogger<SiteController> _logger;
     private readonly IConfiguration _configuration;
+    private readonly bool _showDetailedErrors;
+    private readonly bool _includeStackTrace;
 
     public SiteController(
         ISiteService siteService,
@@ -28,6 +31,8 @@ public class SiteController : ControllerBase
         _themeService = themeService;
         _logger = logger;
         _configuration = configuration;
+        _showDetailedErrors = _configuration.GetValue<bool>("ErrorHandling:ShowDetailedErrors", false);
+        _includeStackTrace = _configuration.GetValue<bool>("ErrorHandling:IncludeStackTrace", false);
     }
 
     /// <summary>
@@ -189,30 +194,24 @@ public class SiteController : ControllerBase
         {
             _logger.LogWarning(ex, "Invalid operation when creating site");
             
-            var showDetailedErrors = _configuration.GetValue<bool>("ErrorHandling:ShowDetailedErrors", false);
-            var includeStackTrace = _configuration.GetValue<bool>("ErrorHandling:IncludeStackTrace", false);
-            
             return BadRequest(new SiteProvisioningResultDto
             {
                 Success = false,
                 Message = "Failed to create site",
-                ErrorDetails = showDetailedErrors ? ex.Message : "An error occurred during site creation",
-                StackTrace = includeStackTrace ? ex.StackTrace : null
+                ErrorDetails = _showDetailedErrors ? ex.Message : "An error occurred during site creation",
+                StackTrace = _includeStackTrace ? ex.StackTrace : null
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating site");
             
-            var showDetailedErrors = _configuration.GetValue<bool>("ErrorHandling:ShowDetailedErrors", false);
-            var includeStackTrace = _configuration.GetValue<bool>("ErrorHandling:IncludeStackTrace", false);
-            
             return StatusCode(500, new SiteProvisioningResultDto
             {
                 Success = false,
                 Message = "An unexpected error occurred while creating the site",
-                ErrorDetails = showDetailedErrors ? ex.Message : "Please contact support if this issue persists",
-                StackTrace = includeStackTrace ? ex.StackTrace : null
+                ErrorDetails = _showDetailedErrors ? ex.Message : "Please contact support if this issue persists",
+                StackTrace = _includeStackTrace ? ex.StackTrace : null
             });
         }
     }
