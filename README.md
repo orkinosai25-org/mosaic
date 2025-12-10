@@ -358,8 +358,16 @@ az webapp deploy --resource-group <rg-name> --name mosaic-saas --src-path ./publ
 
 After deployment, the application is accessible at:
 - **Portal (Landing)**: `https://mosaic-saas.azurewebsites.net/`
+  - Public access for registration and login
+  - Ottoman-inspired landing page
 - **CMS Admin**: `https://mosaic-saas.azurewebsites.net/admin`
+  - Requires authentication
+  - Redirects to `/admin/login` if not authenticated
+- **CMS Pages**: `https://mosaic-saas.azurewebsites.net/cms-*`
+  - Requires authentication
+  - For managing site content
 - **API Endpoints**: `https://mosaic-saas.azurewebsites.net/api/*`
+  - Backend services for portal integration
 
 ## 🏗️ Project Structure
 
