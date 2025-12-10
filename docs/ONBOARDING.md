@@ -395,7 +395,7 @@ After selecting base theme:
 
 **Primary Color**:
 - Used for headers, buttons, links
-- Choose from Ottoman palette or custom
+- Choose from professional palette or custom
 - Ensure WCAG AA contrast compliance
 
 **Secondary Color**:

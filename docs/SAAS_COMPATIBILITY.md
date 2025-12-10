@@ -69,7 +69,7 @@ OrkinosaiCMS provides a solid foundation as a single-tenant CMS. To transform it
 - **Tenant-Specific Branding**: Custom logos, colors per tenant
 
 #### Implementation Files
-- `src/OrkinosaiCMS.Web/wwwroot/css/themes/` - Create new Ottoman themes
+- `src/OrkinosaiCMS.Web/wwwroot/css/themes/` - Create new professional themes
 - `src/OrkinosaiCMS.Infrastructure/Services/ThemeService.cs` - Enhance for tenant branding
 - `logo/` - MOSAIC brand assets (already present)
 
@@ -159,7 +159,7 @@ OrkinosaiCMS provides a solid foundation as a single-tenant CMS. To transform it
 - **Onboarding Wizard**: 5-step guided setup
   1. Account creation
   2. Tenant setup (site name, subdomain)
-  3. Theme selection (Ottoman-inspired themes)
+  3. Theme selection (professional themes)
   4. Payment method (if not free tier)
   5. First site creation
 - **Email Verification**: Automated email with verification link
@@ -317,8 +317,8 @@ modelBuilder.Entity<Site>()
 - [ ] Add Microsoft Founder Hub integration
 
 ### Phase 4: Branding
-- [ ] Design 6+ Ottoman-inspired themes
-- [ ] Create Iznik pattern library
+- [ ] Design 6+ professional themes
+- [ ] Create modern pattern library
 - [ ] Build theme customization UI
 - [ ] Implement tenant branding system
 
