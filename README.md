@@ -138,6 +138,24 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 - Visual Studio 2022 (17.12+) or Visual Studio 2026 (recommended)
 - Azure account (for deployment)
 - Stripe account (for payment processing)
+### Platform Documentation
+- **[Architecture](./docs/architecture.md)**: Platform architecture, multi-tenant design, and tier specifications
+- **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
+- **[Application Settings](./docs/appsettings.md)**: Configuration guide for appsettings.json and Azure Key Vault
+- **[Portal UI Design](./docs/portal-ui.md)**: Azure-style portal interface and Ottoman-inspired design elements
+
+### Getting Started
+- **[Quick Start - CMS](./docs/QUICK_START_CMS.md)**: Get started with CMS and Azure Blob Storage in minutes
+- **[Onboarding Guide](./docs/ONBOARDING.md)**: Complete user journey from sign-up to launch
+- **[Migration Toolkit](./docs/migration.md)**: Migrate from Wix, Umbraco, or SharePoint with guided workflows
+
+### Integration & Storage
+- **[Azure Blob Storage Integration](./docs/AZURE_BLOB_STORAGE.md)**: Media storage, security, and usage guide
+
+### Branding & Design
+- **[Logo & Branding](./logo/README.md)**: Official brand assets and usage guidelines
+- **[Design Concept](./logo/concept/DESIGN_CONCEPT.md)**: Logo design philosophy
+- **[Ottoman Inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md)**: Cultural and architectural heritage
 
 ## 🚀 Getting Started
 
@@ -238,6 +256,58 @@ mosaic/
 ├── logo/                                # MOSAIC branding and design assets
 └── scripts/                             # Utility scripts
 ```
+## ☁️ Azure Blob Storage Integration
+
+MOSAIC leverages **Azure Blob Storage** for enterprise-grade media and asset management:
+
+### Key Features
+
+- **Multi-Tenant Isolation**: Automatic tenant data separation for security
+- **Scalable Storage**: Unlimited capacity for user uploads, images, and documents
+- **Geo-Redundant**: Data replicated across regions for high availability
+- **Secure by Default**: 
+  - TLS 1.2 encryption in transit
+  - Data encrypted at rest
+  - No public access allowed
+  - SAS tokens for temporary secure access
+
+### Storage Account Details
+
+- **Account Name**: `mosaicsaas`
+- **Primary Endpoint**: `https://mosaicsaas.blob.core.windows.net/`
+- **Location**: UK South (`uksouth`)
+- **Redundancy**: Standard_RAGRS (Read-Access Geo-Redundant Storage)
+
+### Supported Content Types
+
+| Container | Purpose | File Types |
+|-----------|---------|------------|
+| **Images** | User images, logos, banners | JPEG, PNG, GIF, WebP, SVG |
+| **Documents** | User documents, PDFs | PDF, Word, Excel, Text, CSV |
+| **User Uploads** | General media assets | All supported types |
+| **Backups** | Tenant backups | All files |
+
+### Usage Example
+
+```bash
+# Upload an image (requires tenant authentication)
+curl -X POST https://api.mosaic.app/api/media/images \
+  -H "X-Tenant-Id: your-tenant-id" \
+  -F "file=@logo.png"
+
+# List tenant files
+curl -X GET "https://api.mosaic.app/api/media/list?containerType=images" \
+  -H "X-Tenant-Id: your-tenant-id"
+```
+
+### Security & Migration
+
+- ✅ **Secure**: Public access disabled, HTTPS enforced, tenant isolation
+- ✅ **Compliant**: Encryption enabled, TLS 1.2 minimum
+- ✅ **Reliable**: Geo-redundant storage with 99.99% availability SLA
+- ✅ **Migrated**: Easy migration from local storage or other cloud providers
+
+For detailed information, see the [Azure Blob Storage Integration Guide](./docs/AZURE_BLOB_STORAGE.md).
 
 ## 💼 For Startups
 
