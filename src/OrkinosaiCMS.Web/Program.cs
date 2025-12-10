@@ -7,6 +7,7 @@ using OrkinosaiCMS.Infrastructure.Data;
 using OrkinosaiCMS.Infrastructure.Repositories;
 using OrkinosaiCMS.Infrastructure.Services;
 using OrkinosaiCMS.Web.Components;
+using OrkinosaiCMS.Web.Middleware;
 using OrkinosaiCMS.Web.Services;
 using Serilog;
 using Serilog.Events;
@@ -105,6 +106,9 @@ try
             diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
         };
     });
+
+    // Add global exception handler to log all unhandled exceptions
+    app.UseGlobalExceptionHandler();
 
     // Initialize database with seed data
     using (var scope = app.Services.CreateScope())
