@@ -93,13 +93,15 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 - **Guided setup wizard**: Step-by-step process to launch your first site
 - **Documentation hub**: Comprehensive guides and video tutorials
 
-### 💳 Payment Integration
+### 💳 Payment Integration & Pricing
+- **Flexible subscription tiers**: Free, Starter, Pro, and Business plans
+- **Transparent pricing**: From $0 to $149/month with annual discounts
 - **Microsoft Startup Founder Hub support**: Leverage startup credits and benefits
 - **Stripe integration**: Secure payment processing with support for multiple currencies
-- **Flexible subscription tiers**: Free, Pro, Business, and Enterprise plans
-- **Usage-based billing**: Pay only for what you use
-- **Transparent pricing**: No hidden fees, clear cost breakdowns
+- **No hidden fees**: Clear cost breakdowns and predictable billing
 - **Invoice management**: Automated billing and receipt generation
+
+📊 **[View Detailed Pricing →](./docs/pricing.md)** - Compare plans, features, and find the perfect fit for your needs
 
 ### 🏢 Multi-Tenant Site Management
 - **Unlimited sites**: Create and manage multiple websites from one dashboard
@@ -165,6 +167,7 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 ### Platform Documentation
 - **[Architecture](./docs/architecture.md)**: Platform architecture, multi-tenant design, and tier specifications
 - **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
+- **[Pricing Plans](./docs/pricing.md)**: Complete pricing guide with plan comparisons and feature breakdown
 - **[Application Settings](./docs/appsettings.md)**: Configuration guide for appsettings.json and Azure Key Vault
 
 ### Getting Started
@@ -180,13 +183,14 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 ### For End Users (Coming Soon)
 
 1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
-2. **Choose your plan**: Select a subscription tier that fits your needs
+2. **Choose your plan**: Select from Free, Starter, Pro, or Business tiers ([See Pricing](./docs/pricing.md))
 3. **Create your first site**: Follow the guided setup wizard
 4. **Customize**: Use the conversational AI to build and design your site
 5. **Launch**: Go live with your new website
 6. **Integrate**: Add the MOSAIC script to existing sites if needed
 
-For detailed onboarding instructions, see our [Onboarding Guide](./docs/ONBOARDING.md).
+For detailed onboarding instructions, see our [Onboarding Guide](./docs/ONBOARDING.md).  
+For pricing comparison and plan details, see our [Pricing Guide](./docs/pricing.md).
 
 ### SaaS Architecture
 

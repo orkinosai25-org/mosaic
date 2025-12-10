@@ -80,78 +80,58 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
 
 ## Step 3: Choose Your Plan 💳
 
-### Available Subscription Tiers
+### Quick Plan Overview
+
+MOSAIC offers flexible pricing to match your needs, from free hobby sites to enterprise solutions.
+
+| Plan | Best For | Price | Key Features |
+|------|----------|-------|--------------|
+| **Free** | Testing & Personal | $0/mo | 1 site, subdomain, basic features, ads present |
+| **Starter** | Bloggers & Freelancers | $15/mo | 3 sites, 1 custom domain, reduced ads |
+| **Pro** | Small Business | $49/mo | 10 sites, ad-free, advanced analytics |
+| **Business** | Agencies & Enterprise | $149/mo | 50 sites, AI analytics, premium support |
+
+**📊 [View Complete Pricing Comparison](./pricing.md)** - Detailed feature breakdown, advertising policy, and upgrade benefits
+
+### Quick Tier Highlights
 
 #### 🆓 Free Tier
 **Perfect for**: Testing, personal projects, MVP validation
 
-**Includes**:
-- 1 active website
-- MOSAIC subdomain (yoursite.mosaic.app)
-- 10 GB bandwidth/month
-- Basic themes
-- Community support
-- MOSAIC branding on footer
+- 1 active website with MOSAIC subdomain
+- ⚠️ Display ads present
+- Basic themes and features
+- **Price**: $0/month
 
-**Price**: $0/month
+#### 🚀 Starter Tier  
+**Perfect for**: Bloggers, independent creators
 
----
+- 3 websites with 1 custom domain
+- ⚠️ Reduced ads (50% smaller than Free)
+- 10 professional themes
+- **Price**: $15/month or $144/year
 
-#### ⭐ Pro Tier
+#### 💼 Pro Tier
 **Perfect for**: Small businesses, startups, freelancers
 
-**Includes**:
-- 5 active websites
-- Custom domain support (bring your own)
-- 100 GB bandwidth/month
-- All themes
-- Light & dark mode themes
-- Logo customization
-- Remove MOSAIC branding
-- Email support
-- Basic analytics
-
-**Price**: $29/month or $290/year (save 17%)
-
----
+- 10 websites with custom domains
+- ✅ **Completely ad-free**
+- Advanced analytics & SEO tools
+- REST API access
+- **Price**: $49/month or $499/year
 
 #### 🏢 Business Tier
-**Perfect for**: Growing businesses, agencies, multi-site projects
+**Perfect for**: Growing businesses, agencies, enterprises
 
-**Includes**:
-- 20 active websites
-- Custom domains (unlimited)
-- 500 GB bandwidth/month
-- Premium themes
-- Custom CSS overrides
-- Advanced analytics
-- API access (10k requests/month)
-- Priority email support
-- MOSAIC Public AI agent
-- Team collaboration (5 users)
+- 50 websites at scale
+- ✅ **Ad-free + White-label**
+- 🤖 **AI-Driven Analytics & Reporting (Exclusive)**
+- 🤖 **Zoota Admin AI Agent (Exclusive)**
+- GraphQL API + Priority support
+- **Price**: $149/month or $1,490/year
 
-**Price**: $99/month or $990/year (save 17%)
-
----
-
-#### 🚀 Enterprise Tier
-**Perfect for**: Large agencies, enterprises, white-label needs
-
-**Includes**:
-- Unlimited websites
-- Custom domains (unlimited)
-- Unlimited bandwidth
-- All features included
-- White-label option
-- Full API access (unlimited)
-- GraphQL API access
-- Zoota Admin AI agent
-- 24/7 phone support
-- Custom SLA
-- Team collaboration (unlimited users)
-- Dedicated account manager
-
-**Price**: Custom pricing - Contact Sales (details coming soon)
+**For comprehensive details on all features, advertising policies, and upgrade benefits:**  
+👉 **[Read the Complete Pricing Guide](./pricing.md)**
 
 ### Microsoft Startup Founder Hub Benefits
 
