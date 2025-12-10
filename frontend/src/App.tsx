@@ -10,6 +10,7 @@ import { Footer } from './components/layout/Footer';
 import { AuthPanel } from './components/auth/AuthPanel';
 import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { SitesPage } from './pages/SitesPage';
 import { ChatBubble } from './components/common/ChatBubble';
 import type { User } from './types';
 
@@ -80,6 +81,10 @@ function App() {
     // Handle navigation based on action
     if (action === 'create-site') {
       setActiveNav('sites');
+    } else if (action === 'configure-cms') {
+      // Navigate to CMS admin interface (backend)
+      // TODO: Replace with actual CMS URL once deployed
+      window.open('/cms/admin', '_blank');
     } else if (action === 'billing') {
       setActiveNav('billing');
     } else if (action === 'settings') {
@@ -108,10 +113,14 @@ function App() {
 
           <div className={styles.content}>
             {user?.isAuthenticated ? (
-              <DashboardPage
-                userName={user.name}
-                onAction={handleQuickAction}
-              />
+              activeNav === 'sites' ? (
+                <SitesPage onAction={handleQuickAction} />
+              ) : (
+                <DashboardPage
+                  userName={user.name}
+                  onAction={handleQuickAction}
+                />
+              )
             ) : (
               <LandingPage
                 onRegister={handleShowRegister}

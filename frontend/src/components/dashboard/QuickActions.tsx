@@ -11,6 +11,7 @@ import {
   ChartMultipleRegular,
   DocumentRegular,
   SettingsRegular,
+  AppsRegular,
 } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
@@ -54,6 +55,14 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onAction }) => {
           Create New Site
         </Button>
         <Button
+          appearance="primary"
+          icon={<AppsRegular />}
+          className={styles.actionButton}
+          onClick={() => onAction('configure-cms')}
+        >
+          Configure CMS
+        </Button>
+        <Button
           appearance="outline"
           icon={<ChartMultipleRegular />}
           className={styles.actionButton}
@@ -75,7 +84,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onAction }) => {
           className={styles.actionButton}
           onClick={() => onAction('settings')}
         >
-          Site Settings
+          Portal Settings
         </Button>
       </div>
     </Card>
