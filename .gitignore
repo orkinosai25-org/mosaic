@@ -436,3 +436,14 @@ ehthumbs.db
 *.log
 *.swp
 *~
+
+# React portal build artifacts (built during deployment)
+src/OrkinosaiCMS.Web/wwwroot/index.html
+src/OrkinosaiCMS.Web/wwwroot/assets/
+src/OrkinosaiCMS.Web/wwwroot/*.svg
+src/OrkinosaiCMS.Web/wwwroot/vite.svg
+
+# Development database
+*.db
+*.db-shm
+*.db-wal

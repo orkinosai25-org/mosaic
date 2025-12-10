@@ -99,7 +99,46 @@ app.UseStaticFiles();
 // Endpoint mappings
 app.MapStaticAssets();  // Optimized static assets for Blazor
 app.MapControllers();   // API controllers for portal integration
-app.MapRazorComponents<App>()  // Blazor CMS admin routes
+
+// Map Blazor CMS components with proper routing constraints
+// This maps only CMS-specific routes, preventing interception of the root
+app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// Fallback routing: Serve React portal SPA for non-CMS routes
+// This ensures the React portal is served at root and handles all portal routing
+// Exclude patterns that should be handled by Blazor
+app.MapFallback(async context =>
+{
+    var path = context.Request.Path.Value ?? "/";
+    
+    // If the request is for a Blazor CMS route, let it through
+    if (path.StartsWith("/cms-", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/admin", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/_framework", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/_content", StringComparison.OrdinalIgnoreCase) ||
+        path.Equals("/not-found", StringComparison.OrdinalIgnoreCase) ||
+        path.Equals("/error", StringComparison.OrdinalIgnoreCase))
+    {
+        // Let Blazor handle these routes
+        context.Response.StatusCode = 404;
+        return;
+    }
+    
+    // For all other routes (including root), serve the React portal
+    var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
+    if (File.Exists(indexPath))
+    {
+        context.Response.ContentType = "text/html";
+        context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.Headers.Append("Expires", "0");
+        await context.Response.SendFileAsync(indexPath);
+    }
+    else
+    {
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Portal not found. Please ensure the React app is built and deployed.");
+    }
+});
 
 app.Run();
