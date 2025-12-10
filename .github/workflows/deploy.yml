@@ -1,0 +1,119 @@
+name: Deploy MOSAIC to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: mosaic-saas
+  DOTNET_VERSION: '10.0.x'
+  NODE_VERSION: '18'
+
+jobs:
+  build:
+    name: Build Portal and CMS
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    # Build Frontend (Portal)
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: npm ci
+    
+    - name: Build frontend (Portal)
+      working-directory: ./frontend
+      run: npm run build
+    
+    # Build Backend (CMS)
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore .NET dependencies
+      run: dotnet restore OrkinosaiCMS.sln
+    
+    - name: Build .NET solution
+      run: dotnet build OrkinosaiCMS.sln --configuration Release --no-restore
+    
+    - name: Publish .NET application
+      run: dotnet publish src/OrkinosaiCMS.Web/OrkinosaiCMS.Web.csproj --configuration Release --no-build --output ./publish
+    
+    # Integrate Frontend into Backend wwwroot
+    - name: Copy frontend build to wwwroot
+      run: |
+        # Copy React portal to wwwroot root (serves as landing page)
+        cp -r ./frontend/dist/* ./publish/wwwroot/
+        echo "Frontend portal assets copied to wwwroot (root)"
+        echo "Files copied:"
+        ls -la ./publish/wwwroot/
+    
+    - name: Upload artifact for deployment
+      uses: actions/upload-artifact@v4
+      with:
+        name: mosaic-app
+        path: ./publish
+        retention-days: 1
+
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    steps:
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v4
+      with:
+        name: mosaic-app
+    
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_MOSAIC }}
+        package: .
+    
+    - name: Deployment summary
+      run: |
+        echo "### 🎉 MOSAIC SaaS Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Application:** ${{ env.AZURE_WEBAPP_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "**URL:** ${{ steps.deploy-to-webapp.outputs.webapp-url }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### 🏛️ Application Structure" >> $GITHUB_STEP_SUMMARY
+        echo "- **Portal (Landing Page):** ${{ steps.deploy-to-webapp.outputs.webapp-url }}/" >> $GITHUB_STEP_SUMMARY
+        echo "  - Public access for registration and login" >> $GITHUB_STEP_SUMMARY
+        echo "  - React + Fluent UI frontend" >> $GITHUB_STEP_SUMMARY
+        echo "- **CMS Admin:** ${{ steps.deploy-to-webapp.outputs.webapp-url }}/admin" >> $GITHUB_STEP_SUMMARY
+        echo "  - Authenticated access only" >> $GITHUB_STEP_SUMMARY
+        echo "  - Multi-tenant site management" >> $GITHUB_STEP_SUMMARY
+        echo "- **CMS Pages:** ${{ steps.deploy-to-webapp.outputs.webapp-url }}/cms-*" >> $GITHUB_STEP_SUMMARY
+        echo "  - Content management pages" >> $GITHUB_STEP_SUMMARY
+        echo "- **API Endpoints:** ${{ steps.deploy-to-webapp.outputs.webapp-url }}/api/*" >> $GITHUB_STEP_SUMMARY
+        echo "  - Backend services for portal integration" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### ✅ Multi-Tenant SaaS Pattern" >> $GITHUB_STEP_SUMMARY
+        echo "- Portal serves as public landing page at root" >> $GITHUB_STEP_SUMMARY
+        echo "- CMS admin accessible only after registration/authentication" >> $GITHUB_STEP_SUMMARY
+        echo "- Ready for payment integration (Stripe)" >> $GITHUB_STEP_SUMMARY
+        echo "- Scalable Azure Web App infrastructure" >> $GITHUB_STEP_SUMMARY

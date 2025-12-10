@@ -93,9 +93,13 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
-app.MapStaticAssets();
-app.MapControllers();
-app.MapRazorComponents<App>()
+// Middleware: Serve static files from wwwroot (includes React portal assets)
+app.UseStaticFiles();
+
+// Endpoint mappings
+app.MapStaticAssets();  // Optimized static assets for Blazor
+app.MapControllers();   // API controllers for portal integration
+app.MapRazorComponents<App>()  // Blazor CMS admin routes
     .AddInteractiveServerRenderMode();
 
 app.Run();

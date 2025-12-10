@@ -1,14 +1,16 @@
-# OrkinosaiCMS Deployment Checklist
+# MOSAIC SaaS Deployment Checklist
 
 ## Overview
 
-This checklist ensures a smooth deployment of OrkinosaiCMS to production (Azure Web Apps) or other hosting environments.
+This checklist ensures a smooth deployment of MOSAIC (Portal + CMS) to production Azure Web Apps with multi-tenant SaaS architecture.
 
 ## Pre-Deployment
 
 ### 1. Code Quality
-- [ ] All unit tests passing
+- [ ] All unit tests passing (backend)
 - [ ] Integration tests passing
+- [ ] Frontend build successful (npm run build)
+- [ ] Backend build successful (dotnet build)
 - [ ] No compiler warnings
 - [ ] Code review completed
 - [ ] Security scan completed (CodeQL)
@@ -17,10 +19,16 @@ This checklist ensures a smooth deployment of OrkinosaiCMS to production (Azure 
 ### 2. Configuration
 - [ ] Connection strings configured for production database
 - [ ] Application settings updated (appsettings.Production.json)
-- [ ] CORS policies configured (if needed)
+- [ ] Frontend environment variables configured (if any)
+- [ ] CORS policies configured for Portal-CMS communication
 - [ ] Logging configured (Application Insights)
 - [ ] Error handling configured
 - [ ] Health check endpoints configured
+
+### 2.1 GitHub Secrets
+- [ ] `AZURE_WEBAPP_PUBLISH_PROFILE_MOSAIC` configured in repository
+- [ ] Publish profile downloaded from Azure Portal
+- [ ] Secret tested with workflow
 
 ### 3. Database
 - [ ] Migrations tested locally
@@ -35,10 +43,48 @@ This checklist ensures a smooth deployment of OrkinosaiCMS to production (Azure 
 - [ ] Authentication configured
 - [ ] Authorization policies defined
 - [ ] API keys secured (Azure Key Vault)
-- [ ] CORS properly configured
+- [ ] CORS properly configured for Portal-CMS communication
 - [ ] SQL injection prevention verified
 - [ ] XSS protection verified
 - [ ] CSRF protection enabled
+- [ ] Multi-tenant data isolation configured
+
+### 5. Multi-Tenant SaaS Architecture
+- [ ] Portal serves as landing page at root (/)
+- [ ] CMS admin accessible at /admin (authenticated only)
+- [ ] API endpoints configured at /api/*
+- [ ] Tenant identification middleware configured
+- [ ] Database multi-tenancy strategy implemented
+- [ ] Blob storage multi-tenant isolation configured
+
+## Deployment Workflow (GitHub Actions)
+
+### CI Workflow (ci.yml)
+- [ ] Runs on all branches (main, develop, copilot/*)
+- [ ] Builds frontend (React + Vite)
+- [ ] Builds backend (.NET 10)
+- [ ] Runs tests
+- [ ] Creates build artifacts
+- [ ] Workflow status: passing
+
+### Deployment Workflow (deploy.yml)
+- [ ] Triggers only on push to main branch
+- [ ] Can be manually triggered (workflow_dispatch)
+- [ ] Builds Portal (frontend)
+- [ ] Builds CMS (backend)
+- [ ] Publishes backend to ./publish
+- [ ] Copies frontend to ./publish/wwwroot/
+- [ ] Deploys to Azure Web App (mosaic-saas)
+- [ ] Uses secret: AZURE_WEBAPP_PUBLISH_PROFILE_MOSAIC
+- [ ] Deployment summary generated
+
+### Post-Deployment Verification
+- [ ] Portal landing page accessible at https://mosaic-saas.azurewebsites.net/
+- [ ] CMS admin accessible at https://mosaic-saas.azurewebsites.net/admin
+- [ ] API endpoints responding at https://mosaic-saas.azurewebsites.net/api/*
+- [ ] Registration flow works
+- [ ] Authentication redirects properly
+- [ ] Multi-tenant isolation verified
 
 ## Azure Deployment
 
