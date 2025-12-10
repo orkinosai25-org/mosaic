@@ -48,7 +48,10 @@ public class HealthController : ControllerBase
     public async Task<IActionResult> GetDetailedHealth(CancellationToken cancellationToken)
     {
         var blobStorageHealth = await CheckBlobStorageHealthAsync(cancellationToken);
-        var isHealthy = blobStorageHealth.GetType().GetProperty("status")?.GetValue(blobStorageHealth)?.ToString() == "healthy";
+        
+        // Check if blob storage is healthy or not_configured (both acceptable states)
+        var isHealthy = blobStorageHealth is HealthCheckResult result && 
+                       (result.Status == "healthy" || result.Status == "not_configured");
 
         var healthStatus = new
         {
@@ -73,7 +76,7 @@ public class HealthController : ControllerBase
     /// <summary>
     /// Checks Azure Blob Storage connectivity and configuration
     /// </summary>
-    private async Task<object> CheckBlobStorageHealthAsync(CancellationToken cancellationToken)
+    private async Task<HealthCheckResult> CheckBlobStorageHealthAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -85,14 +88,14 @@ public class HealthController : ControllerBase
             if (blobStorageService == null)
             {
                 // Service not available, likely due to missing connection string
-                return new
+                return new HealthCheckResult
                 {
-                    status = "not_configured",
-                    configured = false,
-                    accountName = _storageOptions.AccountName,
-                    endpoint = _storageOptions.PrimaryEndpoint,
-                    message = "Azure Blob Storage service not initialized. Connection string may be missing.",
-                    lastChecked = DateTime.UtcNow
+                    Status = "not_configured",
+                    Configured = false,
+                    AccountName = _storageOptions.AccountName,
+                    Endpoint = _storageOptions.PrimaryEndpoint,
+                    Message = "Azure Blob Storage service not initialized. Connection string may be missing.",
+                    LastChecked = DateTime.UtcNow
                 };
             }
 
@@ -103,36 +106,53 @@ public class HealthController : ControllerBase
                 testTenantId,
                 cancellationToken);
 
-            return new
+            return new HealthCheckResult
             {
-                status = "healthy",
-                configured = true,
-                accountName = _storageOptions.AccountName,
-                endpoint = _storageOptions.PrimaryEndpoint,
-                location = _storageOptions.Location,
-                containersConfigured = new
+                Status = "healthy",
+                Configured = true,
+                AccountName = _storageOptions.AccountName,
+                Endpoint = _storageOptions.PrimaryEndpoint,
+                Location = _storageOptions.Location,
+                ContainersConfigured = new
                 {
                     images = _storageOptions.Containers.Images,
                     documents = _storageOptions.Containers.Documents,
                     userUploads = _storageOptions.Containers.UserUploads,
                     backups = _storageOptions.Containers.Backups
                 },
-                lastChecked = DateTime.UtcNow
+                LastChecked = DateTime.UtcNow
             };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Azure Blob Storage health check failed");
             
-            return new
+            return new HealthCheckResult
             {
-                status = "unhealthy",
-                configured = !string.IsNullOrEmpty(_storageOptions.AccountName),
-                accountName = _storageOptions.AccountName,
-                error = ex.Message,
-                errorType = ex.GetType().Name,
-                lastChecked = DateTime.UtcNow
+                Status = "unhealthy",
+                Configured = !string.IsNullOrEmpty(_storageOptions.AccountName),
+                AccountName = _storageOptions.AccountName,
+                Error = ex.Message,
+                ErrorType = ex.GetType().Name,
+                LastChecked = DateTime.UtcNow
             };
         }
     }
+}
+
+/// <summary>
+/// Health check result model for Azure Blob Storage
+/// </summary>
+public class HealthCheckResult
+{
+    public string Status { get; set; } = string.Empty;
+    public bool Configured { get; set; }
+    public string? AccountName { get; set; }
+    public string? Endpoint { get; set; }
+    public string? Location { get; set; }
+    public object? ContainersConfigured { get; set; }
+    public string? Message { get; set; }
+    public string? Error { get; set; }
+    public string? ErrorType { get; set; }
+    public DateTime LastChecked { get; set; }
 }
