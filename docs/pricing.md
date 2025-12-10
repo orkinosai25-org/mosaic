@@ -285,7 +285,7 @@ Understanding how advertising works across MOSAIC plans is important for making 
 - **Ad Presence:** Small display advertisements appear in your website footer
 - **Ad Type:** Contextual display ads (text and small images)
 - **Ad Frequency:** Present on every page load
-- **Revenue Sharing:** 100% of ad revenue supports free hosting infrastructure
+- **Revenue Model:** 100% of ad revenue supports free hosting infrastructure
 - **Why Ads?** They enable us to offer MOSAIC completely free for testing and personal projects
 - **Control:** No control over ad content (family-friendly, vetted advertisers only)
 - **Size:** Approximately 300x50px footer banner
@@ -294,7 +294,7 @@ Understanding how advertising works across MOSAIC plans is important for making 
 - **Ad Presence:** Smaller display advertisements remain in footer
 - **Ad Type:** Minimal text-based contextual ads
 - **Ad Frequency:** Present on page loads
-- **Revenue Sharing:** Partially subsidizes the low $15/month pricing
+- **Revenue Model:** Partially subsidizes the low $15/month pricing
 - **Reduced Impact:** 50% smaller than Free plan ads
 - **Control:** Still no control over ad content
 - **Size:** Approximately 300x25px text banner
@@ -451,7 +451,7 @@ Are you part of **Microsoft for Startups Founder Hub**? You may qualify for:
 - ✅ Priority onboarding and support
 - ✅ Technical architecture consultation
 
-[Learn More About Startup Benefits →](./SaaS_FEATURES.md#startup-support)
+For more information, contact sales@mosaic.orkinosai.com or visit the [Microsoft for Startups Founder Hub](https://www.microsoft.com/startups).
 
 ### Non-Profit Discount
 Qualified non-profit organizations receive:
