@@ -114,7 +114,7 @@ function App() {
           <div className={styles.content}>
             {user?.isAuthenticated ? (
               activeNav === 'sites' ? (
-                <SitesPage onAction={handleQuickAction} />
+                <SitesPage onAction={handleQuickAction} userEmail={user.email} />
               ) : (
                 <DashboardPage
                   userName={user.name}

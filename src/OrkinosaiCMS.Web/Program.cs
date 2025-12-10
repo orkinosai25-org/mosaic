@@ -64,6 +64,7 @@ builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
+builder.Services.AddScoped<ISiteService, SiteService>();
 
 var app = builder.Build();
 
