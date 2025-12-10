@@ -436,3 +436,14 @@ ehthumbs.db
 *.log
 *.swp
 *~
+
+# SQLite database files (development only)
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend build artifacts copied to wwwroot (generated during deployment)
+src/OrkinosaiCMS.Web/wwwroot/index.html
+src/OrkinosaiCMS.Web/wwwroot/vite.svg
+src/OrkinosaiCMS.Web/wwwroot/mosaic-*.svg
+src/OrkinosaiCMS.Web/wwwroot/assets/

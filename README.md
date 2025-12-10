@@ -208,6 +208,20 @@ MOSAIC uses a multi-tenant architecture with:
 - **API Services**: RESTful endpoints at `/api/*` for portal-backend integration
 - **CMS Pages**: Content pages at `/cms-*` for website management
 
+**Routing Architecture:**
+
+The ASP.NET Core application uses a layered routing approach:
+1. **Static Files** (`UseStaticFiles`): Serves CSS, JS, images from wwwroot
+2. **API Controllers** (`MapControllers`): Handles `/api/*` endpoints
+3. **Blazor Components** (`MapRazorComponents`): Handles `/admin` and `/cms-*` routes
+4. **SPA Fallback** (`MapFallbackToFile`): All other routes serve React portal's `index.html`
+
+This ensures:
+- ✅ Portal landing page appears at root URL (`/`)
+- ✅ CMS admin accessible only after authentication (`/admin`, `/cms-*`)
+- ✅ API endpoints work independently (`/api/*`)
+- ✅ React router handles client-side navigation within portal
+
 **User Journey:**
 1. Visit root URL → See Portal landing page
 2. Register/Login → Access dashboard in Portal
@@ -359,7 +373,40 @@ az webapp deploy --resource-group <rg-name> --name mosaic-saas --src-path ./publ
 After deployment, the application is accessible at:
 - **Portal (Landing)**: `https://mosaic-saas.azurewebsites.net/`
 - **CMS Admin**: `https://mosaic-saas.azurewebsites.net/admin`
+- **CMS Pages**: `https://mosaic-saas.azurewebsites.net/cms-*`
 - **API Endpoints**: `https://mosaic-saas.azurewebsites.net/api/*`
+
+### Deployment Verification
+
+After deployment, verify the following:
+
+1. **Portal Landing Page** (Root URL)
+   - Visit: `https://mosaic-saas.azurewebsites.net/`
+   - Expected: MOSAIC portal landing page with Ottoman-inspired design
+   - Should show: Registration/login options, features, hero section
+   - Should NOT show: OrkinosaiCMS frontend (Counter, Weather pages)
+
+2. **CMS Admin Interface**
+   - Visit: `https://mosaic-saas.azurewebsites.net/admin`
+   - Expected: Admin dashboard (requires authentication)
+   - Should show: Zoota AI assistant banner, dashboard cards, quick actions
+
+3. **CMS Content Pages**
+   - Visit: `https://mosaic-saas.azurewebsites.net/cms-home`
+   - Expected: CMS home page with navigation
+   - Should show: MOSAIC CMS branding, Features, About, Contact links
+
+4. **API Health Check**
+   - Visit: `https://mosaic-saas.azurewebsites.net/api/*` endpoints
+   - Expected: API responses (may require authentication)
+
+**Troubleshooting:**
+- If the CMS pages show at root instead of portal, check that:
+  - Frontend was built and copied to wwwroot
+  - `index.html` exists in wwwroot
+  - SPA fallback middleware is configured in Program.cs
+  - Static files middleware comes before the fallback
+- Check Azure Web App logs in Azure Portal for errors
 
 ## 🏗️ Project Structure
 
