@@ -29,6 +29,33 @@ The transformation from OrkinosaiCMS to MOSAIC represents a strategic evolution:
 | **Payment** | Not included | Integrated Stripe + Microsoft Founder Hub |
 | **Onboarding** | Manual setup | Streamlined sign-up with guided wizard |
 
+## 🏗️ Architecture Overview
+
+MOSAIC consists of two main components working together:
+
+### 1. **MOSAIC Portal** (Frontend - React + Fluent UI)
+The SaaS management portal where users:
+- **Register and authenticate** (as admin/owner or regular user)
+- **Manage subscriptions and billing** through Stripe integration
+- **Create and manage multiple websites** (multi-tenant dashboard)
+- **Access analytics and usage metrics**
+- **Navigate to CMS configuration** for each website
+
+### 2. **MOSAIC CMS** (Backend - .NET 10 + Blazor)
+The content management system that powers each website:
+- **Configure website content and structure** through admin features
+- **Manage pages, modules, and web parts** (SharePoint-inspired)
+- **Control permissions and user access**
+- **Customize themes and branding** with Ottoman/Iznik designs
+- **Use AI assistance** (Zoota Admin Agent)
+
+**User Journey:**
+1. User registers/logs in via **Portal**
+2. Creates a new website from **Portal** dashboard
+3. Clicks "Configure Site" to access **CMS** admin features
+4. Manages content, permissions, and customization in **CMS**
+5. Returns to **Portal** for billing, analytics, or other sites
+
 ## 🎯 Vision
 
 MOSAIC reimagines website and content management as a service by blending:
@@ -133,6 +160,9 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 📋 Requirements
 
+- **[Frontend Design](./docs/FRONTEND_DESIGN.md)**: SaaS portal UI/UX design and wireframes
+- **[Frontend README](./frontend/README.md)**: React + Fluent UI frontend application guide
+- **[Quick Start - CMS](./docs/QUICK_START_CMS.md)**: Get started with CMS and Azure Blob Storage in minutes
 - .NET 10 SDK
 - SQL Server 2019+ / Azure SQL (for production)
 - Visual Studio 2022 (17.12+) or Visual Studio 2026 (recommended)
@@ -159,6 +189,7 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 🚀 Getting Started
 
+### For End Users
 ### For End Users (Coming Soon)
 
 1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
@@ -171,6 +202,36 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 For detailed onboarding instructions, see our [Onboarding Guide](./docs/ONBOARDING.md).
 
 ### For Developers
+
+#### Frontend Development
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+See [Frontend README](./frontend/README.md) for detailed setup and architecture information.
+
+#### Backend Development
+
+```bash
+# Navigate to backend directory
+cd src/MosaicCMS
+
+# Restore dependencies
+dotnet restore
+
+# Run the application
+dotnet run
+```
+
+See [MosaicCMS README](./src/MosaicCMS/README.md) for API documentation.
 
 #### 1. Clone the Repository
 
