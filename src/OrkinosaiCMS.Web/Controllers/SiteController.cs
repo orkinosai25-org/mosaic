@@ -192,7 +192,8 @@ public class SiteController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning(ex, "Invalid operation when creating site");
+            _logger.LogWarning(ex, "Invalid operation when creating site: {SiteName}, AdminEmail: {AdminEmail}, ThemeId: {ThemeId}", 
+                dto.Name, dto.AdminEmail, dto.ThemeId);
             
             return BadRequest(new SiteProvisioningResultDto
             {
@@ -204,7 +205,8 @@ public class SiteController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating site");
+            _logger.LogError(ex, "Unexpected error creating site: {SiteName}, AdminEmail: {AdminEmail}, ThemeId: {ThemeId}", 
+                dto.Name, dto.AdminEmail, dto.ThemeId);
             
             return StatusCode(500, new SiteProvisioningResultDto
             {

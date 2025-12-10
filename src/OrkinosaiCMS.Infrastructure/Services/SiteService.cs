@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Core.Interfaces.Services;
@@ -13,15 +14,18 @@ public class SiteService : ISiteService
     private readonly IRepository<Site> _siteRepository;
     private readonly IRepository<Page> _pageRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<SiteService> _logger;
 
     public SiteService(
         IRepository<Site> siteRepository,
         IRepository<Page> pageRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<SiteService> logger)
     {
         _siteRepository = siteRepository;
         _pageRepository = pageRepository;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<Site>> GetAllSitesAsync()
@@ -112,61 +116,94 @@ public class SiteService : ISiteService
 
     public async Task<Site> ProvisionSiteAsync(string siteName, string adminEmail, string? description, int? themeId)
     {
-        // Generate a unique URL from the site name
-        var baseUrl = GenerateUrlSlug(siteName);
-        var url = baseUrl;
-        var counter = 1;
+        _logger.LogInformation("Starting site provisioning: SiteName={SiteName}, AdminEmail={AdminEmail}, ThemeId={ThemeId}", 
+            siteName, adminEmail, themeId);
 
-        while (!await IsSiteUrlAvailableAsync(url))
+        try
         {
-            url = $"{baseUrl}-{counter}";
-            counter++;
+            // Generate a unique URL from the site name
+            var baseUrl = GenerateUrlSlug(siteName);
+            var url = baseUrl;
+            var counter = 1;
+
+            _logger.LogDebug("Generated base URL slug: {BaseUrl}", baseUrl);
+
+            while (!await IsSiteUrlAvailableAsync(url))
+            {
+                url = $"{baseUrl}-{counter}";
+                counter++;
+                _logger.LogDebug("URL {BaseUrl} not available, trying {NewUrl}", baseUrl, url);
+            }
+
+            _logger.LogInformation("Selected URL for site: {Url}", url);
+
+            var site = new Site
+            {
+                Name = siteName,
+                Description = description,
+                Url = url,
+                AdminEmail = adminEmail,
+                ThemeId = themeId,
+                IsActive = true,
+                DefaultLanguage = "en-US",
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = adminEmail
+            };
+
+            await _siteRepository.AddAsync(site);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Site entity created with ID: {SiteId}", site.Id);
+
+            // Initialize default content
+            await InitializeSiteContentAsync(site.Id);
+
+            _logger.LogInformation("Site provisioning completed successfully: SiteId={SiteId}, Url={Url}", site.Id, site.Url);
+
+            return site;
         }
-
-        var site = new Site
+        catch (Exception ex)
         {
-            Name = siteName,
-            Description = description,
-            Url = url,
-            AdminEmail = adminEmail,
-            ThemeId = themeId,
-            IsActive = true,
-            DefaultLanguage = "en-US",
-            CreatedOn = DateTime.UtcNow,
-            CreatedBy = adminEmail
-        };
-
-        await _siteRepository.AddAsync(site);
-        await _unitOfWork.SaveChangesAsync();
-
-        // Initialize default content
-        await InitializeSiteContentAsync(site.Id);
-
-        return site;
+            _logger.LogError(ex, "Failed to provision site: SiteName={SiteName}, AdminEmail={AdminEmail}", siteName, adminEmail);
+            throw;
+        }
     }
 
     public async Task InitializeSiteContentAsync(int siteId)
     {
-        var site = await _siteRepository.GetByIdAsync(siteId);
-        if (site == null)
+        _logger.LogInformation("Initializing default content for site: {SiteId}", siteId);
+
+        try
         {
-            throw new InvalidOperationException($"Site with ID {siteId} not found.");
+            var site = await _siteRepository.GetByIdAsync(siteId);
+            if (site == null)
+            {
+                _logger.LogError("Site with ID {SiteId} not found during content initialization", siteId);
+                throw new InvalidOperationException($"Site with ID {siteId} not found.");
+            }
+
+            // Create default home page
+            var homePage = new Page
+            {
+                Title = "Home",
+                Path = "/",
+                MetaDescription = $"Welcome to {site.Name}",
+                IsPublished = true,
+                SiteId = siteId,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = site.AdminEmail
+            };
+
+            await _pageRepository.AddAsync(homePage);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Default home page created for site: {SiteId}, PageId: {PageId}", siteId, homePage.Id);
         }
-
-        // Create default home page
-        var homePage = new Page
+        catch (Exception ex)
         {
-            Title = "Home",
-            Path = "/",
-            MetaDescription = $"Welcome to {site.Name}",
-            IsPublished = true,
-            SiteId = siteId,
-            CreatedOn = DateTime.UtcNow,
-            CreatedBy = site.AdminEmail
-        };
-
-        await _pageRepository.AddAsync(homePage);
-        await _unitOfWork.SaveChangesAsync();
+            _logger.LogError(ex, "Failed to initialize content for site: {SiteId}", siteId);
+            throw;
+        }
     }
 
     public async Task<bool> IsSiteUrlAvailableAsync(string url)
