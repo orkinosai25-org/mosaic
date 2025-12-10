@@ -105,15 +105,21 @@ app.MapRazorComponents<App>()  // Blazor CMS admin routes
 
 // SPA Fallback: Serve React portal (index.html) for non-API, non-Blazor routes
 // This ensures the portal landing page shows at root URL
-app.MapFallbackToFile("index.html", new StaticFileOptions
-{
-    OnPrepareResponse = ctx =>
-    {
-        // Don't cache index.html to ensure fresh deployments
-        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-        ctx.Context.Response.Headers.Append("Pragma", "no-cache");
-        ctx.Context.Response.Headers.Append("Expires", "0");
-    }
-});
+app.MapFallbackToFile("index.html", CreateNoCacheStaticFileOptions());
 
 app.Run();
+
+// Helper method to configure no-cache headers for index.html
+static StaticFileOptions CreateNoCacheStaticFileOptions()
+{
+    return new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            // Don't cache index.html to ensure fresh deployments
+            ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+            ctx.Context.Response.Headers.Append("Expires", "0");
+        }
+    };
+}
