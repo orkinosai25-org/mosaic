@@ -144,6 +144,34 @@ const useStyles = makeStyles({
     ...shorthands.padding('24px'),
     textAlign: 'center',
   },
+  errorBox: {
+    ...shorthands.padding('12px'),
+    backgroundColor: tokens.colorPaletteRedBackground1,
+    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    ...shorthands.border('1px', 'solid', tokens.colorPaletteRedBorder1),
+  },
+  errorDetailsBox: {
+    ...shorthands.padding('12px'),
+    backgroundColor: tokens.colorNeutralBackground2,
+    ...shorthands.borderRadius(tokens.borderRadiusMedium),
+    ...shorthands.border('1px', 'solid', tokens.colorNeutralStroke2),
+    fontFamily: 'monospace',
+    fontSize: tokens.fontSizeBase200,
+    maxHeight: '300px',
+    overflowY: 'auto',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    marginTop: '8px',
+  },
+  errorToggle: {
+    marginTop: '8px',
+    cursor: 'pointer',
+    color: tokens.colorBrandForeground1,
+    fontSize: tokens.fontSizeBase200,
+    ':hover': {
+      textDecoration: 'underline',
+    },
+  },
 });
 
 interface CreateSiteDialogProps {
@@ -175,6 +203,9 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [createdSite, setCreatedSite] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [stackTrace, setStackTrace] = useState<string | null>(null);
+  const [showErrorDetails, setShowErrorDetails] = useState(false);
 
   // Mock themes - in production, fetch from API
   const themes: Theme[] = [
@@ -208,6 +239,8 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
   const handleCreateSite = async () => {
     setIsLoading(true);
     setError(null);
+    setErrorDetails(null);
+    setStackTrace(null);
 
     try {
       const response = await fetch('/api/site', {
@@ -226,6 +259,9 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
 
       if (!response.ok) {
         const errorData = await response.json();
+        setError(errorData.message || 'Failed to create site');
+        setErrorDetails(errorData.errorDetails || null);
+        setStackTrace(errorData.stackTrace || null);
         throw new Error(errorData.message || 'Failed to create site');
       }
 
@@ -234,7 +270,10 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
       setCurrentStep(5); // Success step
       onSiteCreated(result.site);
     } catch (err: any) {
-      setError(err.message || 'An error occurred while creating the site');
+      // Error details already set above
+      if (!error) {
+        setError(err.message || 'An error occurred while creating the site');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -249,6 +288,9 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
     setSelectedTheme(null);
     setCreatedSite(null);
     setError(null);
+    setErrorDetails(null);
+    setStackTrace(null);
+    setShowErrorDetails(false);
     onClose();
   };
 
@@ -374,9 +416,37 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
             <Text>{selectedTheme?.name}</Text>
           </div>
           {error && (
-            <Text style={{ color: tokens.colorPaletteRedForeground1 }}>
-              {error}
-            </Text>
+            <div className={styles.errorBox}>
+              <Text style={{ color: tokens.colorPaletteRedForeground1, fontWeight: tokens.fontWeightSemibold }}>
+                Error: {error}
+              </Text>
+              {errorDetails && (
+                <>
+                  <Text 
+                    className={styles.errorToggle}
+                    onClick={() => setShowErrorDetails(!showErrorDetails)}
+                  >
+                    {showErrorDetails ? '▼ Hide Details' : '▶ Show Details'}
+                  </Text>
+                  {showErrorDetails && (
+                    <div className={styles.errorDetailsBox}>
+                      <Text weight="semibold" style={{ display: 'block', marginBottom: '8px' }}>
+                        Error Details:
+                      </Text>
+                      <Text>{errorDetails}</Text>
+                      {stackTrace && (
+                        <>
+                          <Text weight="semibold" style={{ display: 'block', marginTop: '12px', marginBottom: '8px' }}>
+                            Stack Trace:
+                          </Text>
+                          <Text>{stackTrace}</Text>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           )}
         </div>
       );

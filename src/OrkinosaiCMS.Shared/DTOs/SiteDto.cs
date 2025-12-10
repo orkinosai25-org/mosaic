@@ -58,4 +58,5 @@ public class SiteProvisioningResultDto
     public SiteDto? Site { get; set; }
     public string? CmsDashboardUrl { get; set; }
     public string? ErrorDetails { get; set; }
+    public string? StackTrace { get; set; }
 }

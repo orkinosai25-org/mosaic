@@ -16,15 +16,18 @@ public class SiteController : ControllerBase
     private readonly ISiteService _siteService;
     private readonly IThemeService _themeService;
     private readonly ILogger<SiteController> _logger;
+    private readonly IConfiguration _configuration;
 
     public SiteController(
         ISiteService siteService,
         IThemeService themeService,
-        ILogger<SiteController> logger)
+        ILogger<SiteController> logger,
+        IConfiguration configuration)
     {
         _siteService = siteService;
         _themeService = themeService;
         _logger = logger;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -185,21 +188,31 @@ public class SiteController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Invalid operation when creating site");
+            
+            var showDetailedErrors = _configuration.GetValue<bool>("ErrorHandling:ShowDetailedErrors", false);
+            var includeStackTrace = _configuration.GetValue<bool>("ErrorHandling:IncludeStackTrace", false);
+            
             return BadRequest(new SiteProvisioningResultDto
             {
                 Success = false,
                 Message = "Failed to create site",
-                ErrorDetails = ex.Message
+                ErrorDetails = showDetailedErrors ? ex.Message : "An error occurred during site creation",
+                StackTrace = includeStackTrace ? ex.StackTrace : null
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating site");
+            
+            var showDetailedErrors = _configuration.GetValue<bool>("ErrorHandling:ShowDetailedErrors", false);
+            var includeStackTrace = _configuration.GetValue<bool>("ErrorHandling:IncludeStackTrace", false);
+            
             return StatusCode(500, new SiteProvisioningResultDto
             {
                 Success = false,
                 Message = "An unexpected error occurred while creating the site",
-                ErrorDetails = ex.Message
+                ErrorDetails = showDetailedErrors ? ex.Message : "Please contact support if this issue persists",
+                StackTrace = includeStackTrace ? ex.StackTrace : null
             });
         }
     }
