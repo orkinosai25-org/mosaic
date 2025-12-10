@@ -19,7 +19,7 @@ MOSAIC offers flexible pricing plans designed to grow with your business. Whethe
 | Custom Domains | ❌ | 1 | 10 | 50 |
 | MOSAIC Subdomain | ✅ Free | ✅ Included | ✅ Included | ✅ Included |
 | SSL Certificates | ✅ Auto | ✅ Auto | ✅ Auto | ✅ Auto |
-| Bandwidth | 5 GB/mo | 25 GB/mo | 100 GB/mo | 500 GB/mo |
+| Bandwidth | 10 GB/mo | 25 GB/mo | 100 GB/mo | 500 GB/mo |
 | Storage | 500 MB | 5 GB | 25 GB | 100 GB |
 | | | | | |
 | **📢 Advertising & Branding** | | | | |
@@ -102,7 +102,7 @@ The Free plan gives you everything you need to explore MOSAIC and build your fir
 **What You Get:**
 - One website to get started
 - Professional MOSAIC subdomain (yoursite.mosaic.app)
-- 5 GB monthly bandwidth - enough for moderate traffic
+- 10 GB monthly bandwidth - enough for moderate traffic
 - 500 MB storage for content and media
 - Basic analytics to track your visitors
 - Auto-renewing SSL certificate for security
@@ -148,7 +148,7 @@ The Starter plan is designed for individuals who want a professional online pres
 **Removes from Free:**
 - ✅ Better theme selection (10 themes vs 3)
 - ✅ Custom domain support (bring your own .com)
-- ✅ 5x more bandwidth (25 GB vs 5 GB)
+- ✅ 2.5x more bandwidth (25 GB vs 10 GB)
 - ✅ 10x more storage (5 GB vs 500 MB)
 - ✅ Multi-user collaboration (add 2 contributors)
 
@@ -343,7 +343,7 @@ Each MOSAIC plan builds on the previous one, giving you more power, control, and
 **You'll Gain:**
 - ✅ Custom domain support (use your .com)
 - ✅ 7 more professional themes (10 total)
-- ✅ 5x more bandwidth (25 GB vs 5 GB)
+- ✅ 2.5x more bandwidth (25 GB vs 10 GB)
 - ✅ 10x more storage (5 GB vs 500 MB)
 - ✅ 2 additional contributors for collaboration
 - ✅ Email support (48h response)
