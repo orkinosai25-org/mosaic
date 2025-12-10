@@ -171,9 +171,13 @@ public class SiteService : ISiteService
 
     public async Task<bool> IsSiteUrlAvailableAsync(string url)
     {
-        var sites = await _siteRepository.FindAsync(s => s.Url == url);
+        var sites = await _siteRepository.FindAsync(s => s.Url == url && s.IsActive);
         return !sites.Any();
     }
+
+    private static readonly char[] InvalidUrlChars = new[] { 
+        '/', '\\', '?', '#', '&', '=', '+', '%', '@', '!', '*', '(', ')', '[', ']', '{', '}', '<', '>', '"', '\'', ':', ';', ',', '.' 
+    };
 
     private string GenerateUrlSlug(string input)
     {
@@ -183,8 +187,7 @@ public class SiteService : ISiteService
             .Replace("_", "-");
 
         // Remove invalid URL characters
-        var invalidChars = new[] { '/', '\\', '?', '#', '&', '=', '+', '%', '@', '!', '*', '(', ')', '[', ']', '{', '}', '<', '>', '"', '\'', ':', ';', ',', '.' };
-        foreach (var c in invalidChars)
+        foreach (var c in InvalidUrlChars)
         {
             slug = slug.Replace(c.ToString(), "");
         }

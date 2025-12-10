@@ -103,16 +103,8 @@ export const SitesPage: React.FC<SitesPageProps> = ({ onAction, userEmail = 'use
     } catch (err: any) {
       console.error('Error fetching sites:', err);
       setError(err.message);
-      // Fallback to mock data for demo
-      setSites([
-        {
-          id: 1,
-          name: 'My Portfolio',
-          url: 'myportfolio',
-          status: 'active',
-          createdOn: new Date().toISOString(),
-        },
-      ]);
+      // Start with empty sites list on error
+      setSites([]);
     } finally {
       setIsLoading(false);
     }

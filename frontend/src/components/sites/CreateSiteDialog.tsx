@@ -254,7 +254,8 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
 
   const canProceed = () => {
     if (currentStep === 1) return siteName.trim().length > 0;
-    if (currentStep === 2) return purpose.trim().length > 0;
+    // Purpose is optional - user can skip AI setup if they prefer
+    if (currentStep === 2) return true;
     if (currentStep === 3) return selectedTheme !== null;
     if (currentStep === 4) return true;
     return false;

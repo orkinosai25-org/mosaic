@@ -38,15 +38,13 @@ public class SiteController : ControllerBase
         {
             IEnumerable<Site> sites;
 
-            if (!string.IsNullOrEmpty(userEmail))
+            // Require userEmail parameter for security
+            if (string.IsNullOrEmpty(userEmail))
             {
-                sites = await _siteService.GetSitesByUserAsync(userEmail);
+                return BadRequest(new { message = "userEmail parameter is required" });
             }
-            else
-            {
-                // For demo purposes, return all sites if no user email specified
-                sites = await _siteService.GetAllSitesAsync();
-            }
+
+            sites = await _siteService.GetSitesByUserAsync(userEmail);
 
             var siteDtos = sites.Select(s => new SiteDto
             {
