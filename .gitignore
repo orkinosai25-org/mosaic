@@ -415,9 +415,12 @@ pr-summary.md
 *.snupkg
 **/packages/*
 
-# User secrets
+# User secrets and environment variables
 appsettings.Development.json
 secrets.json
+.env
+.env.local
+.env.*.local
 
 # Rider
 .idea/
