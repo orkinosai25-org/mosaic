@@ -1,0 +1,101 @@
+@using OrkinosaiCMS.Modules.Abstractions
+@inherits ModuleBase
+
+<section class="content-section">
+    <div class="container">
+        <h2 class="section-title">@FormTitle</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="contact-form">
+                    @if (IsSubmitted)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            <h4 class="alert-heading">Thank you!</h4>
+                            <p>Your message has been received. We'll get back to you soon.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="@contactModel" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="alert alert-danger" />
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name *</label>
+                                <InputText id="name" class="form-control" @bind-Value="contactModel.Name" placeholder="Your name" />
+                                <ValidationMessage For="@(() => contactModel.Name)" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email *</label>
+                                <InputText id="email" type="email" class="form-control" @bind-Value="contactModel.Email" placeholder="your.email@example.com" />
+                                <ValidationMessage For="@(() => contactModel.Email)" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject *</label>
+                                <InputText id="subject" class="form-control" @bind-Value="contactModel.Subject" placeholder="How can we help?" />
+                                <ValidationMessage For="@(() => contactModel.Subject)" />
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Message *</label>
+                                <InputTextArea id="message" class="form-control" rows="5" @bind-Value="contactModel.Message" placeholder="Tell us more..." />
+                                <ValidationMessage For="@(() => contactModel.Message)" />
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public string FormTitle { get; set; } = "Contact Us";
+    
+    private ContactModel contactModel = new();
+    private bool IsSubmitted = false;
+
+    public override string ModuleName => "ContactForm";
+    public override string Title => "Contact Form Module";
+    public override string Description => "Contact form with name, email, subject, and message fields";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        if (Settings != null && Settings.TryGetValue("FormTitle", out var title))
+        {
+            FormTitle = title?.ToString() ?? FormTitle;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        // In production, this would save to database or send email
+        // For now, just show success message
+        await Task.Delay(500); // Simulate async operation
+        IsSubmitted = true;
+    }
+
+    private class ContactModel
+    {
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Subject is required")]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Message is required")]
+        [StringLength(1000, MinimumLength = 10, ErrorMessage = "Message must be between 10 and 1000 characters")]
+        public string Message { get; set; } = string.Empty;
+    }
+}

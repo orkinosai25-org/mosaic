@@ -1,0 +1,233 @@
+/* SharePoint Portal Theme - Modern SharePoint look and feel */
+:root {
+    --sp-primary: #0078d4;
+    --sp-primary-dark: #005a9e;
+    --sp-primary-light: #2b88d8;
+    --sp-neutral-white: #ffffff;
+    --sp-neutral-lighter: #f3f2f1;
+    --sp-neutral-light: #edebe9;
+    --sp-neutral-quaternary: #d2d0ce;
+    --sp-neutral-tertiary: #a19f9d;
+    --sp-neutral-secondary: #605e5c;
+    --sp-neutral-primary: #323130;
+    --sp-theme-dark: #201f1e;
+    --sp-success: #107c10;
+    --sp-warning: #ffaa44;
+    --sp-error: #d13438;
+    --sp-accent: #8764b8;
+}
+
+/* Z-index layers */
+:root {
+    --z-header: 1000;
+    --z-navigation: 900;
+    --z-overlay: 1100;
+}
+
+/* SharePoint Suite Bar */
+.sp-suite-bar {
+    background-color: var(--sp-neutral-primary);
+    color: var(--sp-neutral-white);
+    height: 50px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-header);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.sp-app-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-left: 15px;
+}
+
+/* SharePoint Command Bar */
+.sp-command-bar {
+    background-color: var(--sp-neutral-white);
+    border-bottom: 1px solid var(--sp-neutral-quaternary);
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    margin-top: 50px;
+}
+
+.sp-command-button {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: var(--sp-neutral-primary);
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.sp-command-button:hover {
+    background-color: var(--sp-neutral-lighter);
+}
+
+/* SharePoint Quick Launch (Left Navigation) */
+.sp-quick-launch {
+    width: 220px;
+    background-color: var(--sp-neutral-lighter);
+    position: fixed;
+    left: 0;
+    top: 94px;
+    bottom: 0;
+    overflow-y: auto;
+    border-right: 1px solid var(--sp-neutral-quaternary);
+}
+
+.sp-nav-link {
+    display: block;
+    padding: 12px 20px;
+    color: var(--sp-neutral-primary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.sp-nav-link:hover {
+    background-color: var(--sp-neutral-light);
+}
+
+.sp-nav-link.active {
+    background-color: var(--sp-primary);
+    color: var(--sp-neutral-white);
+    border-left: 4px solid var(--sp-primary-dark);
+}
+
+/* SharePoint Canvas/Content Area */
+.sp-canvas {
+    margin-left: 220px;
+    margin-top: 94px;
+    padding: 32px;
+    background-color: var(--sp-neutral-white);
+    min-height: calc(100vh - 94px);
+}
+
+.sp-page-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--sp-neutral-primary);
+    margin-bottom: 24px;
+}
+
+/* SharePoint Web Part Zones */
+.sp-webpart-zone {
+    margin-bottom: 24px;
+}
+
+.sp-webpart {
+    background: var(--sp-neutral-white);
+    border: 1px solid var(--sp-neutral-light);
+    border-radius: 2px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1.6px 3.6px rgba(0, 0, 0, 0.13);
+}
+
+.sp-webpart-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--sp-neutral-primary);
+    margin-bottom: 16px;
+}
+
+/* SharePoint Lists and Libraries Style */
+.sp-list-view {
+    border: 1px solid var(--sp-neutral-quaternary);
+    border-radius: 2px;
+    background: var(--sp-neutral-white);
+}
+
+.sp-list-header {
+    background: var(--sp-neutral-lighter);
+    padding: 12px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--sp-neutral-quaternary);
+}
+
+.sp-list-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--sp-neutral-light);
+    transition: background-color 0.2s;
+}
+
+.sp-list-item:hover {
+    background: var(--sp-neutral-lighter);
+}
+
+/* SharePoint Buttons */
+.sp-button-primary {
+    background: var(--sp-primary);
+    color: var(--sp-neutral-white);
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sp-button-primary:hover {
+    background: var(--sp-primary-dark);
+}
+
+.sp-button-default {
+    background: var(--sp-neutral-white);
+    color: var(--sp-neutral-primary);
+    border: 1px solid var(--sp-neutral-quaternary);
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sp-button-default:hover {
+    background: var(--sp-neutral-lighter);
+    border-color: var(--sp-neutral-tertiary);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .sp-quick-launch {
+        width: 48px;
+    }
+    
+    .sp-nav-link {
+        padding: 12px 0;
+        text-align: center;
+    }
+    
+    .sp-nav-link span {
+        display: none;
+    }
+    
+    .sp-canvas {
+        margin-left: 48px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sp-quick-launch {
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+    }
+    
+    .sp-quick-launch.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .sp-canvas {
+        margin-left: 0;
+        padding: 16px;
+    }
+}

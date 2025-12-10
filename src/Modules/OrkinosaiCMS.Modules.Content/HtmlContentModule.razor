@@ -1,0 +1,32 @@
+@using OrkinosaiCMS.Modules.Abstractions
+@inherits ModuleBase
+
+<div class="html-content-module">
+    @if (!string.IsNullOrEmpty(Content))
+    {
+        @((MarkupString)Content)
+    }
+    else
+    {
+        <p class="text-muted">No content available.</p>
+    }
+</div>
+
+@code {
+    private string Content { get; set; } = string.Empty;
+
+    public override string ModuleName => "HtmlContent";
+    public override string Title => "HTML Content";
+    public override string Description => "Displays rich HTML content";
+    public override string Category => "Content";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        if (Settings != null && Settings.TryGetValue("Content", out var content))
+        {
+            Content = content?.ToString() ?? string.Empty;
+        }
+    }
+}

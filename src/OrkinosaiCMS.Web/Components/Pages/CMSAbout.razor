@@ -1,0 +1,166 @@
+@page "/cms-about"
+@using OrkinosaiCMS.Web.Components.MasterPages
+
+<PageTitle>About - OrkinosaiCMS</PageTitle>
+
+<StandardMasterPage SiteTitle="OrkinosaiCMS">
+    <HeaderZone>
+        <!-- Header content -->
+    </HeaderZone>
+    
+    <NavigationZone>
+        <ul class="nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-home">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/cms-about">About</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-features">Features</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-contact">Contact</a>
+            </li>
+        </ul>
+    </NavigationZone>
+    
+    <MainZone>
+        <section class="content-section">
+            <h1>About OrkinosaiCMS</h1>
+            
+            <h2>Vision</h2>
+            <p class="lead">To provide a modern, enterprise-ready Content Management System that combines the best practices of SharePoint with the flexibility and performance of .NET 10 and Blazor.</p>
+            
+            <h2>Architecture Philosophy</h2>
+            <p>OrkinosaiCMS is built on Clean Architecture principles, ensuring:</p>
+            <ul>
+                <li><strong>Maintainability</strong>: Clear separation of concerns makes the codebase easy to understand and modify</li>
+                <li><strong>Testability</strong>: Dependency injection and interface-based design enable comprehensive testing</li>
+                <li><strong>Extensibility</strong>: Plugin architecture allows unlimited customization without modifying core code</li>
+                <li><strong>Scalability</strong>: Cloud-ready architecture designed for Azure and other platforms</li>
+            </ul>
+            
+            <h2>Technology Stack</h2>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">Backend</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>.NET 10 Framework</li>
+                                <li>C# 13</li>
+                                <li>Entity Framework Core 10</li>
+                                <li>SQL Server / Azure SQL</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header">Frontend</div>
+                        <div class="card-body">
+                            <ul>
+                                <li>Blazor Web App</li>
+                                <li>Bootstrap 5</li>
+                                <li>Modern CSS</li>
+                                <li>JavaScript Interop</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h2>Design Inspiration</h2>
+            <h3>SharePoint</h3>
+            <p>We borrowed proven enterprise concepts from SharePoint:</p>
+            <ul>
+                <li><strong>Master Pages</strong>: Reusable layout templates</li>
+                <li><strong>Web Parts</strong>: Modular components (we call them Modules)</li>
+                <li><strong>Permission Levels</strong>: Fine-grained access control</li>
+                <li><strong>Hierarchical Pages</strong>: Parent-child page relationships</li>
+            </ul>
+            
+            <h3>Oqtane CMS</h3>
+            <p>We took inspiration from Oqtane's modular architecture:</p>
+            <ul>
+                <li><strong>Module System</strong>: Plugin-based extensibility</li>
+                <li><strong>Theme Support</strong>: Customizable visual appearance</li>
+                <li><strong>Modern Stack</strong>: Blazor and .NET</li>
+            </ul>
+            
+            <h2>Development Roadmap</h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5>Current Release (v1.0)</h5>
+                    <ul>
+                        <li>✅ Core CMS framework</li>
+                        <li>✅ Module system with discovery</li>
+                        <li>✅ SharePoint-inspired page model</li>
+                        <li>✅ Permission system</li>
+                        <li>✅ Theme support</li>
+                        <li>✅ Master Pages</li>
+                    </ul>
+                    
+                    <h5>Future Releases</h5>
+                    <ul>
+                        <li>🔄 Multi-tenancy support</li>
+                        <li>🔄 Content workflow engine</li>
+                        <li>🔄 Page versioning</li>
+                        <li>🔄 Full-text search</li>
+                        <li>🔄 Localization</li>
+                        <li>🔄 API layer for headless CMS</li>
+                        <li>🔄 Real-time collaborative editing</li>
+                        <li>🔄 AI Assistant integration</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </MainZone>
+    
+    <SidebarZone>
+        <div class="card mb-3">
+            <div class="card-header">Quick Links</div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><a href="https://github.com/orkinosai25-org/orkinosaiCMS">GitHub Repository</a></li>
+                    <li><a href="/docs/architecture">Architecture Guide</a></li>
+                    <li><a href="/docs/setup">Setup Guide</a></li>
+                    <li><a href="/docs/extensibility">Extensibility Guide</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">License</div>
+            <div class="card-body">
+                <p>OrkinosaiCMS is released under the MIT License, making it free for commercial and personal use.</p>
+            </div>
+        </div>
+    </SidebarZone>
+    
+    <FooterZone>
+        <div class="row">
+            <div class="col-md-4">
+                <h5 class="footer-title">About</h5>
+                <p>OrkinosaiCMS is a modern, enterprise-ready Content Management System.</p>
+            </div>
+            <div class="col-md-4">
+                <h5 class="footer-title">Links</h5>
+                <ul class="footer-links">
+                    <li><a href="/cms-home">Home</a></li>
+                    <li><a href="/cms-about">About</a></li>
+                    <li><a href="/cms-contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5 class="footer-title">Resources</h5>
+                <ul class="footer-links">
+                    <li><a href="/docs/architecture">Architecture</a></li>
+                    <li><a href="/docs/setup">Setup</a></li>
+                    <li><a href="https://github.com/orkinosai25-org/orkinosaiCMS">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+    </FooterZone>
+</StandardMasterPage>

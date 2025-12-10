@@ -1,0 +1,225 @@
+@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@using OrkinosaiCMS.Web.Services
+@inject IAuthenticationService AuthService
+@inject NavigationManager NavigationManager
+
+<CascadingAuthenticationState>
+    <AuthorizeView Roles="Administrator">
+        <Authorized>
+            <div class="admin-layout">
+                <div class="admin-sidebar">
+                    <div class="admin-logo">
+                        <h2>OrkinosaiCMS</h2>
+                        <p>Admin Panel</p>
+                    </div>
+                    <nav class="admin-nav">
+                        <NavLink href="/admin" Match="NavLinkMatch.All" class="nav-item">
+                            <span class="nav-icon">🏠</span>
+                            Dashboard
+                        </NavLink>
+                        <NavLink href="/admin/pages" class="nav-item">
+                            <span class="nav-icon">📄</span>
+                            Pages
+                        </NavLink>
+                        <NavLink href="/admin/content" class="nav-item">
+                            <span class="nav-icon">📝</span>
+                            Content
+                        </NavLink>
+                        <NavLink href="/admin/media" class="nav-item">
+                            <span class="nav-icon">🖼️</span>
+                            Media
+                        </NavLink>
+                        <NavLink href="/admin/themes" class="nav-item">
+                            <span class="nav-icon">🎨</span>
+                            Themes
+                        </NavLink>
+                        <NavLink href="/admin/users" class="nav-item">
+                            <span class="nav-icon">👥</span>
+                            Users
+                        </NavLink>
+                        <NavLink href="/admin/settings" class="nav-item">
+                            <span class="nav-icon">⚙️</span>
+                            Settings
+                        </NavLink>
+                    </nav>
+                    <div class="admin-user">
+                        <div class="user-info">
+                            <span class="user-icon">👤</span>
+                            <div>
+                                <p class="user-name">@context.User.Identity?.Name</p>
+                                <p class="user-role">Administrator</p>
+                            </div>
+                        </div>
+                        <button class="btn-logout" @onclick="HandleLogout">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <main class="admin-content">
+                    @Body
+                </main>
+
+                @* Zoota Chat Agent - Admin Only *@
+                <ChatAgent />
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            @{
+                NavigationManager.NavigateTo("/admin/login", true);
+            }
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+<style>
+    .admin-layout {
+        display: flex;
+        min-height: 100vh;
+        background: #f5f5f5;
+    }
+
+    .admin-sidebar {
+        width: 280px;
+        background: linear-gradient(180deg, #0078D4, #005A9E);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .admin-logo {
+        padding: 32px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .admin-logo h2 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+    }
+
+    .admin-logo p {
+        font-size: 14px;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .admin-nav {
+        flex: 1;
+        padding: 24px 0;
+        overflow-y: auto;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 24px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+        font-size: 15px;
+    }
+
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-left-color: #50E6FF;
+    }
+
+    .nav-item.active {
+        background: rgba(255, 255, 255, 0.15);
+        border-left-color: #50E6FF;
+        font-weight: 600;
+    }
+
+    .nav-icon {
+        font-size: 20px;
+    }
+
+    .admin-user {
+        padding: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .user-icon {
+        font-size: 32px;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+    }
+
+    .user-name {
+        font-weight: 600;
+        margin: 0 0 4px 0;
+        font-size: 14px;
+    }
+
+    .user-role {
+        font-size: 12px;
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .btn-logout {
+        width: 100%;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .admin-content {
+        flex: 1;
+        margin-left: 280px;
+        padding: 0;
+        background: #f5f5f5;
+    }
+
+    @@media (max-width: 768px) {
+        .admin-sidebar {
+            width: 100%;
+            position: relative;
+            height: auto;
+        }
+
+        .admin-content {
+            margin-left: 0;
+        }
+    }
+</style>
+
+@code {
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/admin/login", true);
+    }
+}

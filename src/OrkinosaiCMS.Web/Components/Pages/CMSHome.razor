@@ -1,0 +1,136 @@
+@page "/cms-home"
+@using OrkinosaiCMS.Web.Components.MasterPages
+
+<PageTitle>Home - OrkinosaiCMS</PageTitle>
+
+<FullWidthMasterPage SiteTitle="OrkinosaiCMS">
+    <HeaderZone>
+        <!-- Will be populated with navigation module in production -->
+    </HeaderZone>
+    
+    <NavigationZone>
+        <ul class="nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="/cms-home">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-about">About</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-features">Features</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-contact">Contact</a>
+            </li>
+        </ul>
+    </NavigationZone>
+    
+    <HeroZone>
+        <!-- Hero Section -->
+        <section class="hero-section fade-in">
+            <div class="container">
+                <h1 class="hero-title">Welcome to OrkinosaiCMS</h1>
+                <p class="hero-subtitle">A modern, modular Content Management System built on .NET 10 and Blazor</p>
+                <a href="/cms-about" class="hero-cta">Learn More</a>
+            </div>
+        </section>
+    </HeroZone>
+    
+    <MainZone>
+        <!-- Features Section -->
+        <section class="content-section">
+            <div class="container">
+                <h2 class="section-title">Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">📚</div>
+                        <h3 class="feature-title">Modular Architecture</h3>
+                        <p class="feature-description">Plugin-based system for unlimited extensibility with easy-to-create modules</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">🛡️</div>
+                        <h3 class="feature-title">SharePoint-Inspired</h3>
+                        <p class="feature-description">Familiar concepts like Master Pages, Web Parts, and fine-grained permissions</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">💻</div>
+                        <h3 class="feature-title">Modern Stack</h3>
+                        <p class="feature-description">Built on .NET 10, Blazor, and Entity Framework Core for cutting-edge performance</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">🎨</div>
+                        <h3 class="feature-title">Clean Architecture</h3>
+                        <p class="feature-description">Clear separation between Core, Infrastructure, and UI layers for maintainability</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">👥</div>
+                        <h3 class="feature-title">Flexible Permissions</h3>
+                        <p class="feature-description">Fine-grained, SharePoint-style permission system with role-based access control</p>
+                    </div>
+                    <div class="feature-item fade-in">
+                        <div class="feature-icon">🎭</div>
+                        <h3 class="feature-title">Theme Support</h3>
+                        <p class="feature-description">Customizable visual themes with master pages for consistent layouts</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- About Section -->
+        <section class="content-section">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h2>Enterprise-Ready CMS</h2>
+                        <p class="lead">OrkinosaiCMS combines the proven patterns from SharePoint with modern .NET technologies and a modular architecture, creating a flexible, extensible, and enterprise-ready platform.</p>
+                        <p>Built from the ground up using .NET 10 and Blazor, OrkinosaiCMS provides developers with a clean architecture that's easy to understand, extend, and maintain.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Quick Stats</h5>
+                                <ul class="list-unstyled">
+                                    <li>✅ .NET 10 Framework</li>
+                                    <li>✅ Blazor Web App</li>
+                                    <li>✅ Entity Framework Core</li>
+                                    <li>✅ Clean Architecture</li>
+                                    <li>✅ Module System</li>
+                                    <li>✅ Master Pages</li>
+                                    <li>✅ Azure-Ready</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </MainZone>
+    
+    <FooterColumn1>
+        <p>OrkinosaiCMS is a modern, enterprise-ready Content Management System built on .NET 10 and Blazor.</p>
+    </FooterColumn1>
+    
+    <FooterColumn2>
+        <ul class="footer-links">
+            <li><a href="/cms-home">Home</a></li>
+            <li><a href="/cms-about">About</a></li>
+            <li><a href="/cms-features">Features</a></li>
+            <li><a href="/cms-contact">Contact</a></li>
+        </ul>
+    </FooterColumn2>
+    
+    <FooterColumn3>
+        <ul class="footer-links">
+            <li><a href="/docs/architecture">Architecture</a></li>
+            <li><a href="/docs/setup">Setup Guide</a></li>
+            <li><a href="/docs/extensibility">Extensibility</a></li>
+            <li><a href="https://github.com/orkinosai25-org/orkinosaiCMS" target="_blank">GitHub</a></li>
+        </ul>
+    </FooterColumn3>
+    
+    <FooterColumn4>
+        <p>Email: info@orkinosai.com<br />
+        GitHub: orkinosai25-org<br />
+        License: MIT</p>
+    </FooterColumn4>
+</FullWidthMasterPage>
