@@ -1,6 +1,6 @@
 # MOSAIC SaaS Platform
 
-**MOSAIC** is a next-generation SaaS platform that empowers businesses and creators to build, manage, and scale multi-tenant websites with beautiful Ottoman-inspired design aesthetics. Built by [Orkinosai](https://github.com/orkinosai25-org), MOSAIC combines powerful enterprise features with the elegance of historical Turkish artistic heritage.
+**MOSAIC** is the world's first conversational SaaS platform empowering businesses and creators to build, manage, and scale multi-tenant websites—using natural language, not configuration. Built by [Orkinosai](https://github.com/orkinosai25-org), MOSAIC combines powerful enterprise features with an innovative AI-powered conversational interface.
 
 ![MOSAIC Logo](./logo/src/mosaic-logo-main.svg)
 
@@ -24,7 +24,7 @@ The transformation from OrkinosaiCMS to MOSAIC represents a strategic evolution:
 | **Target Users** | Individual websites | Businesses and creators |
 | **Architecture** | Modular monolith | Multi-tenant with tenant isolation |
 | **Deployment** | Self-hosted | Cloud-native (Azure) |
-| **Theming** | Generic themes | Ottoman/Iznik-inspired design system |
+| **Interface** | Traditional config | Conversational AI builder |
 | **AI Integration** | Basic (Zoota chat) | Dual AI agents (MOSAIC + Zoota Admin) |
 | **Payment** | Not included | Integrated Stripe + Microsoft Founder Hub |
 | **Onboarding** | Manual setup | Streamlined sign-up with guided wizard |
@@ -46,7 +46,7 @@ The content management system that powers each website:
 - **Configure website content and structure** through admin features
 - **Manage pages, modules, and web parts** (SharePoint-inspired)
 - **Control permissions and user access**
-- **Customize themes and branding** with Ottoman/Iznik designs
+- **Customize themes and branding**
 - **Use AI assistance** (Zoota Admin Agent)
 
 **User Journey:**
@@ -59,14 +59,21 @@ The content management system that powers each website:
 ## 🎯 Vision
 
 MOSAIC reimagines website and content management as a service by blending:
+- **Conversational AI interface** for intuitive website building without technical configuration
 - **Enterprise-grade multi-tenant architecture** for scalability and security
-- **Ottoman/Iznik design inspiration** bringing unique cultural aesthetics to modern web
 - **AI-powered automation** with intelligent agents for both public users and administrators
 - **Seamless integrations** with modern payment, analytics, and development tools
 
-Our goal is to make powerful web infrastructure accessible to everyone while celebrating Turkish cultural heritage through design.
+Our goal is to make powerful web infrastructure accessible to everyone through natural language interactions.
 
 ## ✨ Core Features
+
+### 🗣️ Conversational Website Builder
+- **Natural language interface**: Build websites by describing what you want in plain English
+- **AI-powered design**: Smart suggestions for layouts, content, and structure
+- **No technical knowledge required**: Focus on your vision, not configuration
+- **Instant previews**: See changes in real-time as you converse with the AI
+- **Context-aware assistance**: The AI understands your goals and guides you accordingly
 
 ### 🚀 User Onboarding & Registration
 - **Streamlined sign-up flow**: Get started in minutes with intuitive onboarding
@@ -92,12 +99,8 @@ Our goal is to make powerful web infrastructure accessible to everyone while cel
 - **Backup & restore**: Automated backups with one-click restoration
 
 ### 🎨 Theme & Branding
-- **Ottoman-inspired themes**: Beautiful designs drawing from Selimiye Mosque and Blue Mosque aesthetics
-- **Iznik tile patterns**: Authentic geometric patterns with 8-pointed stars, diamond tiles, and arabesques
-- **Customizable color palettes**: 
-  - Deep cobalt blues (#1e3a8a, #2563eb)
-  - Turquoise accents (#06b6d4, #22d3ee)
-  - Gold highlights (#fbbf24, #f59e0b)
+- **Beautiful themes**: Professional designs for any business or creative project
+- **Customizable color palettes**: Choose from pre-defined palettes or create your own
 - **Light & dark modes**: Elegant themes for different contexts
 - **Logo integration**: Upload and manage your brand assets
 - **SharePoint-inspired layouts**: Professional, enterprise-ready templates
@@ -124,6 +127,7 @@ Our goal is to make powerful web infrastructure accessible to everyone while cel
 ### 🤖 AI-Powered Agents
 
 #### MOSAIC Public Agent
+- **Conversational interface**: Natural language website building and management
 - **Content assistance**: AI helps users create and optimize content
 - **SEO recommendations**: Automated suggestions for better search rankings
 - **Design guidance**: Smart recommendations for layouts and styling
@@ -136,27 +140,6 @@ Our goal is to make powerful web infrastructure accessible to everyone while cel
 - **System monitoring**: Proactive issue detection and resolution
 - **Analytics insights**: AI-powered trend analysis and recommendations
 - **Resource optimization**: Smart scaling and cost management
-
-## 🏛️ Design Heritage
-
-MOSAIC's visual identity is deeply rooted in Ottoman architectural masterpieces:
-
-### Selimiye Mosque (Edirne)
-- Geometric precision of Mimar Sinan's masterpiece
-- 8-pointed star patterns (Rub el Hizb)
-- Perfect mathematical proportions
-
-### Blue Mosque (Istanbul)
-- Famous Iznik tile work with over 20,000 handmade tiles
-- Cobalt blue color palette
-- Cascading dome architecture
-
-### Iznik Tiles
-- Traditional Turkish ceramic art
-- Diamond and geometric patterns
-- Rich color combinations
-
-Learn more about our design inspiration in the [logo documentation](./logo/README.md) and [Ottoman inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md).
 
 ## 📋 Requirements
 
@@ -172,7 +155,6 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 - **[Architecture](./docs/architecture.md)**: Platform architecture, multi-tenant design, and tier specifications
 - **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
 - **[Application Settings](./docs/appsettings.md)**: Configuration guide for appsettings.json and Azure Key Vault
-- **[Portal UI Design](./docs/portal-ui.md)**: Azure-style portal interface and Ottoman-inspired design elements
 
 ### Getting Started
 - **[Quick Start - CMS](./docs/QUICK_START_CMS.md)**: Get started with CMS and Azure Blob Storage in minutes
@@ -182,11 +164,6 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 ### Integration & Storage
 - **[Azure Blob Storage Integration](./docs/AZURE_BLOB_STORAGE.md)**: Media storage, security, and usage guide
 
-### Branding & Design
-- **[Logo & Branding](./logo/README.md)**: Official brand assets and usage guidelines
-- **[Design Concept](./logo/concept/DESIGN_CONCEPT.md)**: Logo design philosophy
-- **[Ottoman Inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md)**: Cultural and architectural heritage
-
 ## 🚀 Getting Started
 
 ### For End Users (Coming Soon)
@@ -194,7 +171,7 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
 2. **Choose your plan**: Select a subscription tier that fits your needs
 3. **Create your first site**: Follow the guided setup wizard
-4. **Customize**: Apply Ottoman-inspired themes and branding
+4. **Customize**: Use the conversational AI to build and design your site
 5. **Launch**: Go live with your new website
 6. **Integrate**: Add the MOSAIC script to existing sites if needed
 
@@ -382,7 +359,7 @@ After deployment, verify the following:
 
 1. **Portal Landing Page** (Root URL)
    - Visit: `https://mosaic-saas.azurewebsites.net/`
-   - Expected: MOSAIC portal landing page with Ottoman-inspired design
+   - Expected: MOSAIC portal landing page
    - Should show: Registration/login options, features, hero section
    - Should NOT show: OrkinosaiCMS frontend (Counter, Weather pages)
 
@@ -421,7 +398,7 @@ mosaic/
 │   ├── src/
 │   │   ├── pages/                       # Landing, Dashboard, Sites pages
 │   │   ├── components/                  # Reusable UI components
-│   │   ├── styles/                      # Ottoman-inspired themes
+│   │   ├── styles/                      # Custom themes
 │   │   └── App.tsx                      # Main application component
 │   ├── package.json
 │   └── vite.config.ts                   # Build configuration
@@ -552,11 +529,11 @@ For detailed payment integration guide, see [Payment Integration](./docs/PAYMENT
 - [ ] Usage tracking and billing
 - [ ] Invoice generation
 
-### Phase 4: Ottoman Design System
-- [ ] Implement 6+ Ottoman-inspired themes
-- [ ] Iznik tile pattern library
-- [ ] Theme customization UI
-- [ ] Brand asset management
+### Phase 4: Enhanced Conversational Builder
+- [ ] Advanced natural language processing
+- [ ] Multi-step conversation flows
+- [ ] Visual feedback during conversations
+- [ ] Template suggestions based on industry
 
 ### Phase 5: AI Agent Enhancement
 - [ ] Deploy MOSAIC Public Agent
@@ -590,7 +567,6 @@ This project is proprietary software by Orkinosai. See LICENSE file for details.
 - **Oqtane CMS** - Inspiration for the modular architecture
 - **SharePoint** - Inspiration for page model and permission system
 - **.NET Team** - For the amazing .NET 10 and Blazor frameworks
-- **Ottoman Architects** - Mimar Sinan and the masters who created timeless beauty
 
 ## 📞 Contact & Support
 
@@ -606,14 +582,13 @@ This project is proprietary software by Orkinosai. See LICENSE file for details.
 1. **Connection Strings**: Update for multi-tenant database strategy
 2. **Authentication**: Configure for SaaS identity provider
 3. **Secrets Management**: Use Azure Key Vault for production
-4. **Branding**: Apply Ottoman-inspired theme system
-5. **Domain Configuration**: Set up custom domain routing per tenant
-6. **Email Service**: Configure SendGrid/similar for transactional emails
-7. **Payment Gateway**: Set up Stripe with webhook endpoints
+4. **Domain Configuration**: Set up custom domain routing per tenant
+5. **Email Service**: Configure SendGrid/similar for transactional emails
+6. **Payment Gateway**: Set up Stripe with webhook endpoints
 
 See [Setup Guide](docs/SETUP.md) for detailed configuration instructions.
 
 ---
 
 **Built with ❤️ by [Orkinosai](https://github.com/orkinosai25-org)**  
-**Inspired by Ottoman heritage** • **Powered by OrkinosaiCMS** • **Crafted with modern technology**
+**Powered by OrkinosaiCMS** • **Crafted with modern technology**

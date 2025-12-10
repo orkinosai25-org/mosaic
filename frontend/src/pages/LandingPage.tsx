@@ -76,10 +76,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const features = [
     {
-      icon: '🕌',
-      title: 'Ottoman-Inspired Design',
+      icon: '🗣️',
+      title: 'Conversational Website Builder',
       description:
-        'Beautiful themes inspired by Selimiye Mosque and Blue Mosque with authentic Iznik tile patterns.',
+        'Build and manage websites using natural language conversations—no technical configuration needed.',
     },
     {
       icon: '🏢',
@@ -88,20 +88,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         'Create and manage unlimited websites with enterprise-grade isolation and security.',
     },
     {
-      icon: '💳',
-      title: 'Flexible Billing',
+      icon: '⚡',
+      title: 'Instant Onboarding & Migration',
       description:
-        'Stripe integration with multiple subscription tiers and usage-based pricing.',
+        'Get started in minutes with streamlined sign-up and easy migration from existing platforms.',
     },
     {
-      icon: '📊',
-      title: 'Real-Time Analytics',
+      icon: '🌐',
+      title: 'Ready for Business',
       description:
-        'Monitor site performance, visitor activity, and engagement metrics in real-time.',
+        'Enterprise-ready features with flexible billing, real-time analytics, and comprehensive APIs.',
     },
     {
       icon: '🤖',
-      title: 'AI-Powered Agents',
+      title: 'AI-Powered Automation',
       description:
         'Intelligent assistance for content creation, SEO optimization, and administrative tasks.',
     },
@@ -118,8 +118,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <div className={styles.hero}>
         <h1 className={styles.heroTitle}>Welcome to MOSAIC</h1>
         <p className={styles.heroSubtitle}>
-          Next-generation SaaS platform empowering businesses and creators to build,
-          manage, and scale multi-tenant websites with beautiful Ottoman-inspired design
+          The world's first conversational SaaS platform empowering businesses and creators to build,
+          manage, and scale multi-tenant websites—using natural language, not configuration
         </p>
         <div className={styles.heroButtons}>
           <Button appearance="primary" size="large" onClick={onRegister}>

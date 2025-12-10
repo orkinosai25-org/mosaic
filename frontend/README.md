@@ -21,7 +21,7 @@ The portal is the primary interface for:
 
 The MOSAIC portal frontend is designed to:
 - **Mirror Azure Portal UX**: Familiar navigation patterns and interactions for enterprise users
-- **Ottoman/Iznik Aesthetics**: Beautiful color palette inspired by Turkish cultural heritage
+- **Modern Aesthetics**: Clean, professional design for any business or creative project
 - **Session-Aware UI**: Different experiences for authenticated vs unauthenticated users
 - **Responsive Design**: Optimized for both desktop and mobile devices
 
@@ -60,12 +60,6 @@ npm run dev
 ```bash
 npm run build
 ```
-
-## 🎨 Color Palette (Ottoman/Iznik Inspired)
-
-- **Ottoman Blue**: `#1e3a8a` → `#2563eb`
-- **Iznik Turquoise**: `#06b6d4` → `#22d3ee`
-- **Royal Gold**: `#fbbf24` → `#f59e0b`
 
 ## 🧩 Key Components
 

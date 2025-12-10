@@ -130,10 +130,10 @@ on:
 **Portal Features Implemented:**
 
 1. **Landing Page** (`/`):
-   - Ottoman-inspired design with Fluent UI
+   - Modern design with Fluent UI
    - Feature showcase (6 core features)
    - Call-to-action buttons: "Get Started Free" and "Sign In"
-   - Responsive layout with brand colors
+   - Responsive layout with professional design
 
 2. **Registration Flow**:
    - Email-based registration
