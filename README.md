@@ -75,6 +75,17 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 - **Instant previews**: See changes in real-time as you converse with the AI
 - **Context-aware assistance**: The AI understands your goals and guides you accordingly
 
+### 🏗️ Create Site Workflow
+- **Multi-step wizard**: Guided site creation process with 4 easy steps
+  1. **Basic Info**: Enter site name and description
+  2. **AI Setup Assistant**: Conversational helper to understand your site's purpose
+  3. **Theme Selection**: Choose from professional, pre-built themes
+  4. **Review & Confirm**: Review configuration and create your site
+- **Instant provisioning**: Sites are created and ready in seconds
+- **Automatic initialization**: Default home page and content structure set up automatically
+- **Direct CMS access**: Immediate link to CMS dashboard after creation
+- **Multi-tenant isolation**: Each site operates in its own secure environment
+
 ### 🚀 User Onboarding & Registration
 - **Streamlined sign-up flow**: Get started in minutes with intuitive onboarding
 - **Email verification**: Secure account activation
@@ -288,6 +299,7 @@ Navigate to `https://localhost:5001`
 ### MOSAIC SaaS Documentation
 - **[SaaS Features Overview](./docs/SaaS_FEATURES.md)**: Detailed feature comparison and roadmap
 - **[Onboarding Guide](./docs/ONBOARDING.md)**: Complete user journey from sign-up to launch
+- **[Site Management API](./docs/SITE_MANAGEMENT_API.md)**: API documentation for creating and managing sites
 - **[Multi-Tenancy Guide](./docs/MULTI_TENANCY.md)**: Architecture and implementation (coming soon)
 - **[Payment Integration](./docs/PAYMENT_INTEGRATION.md)**: Stripe setup and configuration (coming soon)
 
