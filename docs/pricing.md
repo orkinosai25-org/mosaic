@@ -431,7 +431,7 @@ Each MOSAIC plan builds on the previous one, giving you more power, control, and
 - You're managing 10+ websites
 - You need enterprise-level support (phone, 24/7)
 - GraphQL API access is required
-- You need large team collaboration (15+ users)
+- You need large team collaboration (40 total users: 15 admins + 25 contributors)
 - 99.99% uptime is critical for your business
 
 ---
@@ -439,10 +439,10 @@ Each MOSAIC plan builds on the previous one, giving you more power, control, and
 ## 🎁 Special Offers
 
 ### Annual Billing Savings
-Save up to 20% by paying annually:
-- **Starter:** Save $36/year (2 months free)
-- **Pro:** Save $89/year (nearly 2 months free)
-- **Business:** Save $298/year (2 months free)
+Save 15-20% by paying annually:
+- **Starter:** Save $36/year - 20% discount (2.4 months free)
+- **Pro:** Save $89/year - 15% discount (1.8 months free)
+- **Business:** Save $298/year - 17% discount (2 months free)
 
 ### Startup Program
 Are you part of **Microsoft for Startups Founder Hub**? You may qualify for:
