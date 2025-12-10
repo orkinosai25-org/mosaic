@@ -91,6 +91,31 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+// Add authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Add middleware to protect CMS routes (require authentication)
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? "/";
+    
+    // Check if this is a CMS or Admin route
+    if (path.StartsWith("/cms-", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("/admin", StringComparison.OrdinalIgnoreCase))
+    {
+        // Check if user is authenticated
+        if (!context.User?.Identity?.IsAuthenticated ?? true)
+        {
+            // Redirect unauthenticated users to login page
+            context.Response.Redirect("/admin/login?returnUrl=" + Uri.EscapeDataString(path));
+            return;
+        }
+    }
+    
+    await next();
+});
+
 app.UseAntiforgery();
 
 // Middleware: Serve static files from wwwroot (includes React portal assets)

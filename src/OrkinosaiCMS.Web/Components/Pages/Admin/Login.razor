@@ -4,13 +4,13 @@
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavigationManager
 
-<PageTitle>Admin Login - OrkinosaiCMS</PageTitle>
+<PageTitle>Admin Login - MOSAIC CMS</PageTitle>
 
 <div class="login-container">
     <div class="login-card">
         <div class="login-header">
-            <h2>OrkinosaiCMS Admin</h2>
-            <p>Sign in to access the admin panel</p>
+            <h2>MOSAIC CMS Admin</h2>
+            <p>Sign in to manage your sites</p>
         </div>
 
         @if (!string.IsNullOrEmpty(errorMessage))
@@ -71,7 +71,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #0078D4, #00BCF2);
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
         padding: 20px;
     }
 
@@ -90,7 +90,7 @@
     }
 
     .login-header h2 {
-        color: #0078D4;
+        color: #1e3a8a;
         font-size: 28px;
         font-weight: 600;
         margin-bottom: 8px;
@@ -128,9 +128,9 @@
     }
 
     .form-control:focus {
-        border-color: #0078D4;
+        border-color: #2563eb;
         outline: none;
-        box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
     }
 
     .form-control:disabled {
@@ -150,13 +150,13 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #0078D4, #00BCF2);
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
         color: white;
     }
 
     .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 120, 212, 0.3);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
     }
 
     .btn-primary:disabled {
