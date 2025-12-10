@@ -105,7 +105,8 @@ app.Use(async (context, next) =>
         path.StartsWith("/admin", StringComparison.OrdinalIgnoreCase))
     {
         // Check if user is authenticated
-        if (!context.User?.Identity?.IsAuthenticated ?? true)
+        // Fix: Correct null conditional logic - true when NOT authenticated
+        if (!(context.User?.Identity?.IsAuthenticated ?? false))
         {
             // Redirect unauthenticated users to login page
             context.Response.Redirect("/admin/login?returnUrl=" + Uri.EscapeDataString(path));
@@ -131,38 +132,15 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 // Fallback routing: Serve React portal SPA for non-CMS routes
-// This ensures the React portal is served at root and handles all portal routing
-// Exclude patterns that should be handled by Blazor
-app.MapFallback(async context =>
+// MapFallback is called after all other endpoints, so Blazor routes are already handled
+// We only need to serve the React portal for unmatched routes
+app.MapFallbackToFile("index.html", new StaticFileOptions
 {
-    var path = context.Request.Path.Value ?? "/";
-    
-    // If the request is for a Blazor CMS route, let it through
-    if (path.StartsWith("/cms-", StringComparison.OrdinalIgnoreCase) ||
-        path.StartsWith("/admin", StringComparison.OrdinalIgnoreCase) ||
-        path.StartsWith("/_framework", StringComparison.OrdinalIgnoreCase) ||
-        path.StartsWith("/_content", StringComparison.OrdinalIgnoreCase) ||
-        path.Equals("/not-found", StringComparison.OrdinalIgnoreCase) ||
-        path.Equals("/error", StringComparison.OrdinalIgnoreCase))
+    OnPrepareResponse = ctx =>
     {
-        // Let Blazor handle these routes
-        context.Response.StatusCode = 404;
-        return;
-    }
-    
-    // For all other routes (including root), serve the React portal
-    var indexPath = Path.Combine(app.Environment.WebRootPath, "index.html");
-    if (File.Exists(indexPath))
-    {
-        context.Response.ContentType = "text/html";
-        context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-        context.Response.Headers.Append("Expires", "0");
-        await context.Response.SendFileAsync(indexPath);
-    }
-    else
-    {
-        context.Response.StatusCode = 404;
-        await context.Response.WriteAsync("Portal not found. Please ensure the React app is built and deployed.");
+        // Don't cache the index.html to ensure users get the latest version
+        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+        ctx.Context.Response.Headers.Append("Expires", "0");
     }
 });
 
