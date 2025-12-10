@@ -447,3 +447,7 @@ src/OrkinosaiCMS.Web/wwwroot/index.html
 src/OrkinosaiCMS.Web/wwwroot/vite.svg
 src/OrkinosaiCMS.Web/wwwroot/mosaic-*.svg
 src/OrkinosaiCMS.Web/wwwroot/assets/
+
+# Serilog log files
+src/OrkinosaiCMS.Web/App_Data/Logs/*.log
+src/OrkinosaiCMS.Web/App_Data/Logs/*.txt
