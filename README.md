@@ -189,7 +189,6 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 🚀 Getting Started
 
-### For End Users
 ### For End Users (Coming Soon)
 
 1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
@@ -200,6 +199,21 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 6. **Integrate**: Add the MOSAIC script to existing sites if needed
 
 For detailed onboarding instructions, see our [Onboarding Guide](./docs/ONBOARDING.md).
+
+### SaaS Architecture
+
+MOSAIC uses a multi-tenant architecture with:
+- **Portal Frontend (React + Fluent UI)**: Public landing page at `/` for registration and authentication
+- **CMS Backend (.NET 10 + Blazor)**: Admin interface at `/admin` for site management (authenticated users only)
+- **API Services**: RESTful endpoints at `/api/*` for portal-backend integration
+- **CMS Pages**: Content pages at `/cms-*` for website management
+
+**User Journey:**
+1. Visit root URL → See Portal landing page
+2. Register/Login → Access dashboard in Portal
+3. Create site → Manage via Portal dashboard
+4. Configure site → Access CMS admin (authenticated)
+5. Manage content → Use CMS features and modules
 
 ### For Developers
 
@@ -301,18 +315,84 @@ Navigate to `https://localhost:5001`
 - **[Azure Deployment](docs/AZURE_DEPLOYMENT.md)** - Deploy to Azure Web Apps with Azure SQL
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment procedures
 
+## 🚀 Deployment
+
+MOSAIC uses GitHub Actions for automated deployment to Azure Web App.
+
+### Automated Deployment
+
+The `deploy.yml` workflow automatically deploys to Azure when changes are pushed to the `main` branch.
+
+**Workflow Steps:**
+1. **Build Portal (Frontend)**: Compiles React app with Vite
+2. **Build CMS (Backend)**: Compiles .NET 10 solution
+3. **Publish Backend**: Creates deployment package
+4. **Integrate Frontend**: Copies React build to backend's wwwroot
+5. **Deploy to Azure**: Uses publish profile to deploy to Azure Web App
+
+**Required Secret:**
+- `AZURE_WEBAPP_PUBLISH_PROFILE_MOSAIC`: Azure Web App publish profile from Azure Portal
+
+### Manual Deployment
+
+```bash
+# Build frontend
+cd frontend
+npm ci
+npm run build
+
+# Build and publish backend
+cd ..
+dotnet restore OrkinosaiCMS.sln
+dotnet build OrkinosaiCMS.sln --configuration Release
+dotnet publish src/OrkinosaiCMS.Web/OrkinosaiCMS.Web.csproj --configuration Release --output ./publish
+
+# Copy frontend to backend wwwroot
+cp -r frontend/dist/* ./publish/wwwroot/
+
+# Deploy to Azure using Azure CLI or publish profile
+az webapp deploy --resource-group <rg-name> --name mosaic-saas --src-path ./publish
+```
+
+### Production URLs
+
+After deployment, the application is accessible at:
+- **Portal (Landing)**: `https://mosaic-saas.azurewebsites.net/`
+- **CMS Admin**: `https://mosaic-saas.azurewebsites.net/admin`
+- **API Endpoints**: `https://mosaic-saas.azurewebsites.net/api/*`
+
 ## 🏗️ Project Structure
 
 ```
 mosaic/
-├── src/
-│   ├── OrkinosaiCMS.Core/              # Domain entities and interfaces
-│   ├── OrkinosaiCMS.Infrastructure/    # Data access and services
-│   ├── OrkinosaiCMS.Modules.Abstractions/  # Module base classes
-│   ├── OrkinosaiCMS.Shared/            # Shared DTOs
-│   ├── OrkinosaiCMS.Web/               # Blazor Web App
-│   └── Modules/
-│       └── OrkinosaiCMS.Modules.Content/  # Sample content module
+├── .github/
+│   └── workflows/                       # CI/CD pipelines
+│       ├── ci.yml                       # Continuous integration (all branches)
+│       ├── deploy.yml                   # Production deployment (main branch)
+│       └── docker-publish.yml           # Container publishing
+├── frontend/                            # Portal (React + Fluent UI)
+│   ├── src/
+│   │   ├── pages/                       # Landing, Dashboard, Sites pages
+│   │   ├── components/                  # Reusable UI components
+│   │   ├── styles/                      # Ottoman-inspired themes
+│   │   └── App.tsx                      # Main application component
+│   ├── package.json
+│   └── vite.config.ts                   # Build configuration
+├── src/                                 # CMS Backend (.NET 10)
+│   ├── OrkinosaiCMS.Core/               # Domain entities and interfaces
+│   ├── OrkinosaiCMS.Infrastructure/     # Data access and services
+│   ├── OrkinosaiCMS.Modules.Abstractions/ # Module base classes
+│   ├── OrkinosaiCMS.Shared/             # Shared DTOs
+│   ├── OrkinosaiCMS.Web/                # Blazor Web App (CMS Admin)
+│   │   ├── Components/
+│   │   │   ├── Pages/Admin/             # Admin pages (/admin/*)
+│   │   │   └── Pages/                   # CMS pages (/cms-*)
+│   │   ├── wwwroot/                     # Static assets (Portal deployed here)
+│   │   └── Program.cs                   # App configuration
+│   └── Modules/                         # CMS feature modules
+│       ├── OrkinosaiCMS.Modules.Content/
+│       ├── OrkinosaiCMS.Modules.Hero/
+│       └── OrkinosaiCMS.Modules.Features/
 ├── docs/                                # Documentation
 ├── logo/                                # MOSAIC branding and design assets
 └── scripts/                             # Utility scripts
