@@ -39,6 +39,16 @@ Our goal is to make powerful web infrastructure accessible to everyone while cel
 - **Staging environments**: Test changes before going live
 - **Backup & restore**: Automated backups with one-click restoration
 
+### 📝 Content Management System (CMS)
+- **Multi-tenant media storage**: Secure, isolated file storage for each tenant via Azure Blob Storage
+- **File upload & management**: Support for images (JPEG, PNG, GIF, WebP, SVG) and documents (PDF, Word, Excel, CSV)
+- **Automated backups**: Create and restore tenant data backups on-demand
+- **Health monitoring**: Real-time status checks for storage connectivity and system health
+- **Security-first**: File signature validation, path sanitization, and tenant isolation
+- **RESTful API**: Complete programmatic access to media and backup operations
+- **SAS token support**: Temporary, secure URLs for file access
+- **Scalable storage**: Geo-redundant Azure Blob Storage with 99.99% availability SLA
+
 ### 🎨 Theme & Branding
 - **Ottoman-inspired themes**: Beautiful designs drawing from Selimiye Mosque and Blue Mosque aesthetics
 - **Iznik tile patterns**: Authentic geometric patterns with 8-pointed stars, diamond tiles, and arabesques
@@ -129,6 +139,8 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 
 ## 🚀 Getting Started
 
+### For End Users
+
 1. **Sign up**: Visit mosaic.orkinosai.com (platform launching soon)
 2. **Choose your plan**: Select a subscription tier that fits your needs
 3. **Create your first site**: Follow the guided setup wizard
@@ -137,6 +149,31 @@ Learn more about our design inspiration in the [logo documentation](./logo/READM
 6. **Integrate**: Add the MOSAIC script to existing sites if needed
 
 For detailed onboarding instructions, see our [Onboarding Guide](./docs/ONBOARDING.md).
+
+### For Developers - Running the CMS Locally
+
+Get started with the MOSAIC CMS in minutes:
+
+```bash
+# Clone the repository
+git clone https://github.com/orkinosai25-org/mosaic.git
+cd mosaic/src/MosaicCMS
+
+# Configure Azure Storage credentials (development)
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:AzureBlobStorageConnectionString" "YOUR_CONNECTION_STRING"
+
+# Run the CMS
+dotnet run
+```
+
+The CMS API will be available at `https://localhost:5001` with full support for:
+- ✅ Multi-tenant file uploads (images, documents)
+- ✅ Automated backups and restore
+- ✅ Health monitoring and diagnostics
+- ✅ Secure Azure Blob Storage integration
+
+See the [CMS Quick Start Guide](./docs/QUICK_START_CMS.md) for detailed instructions.
 
 ## ☁️ Azure Blob Storage Integration
 

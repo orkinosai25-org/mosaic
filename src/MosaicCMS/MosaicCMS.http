@@ -1,6 +1,103 @@
-@MosaicCMS_HostAddress = http://localhost:5093
+@MosaicCMS_HostAddress = http://localhost:5000
+@TestTenantId = test-tenant-001
 
-GET {{MosaicCMS_HostAddress}}/weatherforecast/
+### Health Check - Basic
+GET {{MosaicCMS_HostAddress}}/api/health
 Accept: application/json
+
+###
+
+### Health Check - Detailed (includes Azure Blob Storage status)
+GET {{MosaicCMS_HostAddress}}/api/health/detailed
+Accept: application/json
+
+###
+
+### Upload Image
+# Note: Update the file path below to a real image file
+POST {{MosaicCMS_HostAddress}}/api/media/images
+X-Tenant-Id: {{TestTenantId}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test-image.jpg"
+Content-Type: image/jpeg
+
+< ./test-image.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Upload Document
+# Note: Update the file path below to a real document file
+POST {{MosaicCMS_HostAddress}}/api/media/documents
+X-Tenant-Id: {{TestTenantId}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test-document.pdf"
+Content-Type: application/pdf
+
+< ./test-document.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### List Files (Images)
+GET {{MosaicCMS_HostAddress}}/api/media/list?containerType=images
+X-Tenant-Id: {{TestTenantId}}
+Accept: application/json
+
+###
+
+### List Files (Documents)
+GET {{MosaicCMS_HostAddress}}/api/media/list?containerType=documents
+X-Tenant-Id: {{TestTenantId}}
+Accept: application/json
+
+###
+
+### Get SAS URL for Temporary Access
+GET {{MosaicCMS_HostAddress}}/api/media/sas-url?containerType=images&fileName=test-image.jpg&expiryMinutes=60
+X-Tenant-Id: {{TestTenantId}}
+Accept: application/json
+
+###
+
+### Delete File
+DELETE {{MosaicCMS_HostAddress}}/api/media?containerType=images&fileName=test-image.jpg
+X-Tenant-Id: {{TestTenantId}}
+
+###
+
+### Create Backup
+POST {{MosaicCMS_HostAddress}}/api/backup
+X-Tenant-Id: {{TestTenantId}}
+Content-Type: application/json
+
+{
+  "containers": ["images", "documents", "user-uploads"]
+}
+
+###
+
+### List Backups
+GET {{MosaicCMS_HostAddress}}/api/backup
+X-Tenant-Id: {{TestTenantId}}
+Accept: application/json
+
+###
+
+### Restore Backup
+# Note: Update the backupId below with an actual backup ID from List Backups
+POST {{MosaicCMS_HostAddress}}/api/backup/restore/backup-20241210-123456-abc123
+X-Tenant-Id: {{TestTenantId}}
+
+###
+
+### Delete Backup
+# Note: Update the backupId below with an actual backup ID
+DELETE {{MosaicCMS_HostAddress}}/api/backup/backup-20241210-123456-abc123
+X-Tenant-Id: {{TestTenantId}}
 
 ###
