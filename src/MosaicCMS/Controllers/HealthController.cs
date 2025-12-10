@@ -12,16 +12,13 @@ namespace MosaicCMS.Controllers;
 [Route("api/[controller]")]
 public class HealthController : ControllerBase
 {
-    private readonly IBlobStorageService _blobStorageService;
     private readonly AzureBlobStorageOptions _storageOptions;
     private readonly ILogger<HealthController> _logger;
 
     public HealthController(
-        IBlobStorageService blobStorageService,
         IOptions<AzureBlobStorageOptions> storageOptions,
         ILogger<HealthController> logger)
     {
-        _blobStorageService = blobStorageService;
         _storageOptions = storageOptions.Value;
         _logger = logger;
     }
@@ -80,9 +77,28 @@ public class HealthController : ControllerBase
     {
         try
         {
+            // Try to create a blob storage service dynamically for health check
+            // This allows health check to work even if main service initialization failed
+            var serviceProvider = HttpContext.RequestServices;
+            var blobStorageService = serviceProvider.GetService<IBlobStorageService>();
+            
+            if (blobStorageService == null)
+            {
+                // Service not available, likely due to missing connection string
+                return new
+                {
+                    status = "not_configured",
+                    configured = false,
+                    accountName = _storageOptions.AccountName,
+                    endpoint = _storageOptions.PrimaryEndpoint,
+                    message = "Azure Blob Storage service not initialized. Connection string may be missing.",
+                    lastChecked = DateTime.UtcNow
+                };
+            }
+
             // Test connectivity by listing containers (without tenant-specific operations)
             var testTenantId = "health-check-test";
-            var testFiles = await _blobStorageService.ListFilesAsync(
+            var testFiles = await blobStorageService.ListFilesAsync(
                 _storageOptions.Containers.Images,
                 testTenantId,
                 cancellationToken);
