@@ -2,7 +2,7 @@
 
 ## Overview
 
-The MOSAIC SaaS portal frontend is designed to closely resemble Azure's portal UI while incorporating Ottoman/Iznik cultural aesthetics. The application provides a modern, enterprise-grade user experience for managing multi-tenant websites.
+The MOSAIC SaaS portal frontend is designed to closely resemble Azure's portal UI while providing a modern, professional aesthetic. The application provides an enterprise-grade user experience for managing multi-tenant websites.
 
 ## Design Principles
 
@@ -12,11 +12,11 @@ The MOSAIC SaaS portal frontend is designed to closely resemble Azure's portal U
 - **Card-Based Layout**: Modular dashboard panels
 - **Enterprise UX**: Professional, clean, and functional
 
-### 2. Ottoman/Iznik Aesthetics
+### 2. Modern Aesthetics
 - **Color Palette**: Deep cobalt blues, turquoise accents, gold highlights
-- **Cultural Heritage**: Inspired by Selimiye Mosque and Blue Mosque
-- **Geometric Patterns**: 8-pointed stars and diamond tile motifs (in logo)
-- **Modern Application**: Clean, contemporary implementation
+- **Professional Design**: Clean, contemporary implementation
+- **Geometric Patterns**: Modern visual elements (in logo)
+- **Contemporary Application**: Professional and polished
 
 ### 3. Session-Aware Interface
 - **Unauthenticated State**: Marketing landing page with features
@@ -35,13 +35,13 @@ The MOSAIC SaaS portal frontend is designed to closely resemble Azure's portal U
 ```
 
 **Components:**
-- Ottoman mosaic logo (32px height)
+- MOSAIC logo (32px height)
 - Platform name "MOSAIC"
 - Authentication buttons (unauthenticated)
 - User avatar with dropdown menu (authenticated)
 
 **Colors:**
-- Background: Ottoman Blue (`#1e3a8a`)
+- Background: Brand Blue (`#1e3a8a`)
 - Text: White on brand color
 
 ### Navigation Sidebar (240px width)
