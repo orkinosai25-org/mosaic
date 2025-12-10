@@ -460,6 +460,31 @@ MOSAIC is proud to support startups through the **Microsoft for Startups Founder
 
 [Learn more about startup benefits](./docs/SaaS_FEATURES.md#startup-support)
 
+## 💳 Payment Integration Readiness
+
+MOSAIC is architected to support payment integration out of the box:
+
+### Current Architecture Supports:
+- ✅ **User Authentication**: Portal handles registration and login
+- ✅ **Multi-tenant Isolation**: Each user/organization has separate data
+- ✅ **API-Ready Backend**: RESTful endpoints at `/api/*` for service integration
+- ✅ **Subscription Dashboard**: Portal includes billing navigation and UI placeholders
+- ✅ **Secure Configuration**: Azure Key Vault ready for API keys and secrets
+
+### Integration Steps (Future):
+1. **Stripe Setup**: Add Stripe publishable and secret keys to Azure Key Vault
+2. **Webhook Configuration**: Configure Stripe webhooks to backend API
+3. **Subscription API**: Implement `/api/subscriptions` endpoints
+4. **Billing UI**: Connect Portal billing pages to Stripe APIs
+5. **Usage Tracking**: Add metering for usage-based billing
+
+### Microsoft Founder Hub Benefits:
+- Use Azure credits to offset infrastructure costs
+- Leverage startup-friendly pricing during growth phase
+- Access to technical resources and support
+
+For detailed payment integration guide, see [Payment Integration](./docs/PAYMENT_INTEGRATION.md) (coming soon).
+
 ## 🛣️ Next Steps in SaaS Development
 
 ### Phase 1: Multi-Tenancy Foundation (In Progress)
