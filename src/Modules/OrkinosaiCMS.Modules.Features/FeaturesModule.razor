@@ -1,0 +1,103 @@
+@using OrkinosaiCMS.Modules.Abstractions
+@inherits ModuleBase
+
+<section class="content-section">
+    <div class="container">
+        <h2 class="section-title">@SectionTitle</h2>
+        <div class="features-grid">
+            @foreach (var feature in Features)
+            {
+                <div class="feature-item fade-in">
+                    <div class="feature-icon">@GetIcon(feature.Icon)</div>
+                    <h3 class="feature-title">@feature.Title</h3>
+                    <p class="feature-description">@feature.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public string SectionTitle { get; set; } = "Key Features";
+    
+    private List<Feature> Features { get; set; } = new();
+
+    public override string ModuleName => "Features";
+    public override string Title => "Features Module";
+    public override string Description => "Display a grid of features with icons, titles, and descriptions";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        // Load title from settings
+        if (Settings != null && Settings.TryGetValue("SectionTitle", out var title))
+        {
+            SectionTitle = title?.ToString() ?? SectionTitle;
+        }
+        
+        // Load default features (in production, these would come from database)
+        Features = new List<Feature>
+        {
+            new Feature
+            {
+                Icon = "layers",
+                Title = "Modular Architecture",
+                Description = "Plugin-based system for unlimited extensibility with easy-to-create modules"
+            },
+            new Feature
+            {
+                Icon = "shield",
+                Title = "SharePoint-Inspired",
+                Description = "Familiar concepts like Master Pages, Web Parts, and fine-grained permissions"
+            },
+            new Feature
+            {
+                Icon = "code",
+                Title = "Modern Stack",
+                Description = "Built on .NET 10, Blazor, and Entity Framework Core for cutting-edge performance"
+            },
+            new Feature
+            {
+                Icon = "layout",
+                Title = "Clean Architecture",
+                Description = "Clear separation between Core, Infrastructure, and UI layers for maintainability"
+            },
+            new Feature
+            {
+                Icon = "users",
+                Title = "Flexible Permissions",
+                Description = "Fine-grained, SharePoint-style permission system with role-based access control"
+            },
+            new Feature
+            {
+                Icon = "palette",
+                Title = "Theme Support",
+                Description = "Customizable visual themes with master pages for consistent layouts"
+            }
+        };
+    }
+
+    private string GetIcon(string iconName)
+    {
+        // Simple icon mapping using unicode symbols
+        return iconName switch
+        {
+            "layers" => "📚",
+            "shield" => "🛡️",
+            "code" => "💻",
+            "layout" => "🎨",
+            "users" => "👥",
+            "palette" => "🎭",
+            _ => "⭐"
+        };
+    }
+
+    private class Feature
+    {
+        public string Icon { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}

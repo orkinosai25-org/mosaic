@@ -1,0 +1,155 @@
+@page "/cms-contact"
+@using OrkinosaiCMS.Web.Components.MasterPages
+
+<PageTitle>Contact - OrkinosaiCMS</PageTitle>
+
+<StandardMasterPage SiteTitle="OrkinosaiCMS">
+    <HeaderZone>
+        <!-- Header content -->
+    </HeaderZone>
+    
+    <NavigationZone>
+        <ul class="nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-home">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-about">About</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/cms-features">Features</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/cms-contact">Contact</a>
+            </li>
+        </ul>
+    </NavigationZone>
+    
+    <MainZone>
+        <section class="content-section">
+            <h1>Contact Us</h1>
+            <p class="lead">Get in touch with the OrkinosaiCMS team. We'd love to hear from you!</p>
+            
+            <div class="contact-form mt-4">
+                @if (IsSubmitted)
+                {
+                    <div class="alert alert-success" role="alert">
+                        <h4 class="alert-heading">Thank you!</h4>
+                        <p>Your message has been received. We'll get back to you soon.</p>
+                    </div>
+                }
+                else
+                {
+                    <EditForm Model="@contactModel" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="alert alert-danger" />
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name *</label>
+                            <InputText id="name" class="form-control" @bind-Value="contactModel.Name" placeholder="Your name" />
+                            <ValidationMessage For="@(() => contactModel.Name)" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <InputText id="email" type="email" class="form-control" @bind-Value="contactModel.Email" placeholder="your.email@example.com" />
+                            <ValidationMessage For="@(() => contactModel.Email)" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject *</label>
+                            <InputText id="subject" class="form-control" @bind-Value="contactModel.Subject" placeholder="How can we help?" />
+                            <ValidationMessage For="@(() => contactModel.Subject)" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message *</label>
+                            <InputTextArea id="message" class="form-control" rows="5" @bind-Value="contactModel.Message" placeholder="Tell us more..." />
+                            <ValidationMessage For="@(() => contactModel.Message)" />
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </EditForm>
+                }
+            </div>
+        </section>
+    </MainZone>
+    
+    <SidebarZone>
+        <div class="card mb-3">
+            <div class="card-header">Contact Information</div>
+            <div class="card-body">
+                <h6>Email</h6>
+                <p>info@orkinosai.com</p>
+                
+                <h6>GitHub</h6>
+                <p><a href="https://github.com/orkinosai25-org/orkinosaiCMS" target="_blank">orkinosai25-org/orkinosaiCMS</a></p>
+                
+                <h6>Documentation</h6>
+                <p><a href="/docs/architecture">View Documentation</a></p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Business Hours</div>
+            <div class="card-body">
+                <p>We respond to inquiries within 24-48 hours during business days.</p>
+                <p><strong>Monday - Friday:</strong> 9:00 AM - 5:00 PM (EST)</p>
+            </div>
+        </div>
+    </SidebarZone>
+    
+    <FooterZone>
+        <div class="row">
+            <div class="col-md-4">
+                <h5 class="footer-title">About</h5>
+                <p>OrkinosaiCMS is a modern, enterprise-ready Content Management System.</p>
+            </div>
+            <div class="col-md-4">
+                <h5 class="footer-title">Links</h5>
+                <ul class="footer-links">
+                    <li><a href="/cms-home">Home</a></li>
+                    <li><a href="/cms-about">About</a></li>
+                    <li><a href="/cms-contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h5 class="footer-title">Resources</h5>
+                <ul class="footer-links">
+                    <li><a href="/docs/architecture">Architecture</a></li>
+                    <li><a href="/docs/setup">Setup</a></li>
+                    <li><a href="https://github.com/orkinosai25-org/orkinosaiCMS">GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+    </FooterZone>
+</StandardMasterPage>
+
+@code {
+    private ContactModel contactModel = new();
+    private bool IsSubmitted = false;
+
+    private async Task HandleSubmit()
+    {
+        // In production, this would save to database or send email
+        await Task.Delay(500);
+        IsSubmitted = true;
+    }
+
+    private class ContactModel
+    {
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Subject is required")]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Message is required")]
+        [StringLength(1000, MinimumLength = 10, ErrorMessage = "Message must be between 10 and 1000 characters")]
+        public string Message { get; set; } = string.Empty;
+    }
+}

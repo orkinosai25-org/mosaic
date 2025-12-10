@@ -1,0 +1,96 @@
+@* Full Width Master Page - Ideal for landing pages and hero sections *@
+@layout MainLayout
+
+<div class="master-page-fullwidth">
+    <!-- Header Zone -->
+    <header class="site-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <h1 class="site-title">@SiteTitle</h1>
+                </div>
+                <div class="col-md-9">
+                    @HeaderZone
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Zone -->
+    <nav class="main-nav">
+        <div class="container">
+            @NavigationZone
+        </div>
+    </nav>
+
+    <!-- Hero Zone (Full Width) -->
+    @if (HeroZone != null)
+    {
+        <div class="hero-zone">
+            @HeroZone
+        </div>
+    }
+
+    <!-- Main Content Zone (Full Width) -->
+    <main class="main-content">
+        @MainZone
+    </main>
+
+    <!-- Footer Zone -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <h5 class="footer-title">About</h5>
+                    @FooterColumn1
+                </div>
+                <div class="col-md-3">
+                    <h5 class="footer-title">Links</h5>
+                    @FooterColumn2
+                </div>
+                <div class="col-md-3">
+                    <h5 class="footer-title">Resources</h5>
+                    @FooterColumn3
+                </div>
+                <div class="col-md-3">
+                    <h5 class="footer-title">Contact</h5>
+                    @FooterColumn4
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; @DateTime.Now.Year @SiteTitle. All rights reserved. Powered by OrkinosaiCMS.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? HeaderZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? NavigationZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? HeroZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? MainZone { get; set; }
+    
+    [Parameter]
+    public RenderFragment? FooterColumn1 { get; set; }
+    
+    [Parameter]
+    public RenderFragment? FooterColumn2 { get; set; }
+    
+    [Parameter]
+    public RenderFragment? FooterColumn3 { get; set; }
+    
+    [Parameter]
+    public RenderFragment? FooterColumn4 { get; set; }
+    
+    [Parameter]
+    public string SiteTitle { get; set; } = "OrkinosaiCMS";
+}

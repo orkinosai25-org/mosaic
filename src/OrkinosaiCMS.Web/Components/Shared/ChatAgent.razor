@@ -1,0 +1,307 @@
+@* Zoota Chat Agent Component - Admin Only *@
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView Roles="Administrator">
+    <Authorized>
+        <div class="zoota-chat-container @(IsOpen ? "open" : "")">
+    @if (!IsOpen)
+    {
+        <!-- Chat Activator Button -->
+        <button class="zoota-chat-activator" @onclick="ToggleChat" title="Chat with Zoota AI Assistant">
+            <img src="/assets/zoota-logo/zoota-logo-concept1.svg" alt="Zoota AI Assistant" class="zoota-avatar-btn" />
+            <span class="zoota-pulse"></span>
+        </button>
+    }
+    else
+    {
+        <!-- Chat Panel -->
+        <div class="zoota-chat-panel">
+            <!-- Chat Header -->
+            <div class="zoota-chat-header">
+                <div class="zoota-header-content">
+                    <img src="/assets/zoota-logo/zoota-logo-concept3.svg" alt="Zoota" class="zoota-avatar" />
+                    <div class="zoota-title">
+                        <h3>Zoota AI Assistant</h3>
+                        <p class="zoota-status">
+                            <span class="status-dot"></span>
+                            Online - Powered by Azure AI
+                        </p>
+                    </div>
+                </div>
+                <button class="zoota-close-btn" @onclick="ToggleChat" title="Close chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Chat Body -->
+            <div class="zoota-chat-body">
+                @if (messages.Count == 0)
+                {
+                    <!-- Welcome Message -->
+                    <div class="zoota-welcome">
+                        <img src="/assets/zoota-logo/zoota-logo-concept1.svg" alt="Zoota" class="zoota-welcome-logo" />
+                        <h4>Hi! I'm Zoota 👋</h4>
+                        <p>Your friendly AI assistant powered by Azure. How can I help you today?</p>
+                        <div class="zoota-suggestions">
+                            <button class="suggestion-btn" @onclick='() => SendQuickMessage("Tell me about OrkinosAI")'>
+                                Tell me about OrkinosAI
+                            </button>
+                            <button class="suggestion-btn" @onclick='() => SendQuickMessage("What services do you offer?")'>
+                                What services do you offer?
+                            </button>
+                            <button class="suggestion-btn" @onclick='() => SendQuickMessage("How can AI help my business?")'>
+                                How can AI help my business?
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Messages -->
+                    <div class="zoota-messages">
+                        @foreach (var message in messages)
+                        {
+                            <div class="zoota-message @message.Role">
+                                @if (message.Role == "assistant")
+                                {
+                                    <img src="/assets/zoota-logo/zoota-logo-concept3.svg" alt="Zoota" class="message-avatar" />
+                                }
+                                <div class="message-content">
+                                    <div class="message-bubble">
+                                        @message.Content
+                                    </div>
+                                    @if (message.Role != "system")
+                                    {
+                                        <span class="message-time">@message.Timestamp.ToString("HH:mm")</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        @if (isTyping)
+                        {
+                            <div class="zoota-message assistant">
+                                <img src="/assets/zoota-logo/zoota-logo-concept3.svg" alt="Zoota" class="message-avatar" />
+                                <div class="message-content">
+                                    <div class="message-bubble typing">
+                                        <div class="typing-indicator">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Chat Footer -->
+            <div class="zoota-chat-footer">
+                <div class="zoota-input-form">
+                    <textarea 
+                           @ref="messageInput"
+                           class="zoota-input" 
+                           placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)" 
+                           @bind="currentMessage"
+                           @bind:event="oninput"
+                           disabled="@isTyping"
+                           rows="1"
+                           id="zoota-message-input"></textarea>
+                    <button type="button"
+                            @onclick="SendMessage" 
+                            class="zoota-send-btn" 
+                            disabled="@(string.IsNullOrWhiteSpace(currentMessage) || isTyping)"
+                            title="Send message">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+                <p class="zoota-disclaimer">
+                    Zoota is an AI assistant. Responses may not always be accurate.
+                </p>
+            </div>
+        </div>
+    }
+</div>
+    </Authorized>
+</AuthorizeView>
+
+@inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
+
+@code {
+    private bool IsOpen { get; set; } = false;
+    private string currentMessage = string.Empty;
+    private bool isTyping = false;
+    private List<ChatMessage> messages = new();
+    private ElementReference messageInput;
+
+    private class ChatMessage
+    {
+        public string Role { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+        public bool IsConfirmation { get; set; } = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && IsOpen)
+        {
+            await InitializeTextarea();
+        }
+    }
+
+    private async Task ToggleChat()
+    {
+        IsOpen = !IsOpen;
+        if (IsOpen)
+        {
+            await Task.Delay(100); // Small delay to ensure DOM is rendered
+            await InitializeTextarea();
+        }
+    }
+
+    private async Task InitializeTextarea()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("zootaChatAgent.setupTextarea", messageInput);
+        }
+        catch
+        {
+            // Ignore JS interop errors during pre-rendering
+        }
+    }
+
+    private void RemoveConfirmationMessage()
+    {
+        var confirmationMsg = messages.FirstOrDefault(m => m.IsConfirmation);
+        if (confirmationMsg != null)
+            messages.Remove(confirmationMsg);
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage))
+            return;
+
+        // Add user message
+        messages.Add(new ChatMessage
+        {
+            Role = "user",
+            Content = currentMessage,
+            Timestamp = DateTime.Now
+        });
+
+        var userQuestion = currentMessage;
+        currentMessage = string.Empty;
+        isTyping = true;
+
+        // Add confirmation message
+        messages.Add(new ChatMessage
+        {
+            Role = "system",
+            Content = "✓ Message received. Processing your request...",
+            Timestamp = DateTime.Now,
+            IsConfirmation = true
+        });
+
+        // Scroll to bottom to show confirmation
+        await Task.Delay(100);
+        StateHasChanged();
+
+        try
+        {
+            // Call Zoota Python backend directly
+            var history = messages.Where(m => !m.IsConfirmation).Select(m => new
+            {
+                role = m.Role,
+                content = m.Content
+            }).ToList();
+
+            var requestBody = new
+            {
+                message = userQuestion,
+                history = history
+            };
+
+            // Use localhost for backend (running on same server as .NET app)
+            var backendUrl = "http://localhost:8000/api/chat";
+            var response = await HttpClient.PostAsJsonAsync(backendUrl, requestBody);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ChatResponse>();
+            var responseMessage = result?.Message ?? "I apologize, but I couldn't generate a response.";
+
+            // Remove confirmation message
+            RemoveConfirmationMessage();
+
+            messages.Add(new ChatMessage
+            {
+                Role = "assistant",
+                Content = responseMessage,
+                Timestamp = DateTime.Now
+            });
+        }
+        catch (HttpRequestException)
+        {
+            // Remove confirmation message
+            RemoveConfirmationMessage();
+
+            // Network error - backend not reachable
+            messages.Add(new ChatMessage
+            {
+                Role = "assistant",
+                Content = "I'm having trouble connecting right now. Please try again in a moment.",
+                Timestamp = DateTime.Now
+            });
+        }
+        catch (TaskCanceledException)
+        {
+            // Remove confirmation message
+            RemoveConfirmationMessage();
+
+            // Request timeout
+            messages.Add(new ChatMessage
+            {
+                Role = "assistant",
+                Content = "The request took too long. Please try again with a shorter message.",
+                Timestamp = DateTime.Now
+            });
+        }
+        catch (Exception)
+        {
+            // Remove confirmation message
+            RemoveConfirmationMessage();
+
+            // Unexpected error
+            messages.Add(new ChatMessage
+            {
+                Role = "assistant",
+                Content = "An unexpected error occurred. Please try again.",
+                Timestamp = DateTime.Now
+            });
+        }
+
+        isTyping = false;
+    }
+
+    private async Task SendQuickMessage(string message)
+    {
+        currentMessage = message;
+        await SendMessage();
+    }
+
+    private class ChatResponse
+    {
+        public string Message { get; set; } = string.Empty;
+        public string Source { get; set; } = string.Empty;
+    }
+}
