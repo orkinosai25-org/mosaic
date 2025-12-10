@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Core.Interfaces.Services;
@@ -101,5 +102,18 @@ app.MapStaticAssets();  // Optimized static assets for Blazor
 app.MapControllers();   // API controllers for portal integration
 app.MapRazorComponents<App>()  // Blazor CMS admin routes
     .AddInteractiveServerRenderMode();
+
+// SPA Fallback: Serve React portal (index.html) for non-API, non-Blazor routes
+// This ensures the portal landing page shows at root URL
+app.MapFallbackToFile("index.html", new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Don't cache index.html to ensure fresh deployments
+        ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+        ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+        ctx.Context.Response.Headers.Append("Expires", "0");
+    }
+});
 
 app.Run();
