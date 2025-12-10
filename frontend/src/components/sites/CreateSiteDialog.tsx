@@ -186,6 +186,11 @@ interface Theme {
   name: string;
   description: string;
   category: string;
+  layoutType: string;
+  thumbnailUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
 }
 
 export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
@@ -206,14 +211,46 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const [stackTrace, setStackTrace] = useState<string | null>(null);
   const [showErrorDetails, setShowErrorDetails] = useState(false);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [themesLoading, setThemesLoading] = useState(false);
 
-  // Mock themes - in production, fetch from API
-  const themes: Theme[] = [
-    { id: 1, name: 'Modern Business', description: 'Clean and professional', category: 'Business' },
-    { id: 2, name: 'Creative Portfolio', description: 'Showcase your work', category: 'Portfolio' },
-    { id: 3, name: 'E-commerce', description: 'Perfect for online stores', category: 'Commerce' },
-    { id: 4, name: 'Blog', description: 'Content-focused design', category: 'Blog' },
-  ];
+  // Fetch themes from API when dialog opens
+  React.useEffect(() => {
+    if (isOpen && themes.length === 0) {
+      fetchThemes();
+    }
+  }, [isOpen]);
+
+  const fetchThemes = async () => {
+    setThemesLoading(true);
+    try {
+      const response = await fetch('/api/theme/enabled');
+      if (response.ok) {
+        const data = await response.json();
+        setThemes(data);
+      } else {
+        console.error('Failed to fetch themes');
+        // Fallback to mock themes if API fails
+        setThemes([
+          { id: 1, name: 'Modern Business', description: 'Clean and professional', category: 'Business', layoutType: 'TopNavigation' },
+          { id: 2, name: 'Creative Portfolio', description: 'Showcase your work', category: 'Portfolio', layoutType: 'TopNavigation' },
+          { id: 3, name: 'E-commerce', description: 'Perfect for online stores', category: 'Commerce', layoutType: 'TopNavigation' },
+          { id: 4, name: 'Blog', description: 'Content-focused design', category: 'Blog', layoutType: 'TopNavigation' },
+        ]);
+      }
+    } catch (err) {
+      console.error('Error fetching themes:', err);
+      // Fallback to mock themes if API fails
+      setThemes([
+        { id: 1, name: 'Modern Business', description: 'Clean and professional', category: 'Business', layoutType: 'TopNavigation' },
+        { id: 2, name: 'Creative Portfolio', description: 'Showcase your work', category: 'Portfolio', layoutType: 'TopNavigation' },
+        { id: 3, name: 'E-commerce', description: 'Perfect for online stores', category: 'Commerce', layoutType: 'TopNavigation' },
+        { id: 4, name: 'Blog', description: 'Content-focused design', category: 'Blog', layoutType: 'TopNavigation' },
+      ]);
+    } finally {
+      setThemesLoading(false);
+    }
+  };
 
   const steps = [
     { number: 1, label: 'Basic Info' },
@@ -365,30 +402,36 @@ export const CreateSiteDialog: React.FC<CreateSiteDialogProps> = ({
       return (
         <>
           <Text size={400} weight="semibold">Choose a Theme</Text>
-          <div className={styles.themeGrid}>
-            {themes.map((theme) => (
-              <Card
-                key={theme.id}
-                className={`${styles.themeCard} ${
-                  selectedTheme?.id === theme.id ? styles.themeCardSelected : ''
-                }`}
-                onClick={() => setSelectedTheme(theme)}
-              >
-                <Text weight="semibold" style={{ display: 'block', marginBottom: '8px' }}>
-                  {theme.name}
-                </Text>
-                <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
-                  {theme.description}
-                </Text>
-                <Badge
-                  appearance="outline"
-                  style={{ marginTop: '8px' }}
+          {themesLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}>
+              <Spinner size="medium" label="Loading themes..." />
+            </div>
+          ) : (
+            <div className={styles.themeGrid}>
+              {themes.map((theme) => (
+                <Card
+                  key={theme.id}
+                  className={`${styles.themeCard} ${
+                    selectedTheme?.id === theme.id ? styles.themeCardSelected : ''
+                  }`}
+                  onClick={() => setSelectedTheme(theme)}
                 >
-                  {theme.category}
-                </Badge>
-              </Card>
-            ))}
-          </div>
+                  <Text weight="semibold" style={{ display: 'block', marginBottom: '8px' }}>
+                    {theme.name}
+                  </Text>
+                  <Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                    {theme.description}
+                  </Text>
+                  <Badge
+                    appearance="outline"
+                    style={{ marginTop: '8px' }}
+                  >
+                    {theme.category}
+                  </Badge>
+                </Card>
+              ))}
+            </div>
+          )}
         </>
       );
     }

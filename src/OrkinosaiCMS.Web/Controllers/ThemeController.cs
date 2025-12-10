@@ -46,6 +46,7 @@ public class ThemeController : ControllerBase
     /// Get enabled themes only
     /// </summary>
     [HttpGet("enabled")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IEnumerable<Theme>), 200)]
     public async Task<IActionResult> GetEnabled()
     {
