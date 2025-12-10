@@ -331,6 +331,7 @@ Navigate to `https://localhost:5001`
 - **[Setup Guide](docs/SETUP.md)** - Detailed setup and configuration instructions
 - **[Database Guide](docs/DATABASE.md)** - Database architecture and data access patterns
 - **[Extensibility Guide](docs/EXTENSIBILITY.md)** - Creating custom modules, themes, and extensions
+- **[Logging Guide](docs/LOGGING.md)** - Serilog logging configuration, troubleshooting, and best practices
 
 ### Design & Branding
 - **[Logo & Branding](./logo/README.md)**: Official brand assets and usage guidelines
