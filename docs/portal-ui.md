@@ -1,20 +1,20 @@
 # MOSAIC Portal UI Design
 
-This document describes the Azure-style portal user interface for the MOSAIC SaaS platform, including design patterns, layout specifications, and Ottoman-inspired branding elements.
+This document describes the Azure-style portal user interface for the MOSAIC SaaS platform, including design patterns, layout specifications, and modern branding elements.
 
 ## 🎨 Design Philosophy
 
-MOSAIC's portal UI combines three key design influences:
+MOSAIC's portal UI combines key design influences:
 
 1. **Azure Portal Style** - Modern, professional enterprise interface
-2. **Ottoman Heritage** - Geometric patterns, Iznik tiles, and cultural aesthetics
-3. **Fluent Design System** - Microsoft's design language for consistency and accessibility
+2. **Fluent Design System** - Microsoft's design language for consistency and accessibility
+3. **Contemporary Aesthetics** - Clean, professional visual elements
 
 ### Core Principles
 
 - **Clarity**: Clear information hierarchy and intuitive navigation
 - **Efficiency**: Quick access to common tasks and workflows
-- **Beauty**: Ottoman-inspired visual elements that celebrate cultural heritage
+- **Beauty**: Professional visual elements that convey trust and quality
 - **Accessibility**: WCAG 2.1 AA compliant for all users
 - **Responsiveness**: Seamless experience across devices
 
@@ -304,10 +304,10 @@ MOSAIC's portal UI combines three key design influences:
     </ul>
   </nav>
   
-  <!-- Ottoman Pattern Decoration -->
+  <!-- Pattern Decoration -->
   <div class="sidebar-pattern">
-    <svg class="ottoman-pattern" viewBox="0 0 200 200">
-      <!-- 8-pointed star pattern -->
+    <svg class="pattern-decoration" viewBox="0 0 200 200">
+      <!-- Geometric pattern -->
       <path d="M100,50 L110,80 L140,90 L110,100 L100,130 L90,100 L60,90 L90,80 Z" 
             fill="url(#gradient)" opacity="0.1" />
     </svg>
@@ -570,13 +570,13 @@ MOSAIC's portal UI combines three key design influences:
 }
 ```
 
-## 🎨 Ottoman-Inspired Design Elements
+## 🎨 Professional Design Elements
 
 ### Color Palette
 
 ```css
 :root {
-  /* Primary Colors - Selimiye Collection */
+  /* Primary Colors - Professional Collection */
   --mosaic-blue-primary: #1e3a8a;
   --mosaic-blue-secondary: #2563eb;
   --mosaic-blue-light: #3b82f6;
@@ -607,10 +607,10 @@ MOSAIC's portal UI combines three key design influences:
 }
 ```
 
-### 8-Pointed Star Pattern (Rub el Hizb)
+### Geometric Pattern
 
 ```html
-<svg class="ottoman-star" viewBox="0 0 100 100">
+<svg class="mosaic-star" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
@@ -618,7 +618,7 @@ MOSAIC's portal UI combines three key design influences:
     </linearGradient>
   </defs>
   
-  <!-- Main 8-pointed star -->
+  <!-- Geometric star pattern -->
   <path d="M50,10 L55,40 L70,35 L60,50 L70,65 L55,60 L50,90 L45,60 L30,65 L40,50 L30,35 L45,40 Z" 
         fill="url(#starGradient)" 
         opacity="0.8" />
@@ -633,12 +633,12 @@ MOSAIC's portal UI combines three key design influences:
 ### Geometric Border Patterns
 
 ```css
-.ottoman-border {
+.professional-border {
   position: relative;
   padding: 24px;
 }
 
-.ottoman-border::before {
+.professional-border::before {
   content: '';
   position: absolute;
   top: 0;
@@ -681,15 +681,15 @@ MOSAIC's portal UI combines three key design influences:
 }
 ```
 
-### Iznik Tile Card Decoration
+### Card Decoration
 
 ```css
-.card-iznik {
+.card-decoration {
   position: relative;
   overflow: hidden;
 }
 
-.card-iznik::after {
+.card-decoration::after {
   content: '';
   position: absolute;
   top: -50%;
@@ -704,7 +704,7 @@ MOSAIC's portal UI combines three key design influences:
   pointer-events: none;
 }
 
-.card-iznik-corner {
+.card-decoration-corner {
   position: absolute;
   top: 0;
   right: 0;
@@ -728,11 +728,11 @@ MOSAIC's portal UI combines three key design influences:
     <div class="hero-content">
       <img src="/assets/logo-large.svg" alt="MOSAIC" class="hero-logo" />
       <h1 class="hero-title">
-        Create Beautiful Websites with
-        <span class="gradient-text">Ottoman-Inspired Design</span>
+        Build Websites with
+        <span class="gradient-text">Conversational AI</span>
       </h1>
       <p class="hero-subtitle">
-        The first conversational, AI-powered SaaS platform for website creation and management
+        The world's first conversational, AI-powered SaaS platform for website creation and management
       </p>
       
       <div class="hero-actions">
@@ -746,12 +746,12 @@ MOSAIC's portal UI combines three key design influences:
       
       <div class="hero-features">
         <div class="feature-badge">
-          <span class="badge-icon">🤖</span>
-          <span class="badge-text">AI-Powered</span>
+          <span class="badge-icon">🗣️</span>
+          <span class="badge-text">Conversational Builder</span>
         </div>
         <div class="feature-badge">
-          <span class="badge-icon">🎨</span>
-          <span class="badge-text">Ottoman Design</span>
+          <span class="badge-icon">🤖</span>
+          <span class="badge-text">AI-Powered</span>
         </div>
         <div class="feature-badge">
           <span class="badge-icon">☁️</span>
@@ -784,10 +784,10 @@ MOSAIC's portal UI combines three key design influences:
         </div>
         
         <div class="benefit-card">
-          <div class="benefit-icon">🏛️</div>
-          <h3 class="benefit-title">Ottoman-Inspired Themes</h3>
+          <div class="benefit-icon">🎨</div>
+          <h3 class="benefit-title">Professional Themes</h3>
           <p class="benefit-description">
-            Beautiful designs inspired by Selimiye Mosque and Blue Mosque
+            Beautiful, modern designs for any business or creative project
           </p>
         </div>
         

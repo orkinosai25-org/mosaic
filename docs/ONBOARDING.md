@@ -1,6 +1,6 @@
 # MOSAIC User Onboarding Guide
 
-Welcome to MOSAIC! This comprehensive guide walks you through your complete journey from sign-up to launching your first website. Whether you're a startup founder, agency, or small business, we'll help you get online quickly with beautiful Ottoman-inspired design.
+Welcome to MOSAIC! This comprehensive guide walks you through your complete journey from sign-up to launching your first website. Whether you're a startup founder, agency, or small business, we'll help you get online quickly with our conversational AI-powered platform.
 
 ## 🎯 Onboarding Overview
 
@@ -14,7 +14,7 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
 3. Choose Plan      (2 min)  → Select subscription tier
 4. Payment Setup    (2 min)  → Add payment method
 5. Create Workspace (1 min)  → Set up your first site
-6. Select Theme     (1 min)  → Choose Ottoman design
+6. Select Theme     (1 min)  → Choose your design
 7. Configure Brand  (1 min)  → Upload logo & colors
 8. Domain Setup     (1 min)  → Connect your domain
 9. Integration      (Optional) → Add script to existing site
@@ -89,7 +89,7 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
 - 1 active website
 - MOSAIC subdomain (yoursite.mosaic.app)
 - 10 GB bandwidth/month
-- Basic Ottoman themes
+- Basic themes
 - Community support
 - MOSAIC branding on footer
 
@@ -104,7 +104,7 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
 - 5 active websites
 - Custom domain support (bring your own)
 - 100 GB bandwidth/month
-- All Ottoman themes
+- All themes
 - Light & dark mode themes
 - Logo customization
 - Remove MOSAIC branding
@@ -122,7 +122,7 @@ The MOSAIC onboarding process is designed to get you from zero to live website i
 - 20 active websites
 - Custom domains (unlimited)
 - 500 GB bandwidth/month
-- Premium Ottoman themes
+- Premium themes
 - Custom CSS overrides
 - Advanced analytics
 - API access (10k requests/month)
@@ -301,40 +301,39 @@ Immediately after workspace creation, you'll set up your first website:
 
 ## Step 6: Select Your Theme 🎨
 
-### Ottoman-Inspired Themes
+### Professional Themes
 
-Choose from beautiful themes inspired by Ottoman architectural masterpieces:
+Choose from beautiful, modern themes designed for any business:
 
-#### Selimiye Collection
+#### Classic Collection
 
-**Selimiye Classic** (Light)
+**Modern Classic** (Light)
 - Deep blue primary (#1e3a8a)
 - Gold accents (#fbbf24)
-- 8-pointed star patterns
-- Geometric precision
+- Clean geometric patterns
 - Professional and elegant
 
-**Selimiye Dark**
+**Classic Dark**
 - Light blue on dark slate (#60a5fa on #0f172a)
 - Gold accents shine on dark
 - Perfect for tech/creative sites
 
-#### Blue Mosque Collection
+#### Contemporary Collection
 
-**Iznik Blue** (Light)
-- Famous ceramic blue (#3b82f6)
+**Azure Blue** (Light)
+- Professional blue (#3b82f6)
 - Turquoise accents (#22d3ee)
-- Tile pattern borders
+- Clean borders and spacing
 - Warm and welcoming
 
-**Iznik Midnight** (Dark)
+**Midnight** (Dark)
 - Bright blues on dark background
-- Ceramic-inspired gradients
-- Modern and sophisticated
+- Modern gradients
+- Sophisticated appearance
 
-#### Heritage Collection
+#### Premium Collection
 
-**Ottoman Gold**
+**Executive Gold**
 - Gold primary with blue accents
 - Premium and luxurious feel
 - Perfect for high-end brands
@@ -361,7 +360,7 @@ Choose from beautiful themes inspired by Ottoman architectural masterpieces:
 After selecting base theme:
 - Upload your logo
 - Customize colors (color picker)
-- Select fonts from Ottoman-inspired collection
+- Select fonts from professional collection
 - Preview changes in real-time
 
 **Advanced Customization** (Pro+ tiers):
@@ -396,7 +395,7 @@ After selecting base theme:
 
 **Primary Color**:
 - Used for headers, buttons, links
-- Choose from Ottoman palette or custom
+- Choose from professional palette or custom
 - Ensure WCAG AA contrast compliance
 
 **Secondary Color**:
@@ -412,13 +411,13 @@ After selecting base theme:
 MOSAIC AI can suggest color combinations based on:
 - Your logo colors
 - Industry standards
-- Ottoman heritage palettes
+- Professional palettes
 - Accessibility requirements
 
 ### Typography
 
 **Heading Font**:
-- Ottoman-inspired: Cormorant Garamond, Cinzel
+- Elegant: Cormorant Garamond, Cinzel
 - Modern: Montserrat, Poppins
 - Classic: Playfair Display, Lora
 
@@ -883,7 +882,7 @@ We're constantly improving the onboarding experience. Your feedback helps us mak
 
 **Welcome to the MOSAIC family!** 🎉
 
-We're excited to see what you'll build with beautiful Ottoman-inspired design and powerful SaaS features.
+We're excited to see what you'll build with our powerful, AI-powered conversational platform.
 
 **Built with ❤️ by [Orkinosai](https://github.com/orkinosai25-org)**  
 **Last Updated**: December 2024

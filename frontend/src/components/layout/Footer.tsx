@@ -120,7 +120,7 @@ export const Footer: React.FC = () => {
           Built with ❤️ by{' '}
           <Link href="https://github.com/orkinosai25-org">Orkinosai</Link>
         </p>
-        <p>Inspired by Ottoman heritage • Powered by modern technology</p>
+        <p>Powered by modern technology</p>
       </div>
     </footer>
   );

@@ -54,22 +54,22 @@ OrkinosaiCMS provides a solid foundation as a single-tenant CMS. To transform it
 - 6 pre-built themes (Dashboard, Marketing, Minimal, Orkinosai, SharePoint Portal, Top Navigation)
 
 #### Required Changes (MOSAIC)
-- **Ottoman-Inspired Themes**: Create 6+ themes based on Ottoman architecture
-  - Selimiye Theme (geometric precision)
-  - Blue Mosque Theme (Iznik tiles)
-  - Topkapi Theme (palace elegance)
-  - Iznik Theme (ceramic art patterns)
-  - Suleymaniye Theme (grand architecture)
-  - Dolmabahce Theme (modern Ottoman)
-- **Color Palettes**: Implement Ottoman color schemes
+- **Professional Themes**: Create 6+ themes based on modern design principles
+  - Modern Classic Theme (clean geometric design)
+  - Contemporary Theme (professional styling)
+  - Executive Theme (premium appearance)
+  - Creative Theme (bold and modern)
+  - Minimal Theme (clean and simple)
+  - Business Theme (corporate professional)
+- **Color Palettes**: Implement professional color schemes
   - Cobalt blues: `#1e3a8a`, `#2563eb`
   - Turquoise accents: `#06b6d4`, `#22d3ee`
   - Gold highlights: `#fbbf24`, `#f59e0b`
-- **Pattern Library**: 8-pointed stars, geometric patterns, arabesques
+- **Pattern Library**: Modern geometric patterns and design elements
 - **Tenant-Specific Branding**: Custom logos, colors per tenant
 
 #### Implementation Files
-- `src/OrkinosaiCMS.Web/wwwroot/css/themes/` - Create new Ottoman themes
+- `src/OrkinosaiCMS.Web/wwwroot/css/themes/` - Create new professional themes
 - `src/OrkinosaiCMS.Infrastructure/Services/ThemeService.cs` - Enhance for tenant branding
 - `logo/` - MOSAIC brand assets (already present)
 
@@ -159,7 +159,7 @@ OrkinosaiCMS provides a solid foundation as a single-tenant CMS. To transform it
 - **Onboarding Wizard**: 5-step guided setup
   1. Account creation
   2. Tenant setup (site name, subdomain)
-  3. Theme selection (Ottoman-inspired themes)
+  3. Theme selection (professional themes)
   4. Payment method (if not free tier)
   5. First site creation
 - **Email Verification**: Automated email with verification link
@@ -317,8 +317,8 @@ modelBuilder.Entity<Site>()
 - [ ] Add Microsoft Founder Hub integration
 
 ### Phase 4: Branding
-- [ ] Design 6+ Ottoman-inspired themes
-- [ ] Create Iznik pattern library
+- [ ] Design 6+ professional themes
+- [ ] Create modern pattern library
 - [ ] Build theme customization UI
 - [ ] Implement tenant branding system
 

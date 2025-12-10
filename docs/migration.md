@@ -121,7 +121,7 @@ ls -la ./wix-export/
 1. **Sign in to MOSAIC**: Navigate to dashboard
 2. **Create New Site**: Click "New Site" button
 3. **Select "Migrate from Wix"**: Choose migration wizard
-4. **Choose Theme**: Select Ottoman-inspired theme closest to your Wix design
+4. **Choose Theme**: Select professional theme closest to your Wix design
 
 #### Step 3: Import Content to MOSAIC
 
@@ -170,7 +170,7 @@ mosaic status
 
 #### Step 4: Adjust Styling
 
-1. **Select Base Theme**: Choose Ottoman theme that matches Wix style
+1. **Select Base Theme**: Choose theme that matches Wix style
 2. **Customize Colors**: Extract colors from Wix site and apply
 3. **Upload Logo**: Upload your existing logo
 4. **Adjust Layout**: Use MOSAIC's page builder to match original layout

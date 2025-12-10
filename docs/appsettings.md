@@ -35,7 +35,7 @@ Priority (lowest to highest):
     "ApplicationName": "MOSAIC SaaS Platform",
     "Version": "1.0.0",
     "Environment": "Production",
-    "DefaultTheme": "Selimiye",
+    "DefaultTheme": "Modern",
     "DefaultLanguage": "en-US",
     "SupportEmail": "support@mosaic.orkinosai.com",
     "MaxUploadSizeInMB": 10
@@ -203,7 +203,7 @@ Priority (lowest to highest):
         "MaxBandwidthGB": 100,
         "MaxStorageGB": 100,
         "Features": [
-          "All Ottoman themes",
+          "All themes",
           "Custom domain",
           "Email support",
           "Basic analytics",
@@ -312,7 +312,7 @@ Priority (lowest to highest):
     "Temperature": 0.7,
     "Agents": {
       "MosaicPublic": {
-        "SystemPrompt": "You are MOSAIC Public Agent, an AI assistant helping users create and manage their websites. Be helpful, friendly, and knowledgeable about web design and Ottoman culture.",
+        "SystemPrompt": "You are MOSAIC Public Agent, an AI assistant helping users create and manage their websites using conversational interface. Be helpful, friendly, and knowledgeable about web design and modern best practices.",
         "MaxConversationHistory": 10
       },
       "ZootaAdmin": {
@@ -381,7 +381,7 @@ Priority (lowest to highest):
 
   "UI": {
     "Theme": {
-      "DefaultTheme": "Selimiye",
+      "DefaultTheme": "Modern",
       "AllowCustomThemes": true,
       "DefaultColorScheme": "Light"
     },

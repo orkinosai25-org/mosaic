@@ -1,19 +1,19 @@
 import { createLightTheme, createDarkTheme, type Theme } from '@fluentui/react-components';
 
-// Ottoman/Iznik inspired color palette
-export const ottomanColors = {
-  // Primary - Ottoman Blue
-  ottomanBlue: '#1e3a8a',
-  ottomanBlueLight: '#2563eb',
+// Professional color palette
+export const mosaicColors = {
+  // Primary - Brand Blue
+  brandBlue: '#1e3a8a',
+  brandBlueLight: '#2563eb',
   
-  // Secondary - Iznik Turquoise
-  iznikTurquoise: '#06b6d4',
-  iznikTurquoiseLight: '#22d3ee',
-  iznikTurquoiseDark: '#0891b2',
+  // Secondary - Turquoise
+  turquoise: '#06b6d4',
+  turquoiseLight: '#22d3ee',
+  turquoiseDark: '#0891b2',
   
-  // Accent - Royal Gold
-  royalGold: '#fbbf24',
-  royalGoldDark: '#f59e0b',
+  // Accent - Gold
+  gold: '#fbbf24',
+  goldDark: '#f59e0b',
   
   // Neutrals
   pureWhite: '#ffffff',
@@ -23,42 +23,42 @@ export const ottomanColors = {
   slate900: '#0f172a',
 };
 
-// Light theme with Ottoman colors
+// Light theme with professional colors
 export const mosaicLightTheme: Theme = createLightTheme({
-  10: ottomanColors.ottomanBlue,
-  20: ottomanColors.ottomanBlue,
-  30: ottomanColors.ottomanBlue,
-  40: ottomanColors.ottomanBlue,
-  50: ottomanColors.ottomanBlue,
-  60: ottomanColors.ottomanBlueLight,
-  70: ottomanColors.ottomanBlueLight,
-  80: ottomanColors.ottomanBlueLight,
-  90: ottomanColors.ottomanBlueLight,
-  100: ottomanColors.ottomanBlueLight,
-  110: ottomanColors.ottomanBlueLight,
-  120: ottomanColors.ottomanBlueLight,
-  130: ottomanColors.ottomanBlueLight,
-  140: ottomanColors.ottomanBlueLight,
-  150: ottomanColors.ottomanBlueLight,
-  160: ottomanColors.ottomanBlueLight,
+  10: mosaicColors.brandBlue,
+  20: mosaicColors.brandBlue,
+  30: mosaicColors.brandBlue,
+  40: mosaicColors.brandBlue,
+  50: mosaicColors.brandBlue,
+  60: mosaicColors.brandBlueLight,
+  70: mosaicColors.brandBlueLight,
+  80: mosaicColors.brandBlueLight,
+  90: mosaicColors.brandBlueLight,
+  100: mosaicColors.brandBlueLight,
+  110: mosaicColors.brandBlueLight,
+  120: mosaicColors.brandBlueLight,
+  130: mosaicColors.brandBlueLight,
+  140: mosaicColors.brandBlueLight,
+  150: mosaicColors.brandBlueLight,
+  160: mosaicColors.brandBlueLight,
 });
 
-// Dark theme with Ottoman colors
+// Dark theme with professional colors
 export const mosaicDarkTheme: Theme = createDarkTheme({
-  10: ottomanColors.iznikTurquoise,
-  20: ottomanColors.iznikTurquoise,
-  30: ottomanColors.iznikTurquoise,
-  40: ottomanColors.iznikTurquoise,
-  50: ottomanColors.iznikTurquoise,
-  60: ottomanColors.iznikTurquoiseLight,
-  70: ottomanColors.iznikTurquoiseLight,
-  80: ottomanColors.iznikTurquoiseLight,
-  90: ottomanColors.iznikTurquoiseLight,
-  100: ottomanColors.iznikTurquoiseLight,
-  110: ottomanColors.iznikTurquoiseLight,
-  120: ottomanColors.iznikTurquoiseLight,
-  130: ottomanColors.iznikTurquoiseLight,
-  140: ottomanColors.iznikTurquoiseLight,
-  150: ottomanColors.iznikTurquoiseLight,
-  160: ottomanColors.iznikTurquoiseLight,
+  10: mosaicColors.turquoise,
+  20: mosaicColors.turquoise,
+  30: mosaicColors.turquoise,
+  40: mosaicColors.turquoise,
+  50: mosaicColors.turquoise,
+  60: mosaicColors.turquoiseLight,
+  70: mosaicColors.turquoiseLight,
+  80: mosaicColors.turquoiseLight,
+  90: mosaicColors.turquoiseLight,
+  100: mosaicColors.turquoiseLight,
+  110: mosaicColors.turquoiseLight,
+  120: mosaicColors.turquoiseLight,
+  130: mosaicColors.turquoiseLight,
+  140: mosaicColors.turquoiseLight,
+  150: mosaicColors.turquoiseLight,
+  160: mosaicColors.turquoiseLight,
 });
