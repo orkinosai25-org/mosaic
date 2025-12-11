@@ -17,6 +17,7 @@ MOSAIC offers flexible pricing plans designed to grow with your business. Whethe
 | **🌐 Websites & Domains** | | | | |
 | Active Websites | 1 | 3 | 10 | 50 |
 | Custom Domains | ❌ | 1 | 10 | 50 |
+| Pages/Posts | Limited | More | Unlimited | Unlimited |
 | MOSAIC Subdomain | ✅ Free | ✅ Included | ✅ Included | ✅ Included |
 | SSL Certificates | ✅ Auto | ✅ Auto | ✅ Auto | ✅ Auto |
 | Bandwidth | 10 GB/mo | 25 GB/mo | 100 GB/mo | 500 GB/mo |
@@ -71,11 +72,6 @@ MOSAIC offers flexible pricing plans designed to grow with your business. Whethe
 | Third-Party Integrations | Basic | Standard | Premium | Enterprise |
 | Custom Integrations | ❌ | ❌ | ✅ Limited | ✅ Full |
 | GraphQL API | ❌ | ❌ | ❌ | ✅ Yes |
-| | | | | |
-| **📄 Content Limits** | | | | |
-| Pages/Posts | Limited | More | Unlimited | Unlimited |
-| Storage | 500 MB | 5 GB | 25 GB | 100 GB |
-| Bandwidth | 10 GB/mo | 25 GB/mo | 100 GB/mo | 500 GB/mo |
 | | | | | |
 | **💬 Support** | | | | |
 | Documentation | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
@@ -493,9 +489,9 @@ Each MOSAIC plan builds on the previous one, giving you more power, control, and
 
 ### Annual Billing Savings
 Save approximately 17% by paying annually:
-- **Starter:** Save $24/year - 17% discount (pay $120 instead of $144)
-- **Pro:** Save $70/year - 17% discount (pay $350 instead of $420)
-- **Business:** Save $500/year - 17% discount (pay $2,500 instead of $3,000)
+- **Starter:** Save $24/year - pay $120/year instead of $144 (monthly × 12)
+- **Pro:** Save $70/year - pay $350/year instead of $420 (monthly × 12)
+- **Business:** Save $500/year - pay $2,500/year instead of $3,000 (monthly × 12)
 
 ### Startup Program
 Are you part of **Microsoft for Startups Founder Hub**? You may qualify for:
