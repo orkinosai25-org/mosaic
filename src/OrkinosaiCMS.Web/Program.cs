@@ -78,12 +78,15 @@ try
 
     // Configure Database
     var databaseProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
-        if (databaseProvider.Equals("SQLite", StringComparison.OrdinalIgnoreCase))
+        if (databaseProvider.Equals("InMemory", StringComparison.OrdinalIgnoreCase))
+        {
+            // Use in-memory database for testing
+            options.UseInMemoryDatabase("InMemoryTestDb");
+        }
+        else if (databaseProvider.Equals("SQLite", StringComparison.OrdinalIgnoreCase))
         {
             var sqliteConnectionString = builder.Configuration.GetConnectionString("SqliteConnection") ?? "Data Source=orkinosai-cms.db";
             options.UseSqlite(sqliteConnectionString, sqliteOptions =>
@@ -93,6 +96,8 @@ try
         }
         else
         {
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             options.UseSqlServer(connectionString, sqlOptions =>
             {
                 sqlOptions.EnableRetryOnFailure(
