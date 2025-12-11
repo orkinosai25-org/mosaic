@@ -12,6 +12,7 @@
   "dependencies": {
     "@fluentui/react-components": "^9.72.8",
     "@fluentui/react-icons": "^2.0.316",
+    "@stripe/stripe-js": "^8.5.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

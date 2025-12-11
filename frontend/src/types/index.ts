@@ -27,3 +27,38 @@ export interface NavigationItem {
   icon: string;
   path: string;
 }
+
+export interface TierLimits {
+  maxWebsites: number;
+  maxStorageBytes: number;
+  maxBandwidthBytes: number;
+  maxCustomDomains: number;
+  hasAds: boolean;
+  hasBranding: boolean;
+}
+
+export interface Subscription {
+  id: number;
+  tier: string;
+  status: string;
+  billingInterval: string;
+  priceAmount: number;
+  currency: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  canceledAt?: string;
+  limits: TierLimits;
+}
+
+export interface Plan {
+  tier: string;
+  name: string;
+  description: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  monthlyPriceId: string;
+  yearlyPriceId: string;
+  limits: TierLimits;
+}
+

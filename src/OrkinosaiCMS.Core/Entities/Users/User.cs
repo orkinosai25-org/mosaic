@@ -51,4 +51,15 @@ public class User : BaseEntity
     /// User roles/permissions
     /// </summary>
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+    /// <summary>
+    /// Stripe customer ID (if user has made purchases)
+    /// </summary>
+    public string? StripeCustomerId { get; set; }
+
+    /// <summary>
+    /// Current subscription tier (stored as int for database compatibility)
+    /// Maps to SubscriptionTier enum: Free = 0, Starter = 1, Pro = 2, Business = 3
+    /// </summary>
+    public int SubscriptionTierValue { get; set; } = 0; // Default to Free tier
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OrkinosaiCMS.Core.Entities.Sites;
+using OrkinosaiCMS.Core.Entities.Subscriptions;
 
 namespace OrkinosaiCMS.Infrastructure.Data;
 
@@ -35,6 +36,12 @@ public class ApplicationDbContext : DbContext
     // Content
     public DbSet<Content> Contents => Set<Content>();
 
+    // Subscriptions
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<PaymentMethod> PaymentMethods => Set<PaymentMethod>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -55,6 +62,10 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<UserRole>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<RolePermission>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Content>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Customer>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Subscription>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<Invoice>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PaymentMethod>().HasQueryFilter(e => !e.IsDeleted);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
