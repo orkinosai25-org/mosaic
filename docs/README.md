@@ -1,6 +1,8 @@
-# OrkinosaiCMS Documentation
+# Mosaic Conversational CMS Documentation
 
-Welcome to the OrkinosaiCMS documentation. This directory contains comprehensive documentation for the project.
+Welcome to the Mosaic Conversational CMS documentation. This directory contains comprehensive documentation for the proprietary SaaS platform.
+
+> **⚠️ Important**: This codebase is for the **Mosaic Conversational CMS** (proprietary SaaS). This is NOT the future open-source "OrkinosaiCMS" project. See [main README](../README.md) for clarification.
 
 ## Quick Start
 
@@ -12,7 +14,7 @@ Welcome to the OrkinosaiCMS documentation. This directory contains comprehensive
 ## Documentation Index
 
 ### Getting Started
-- [PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md) - Overview of the OrkinosaiCMS project
+- [PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md) - Overview of the Mosaic Conversational CMS project
 - [SETUP.md](./SETUP.md) - Local development setup instructions
 - [DATABASE_SETUP_SUMMARY.md](./DATABASE_SETUP_SUMMARY.md) - Database configuration guide
 
@@ -102,4 +104,4 @@ When adding new documentation:
 
 ---
 
-*This documentation is maintained by the OrkinosaiCMS development team.*
+*This documentation is maintained by the Mosaic Conversational CMS development team.*
