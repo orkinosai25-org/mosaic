@@ -13,15 +13,18 @@ public class SubscriptionService : ISubscriptionService
 {
     private readonly IRepository<Subscription> _subscriptionRepository;
     private readonly IRepository<Customer> _customerRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ApplicationDbContext _context;
 
     public SubscriptionService(
         IRepository<Subscription> subscriptionRepository,
         IRepository<Customer> customerRepository,
+        IUnitOfWork unitOfWork,
         ApplicationDbContext context)
     {
         _subscriptionRepository = subscriptionRepository;
         _customerRepository = customerRepository;
+        _unitOfWork = unitOfWork;
         _context = context;
     }
 
@@ -56,14 +59,18 @@ public class SubscriptionService : ISubscriptionService
     {
         subscription.CreatedOn = DateTime.UtcNow;
         subscription.CreatedBy = "System";
-        return await _subscriptionRepository.AddAsync(subscription);
+        var result = await _subscriptionRepository.AddAsync(subscription);
+        await _unitOfWork.SaveChangesAsync();
+        return result;
     }
 
     public async Task<Subscription> UpdateAsync(Subscription subscription)
     {
         subscription.ModifiedOn = DateTime.UtcNow;
         subscription.ModifiedBy = "System";
-        return await _subscriptionRepository.UpdateAsync(subscription);
+        _subscriptionRepository.Update(subscription);
+        await _unitOfWork.SaveChangesAsync();
+        return subscription;
     }
 
     public async Task<bool> CancelAsync(int subscriptionId, bool cancelAtPeriodEnd = true)
@@ -78,7 +85,8 @@ public class SubscriptionService : ISubscriptionService
         subscription.ModifiedOn = DateTime.UtcNow;
         subscription.ModifiedBy = "System";
 
-        await _subscriptionRepository.UpdateAsync(subscription);
+        _subscriptionRepository.Update(subscription);
+        await _unitOfWork.SaveChangesAsync();
         return true;
     }
 

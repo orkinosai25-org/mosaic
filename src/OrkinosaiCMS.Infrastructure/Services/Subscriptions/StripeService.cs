@@ -51,8 +51,8 @@ public class StripeService : IStripeService
                 }
             };
 
-            var service = new CustomerService();
-            var customer = await service.CreateAsync(options);
+            var stripeCustomerService = new Stripe.CustomerService();
+            var customer = await stripeCustomerService.CreateAsync(options);
 
             _logger.LogInformation("Created Stripe customer {CustomerId} for user {UserId}", customer.Id, userId);
             return customer.Id;
@@ -100,8 +100,8 @@ public class StripeService : IStripeService
                 Expand = new List<string> { "latest_invoice.payment_intent" }
             };
 
-            var service = new SubscriptionService();
-            var subscription = await service.CreateAsync(options);
+            var stripeSubscriptionService = new Stripe.SubscriptionService();
+            var subscription = await stripeSubscriptionService.CreateAsync(options);
 
             var dbCustomer = await _customerService.GetByStripeCustomerIdAsync(customerId);
             if (dbCustomer == null)
@@ -138,8 +138,8 @@ public class StripeService : IStripeService
     {
         try
         {
-            var service = new SubscriptionService();
-            var subscription = await service.GetAsync(subscriptionId);
+            var stripeSubscriptionService = new Stripe.SubscriptionService();
+            var subscription = await stripeSubscriptionService.GetAsync(subscriptionId);
 
             var options = new SubscriptionUpdateOptions
             {
@@ -154,7 +154,7 @@ public class StripeService : IStripeService
                 ProrationBehavior = "create_prorations"
             };
 
-            var updatedSubscription = await service.UpdateAsync(subscriptionId, options);
+            var updatedSubscription = await stripeSubscriptionService.UpdateAsync(subscriptionId, options);
 
             var dbCustomer = await _customerService.GetByStripeCustomerIdAsync(subscription.CustomerId);
             if (dbCustomer == null)
@@ -183,7 +183,7 @@ public class StripeService : IStripeService
     {
         try
         {
-            var service = new SubscriptionService();
+            var stripeSubscriptionService = new Stripe.SubscriptionService();
             
             if (cancelAtPeriodEnd)
             {
@@ -191,11 +191,11 @@ public class StripeService : IStripeService
                 {
                     CancelAtPeriodEnd = true
                 };
-                await service.UpdateAsync(subscriptionId, options);
+                await stripeSubscriptionService.UpdateAsync(subscriptionId, options);
             }
             else
             {
-                await service.CancelAsync(subscriptionId);
+                await stripeSubscriptionService.CancelAsync(subscriptionId);
             }
 
             _logger.LogInformation("Canceled subscription {SubscriptionId}, cancelAtPeriodEnd: {CancelAtPeriodEnd}", 
@@ -213,8 +213,8 @@ public class StripeService : IStripeService
     {
         try
         {
-            var service = new SubscriptionService();
-            var subscription = await service.GetAsync(subscriptionId);
+            var stripeSubscriptionService = new Stripe.SubscriptionService();
+            var subscription = await stripeSubscriptionService.GetAsync(subscriptionId);
 
             var dbCustomer = await _customerService.GetByStripeCustomerIdAsync(subscription.CustomerId);
             if (dbCustomer == null)
@@ -407,7 +407,7 @@ public class StripeService : IStripeService
     private async Task HandleInvoicePaidAsync(string eventJson)
     {
         var stripeEvent = Newtonsoft.Json.JsonConvert.DeserializeObject<Event>(eventJson);
-        var invoice = stripeEvent?.Data.Object as Invoice;
+        var invoice = stripeEvent?.Data.Object as Stripe.Invoice;
 
         if (invoice == null)
             return;
@@ -422,7 +422,7 @@ public class StripeService : IStripeService
     private async Task HandleInvoicePaymentFailedAsync(string eventJson)
     {
         var stripeEvent = Newtonsoft.Json.JsonConvert.DeserializeObject<Event>(eventJson);
-        var invoice = stripeEvent?.Data.Object as Invoice;
+        var invoice = stripeEvent?.Data.Object as Stripe.Invoice;
 
         if (invoice == null)
             return;

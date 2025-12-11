@@ -12,11 +12,16 @@ namespace OrkinosaiCMS.Infrastructure.Services.Subscriptions;
 public class CustomerService : ICustomerService
 {
     private readonly IRepository<Customer> _customerRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ApplicationDbContext _context;
 
-    public CustomerService(IRepository<Customer> customerRepository, ApplicationDbContext context)
+    public CustomerService(
+        IRepository<Customer> customerRepository, 
+        IUnitOfWork unitOfWork,
+        ApplicationDbContext context)
     {
         _customerRepository = customerRepository;
+        _unitOfWork = unitOfWork;
         _context = context;
     }
 
@@ -43,14 +48,18 @@ public class CustomerService : ICustomerService
     {
         customer.CreatedOn = DateTime.UtcNow;
         customer.CreatedBy = "System";
-        return await _customerRepository.AddAsync(customer);
+        var result = await _customerRepository.AddAsync(customer);
+        await _unitOfWork.SaveChangesAsync();
+        return result;
     }
 
     public async Task<Customer> UpdateAsync(Customer customer)
     {
         customer.ModifiedOn = DateTime.UtcNow;
         customer.ModifiedBy = "System";
-        return await _customerRepository.UpdateAsync(customer);
+        _customerRepository.Update(customer);
+        await _unitOfWork.SaveChangesAsync();
+        return customer;
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -62,7 +71,8 @@ public class CustomerService : ICustomerService
         customer.IsDeleted = true;
         customer.ModifiedOn = DateTime.UtcNow;
         customer.ModifiedBy = "System";
-        await _customerRepository.UpdateAsync(customer);
+        _customerRepository.Update(customer);
+        await _unitOfWork.SaveChangesAsync();
         return true;
     }
 }
