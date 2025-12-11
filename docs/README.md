@@ -13,6 +13,9 @@ Welcome to the Mosaic Conversational CMS documentation. This directory contains 
 
 ## Documentation Index
 
+### Brand & Identity
+- **[BRAND.md](../BRAND.md)** - Complete story behind the MOSAIC name: meaning, heritage, and design inspiration 🎨
+
 ### Getting Started
 - [PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md) - Overview of the Mosaic Conversational CMS project
 - [SETUP.md](./SETUP.md) - Local development setup instructions
