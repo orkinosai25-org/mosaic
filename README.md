@@ -6,6 +6,32 @@
 
 ---
 
+## 🎨 About the MOSAIC Name
+
+**Why "MOSAIC"?** The name embodies the essence of our platform and honors our cultural heritage:
+
+### Not an Acronym
+MOSAIC is **not an acronym** - it's a conceptual brand name representing the intersection of:
+
+- **🧩 Modularity**: Like individual tiles forming a complete mosaic, our CMS combines modular components into cohesive websites
+- **🎯 Pattern & Precision**: Geometric patterns and clean architectural design inspired by world-class craftsmanship
+- **🏛️ Heritage**: Deep roots in **Ottoman architecture** - particularly the magnificent mosaic tile work of:
+  - **Selimiye Mosque** (Edirne, 1568-1575) - Mimar Sinan's masterpiece with perfect geometric harmony
+  - **Blue Mosque** (Istanbul, 1609-1616) - Famous for over 20,000 Iznik tiles in cobalt blue and turquoise
+  - **Iznik tile art** - Centuries-old ceramic craft that inspired our logo's colors and 8-pointed star patterns
+- **🤖 AI-Powered Innovation**: Conversational technology that transforms traditional CMS interaction into natural dialogue
+
+### Visual Identity
+Our logo and brand colors directly reflect this heritage:
+- **8-pointed stars** (Rub el Hizb) found in Ottoman mosque decorations
+- **Cobalt blue** (#1e3a8a) - the signature Iznik tile color
+- **Turquoise** (#06b6d4) - common in Ottoman ceramics
+- **Gold accents** (#fbbf24) - representing craftsmanship and quality
+
+**📖 Learn more**: See [BRAND.md](./BRAND.md) for the complete story behind the MOSAIC name, including design inspirations and cultural context.
+
+---
+
 ## ⚠️ Important: Licensing and Codebase Scope
 
 **This codebase is proprietary software** for the **Mosaic Conversational CMS SaaS platform**.
@@ -364,6 +390,7 @@ Navigate to `https://localhost:5001`
 - **[Logging Guide](docs/LOGGING.md)** - Serilog logging configuration, troubleshooting, and best practices
 
 ### Design & Branding
+- **[About the MOSAIC Name](./BRAND.md)**: Complete story - meaning, heritage, and design inspiration 🎨
 - **[Logo & Branding](./logo/README.md)**: Official brand assets and usage guidelines
 - **[Design Concept](./logo/concept/DESIGN_CONCEPT.md)**: Logo design philosophy
 - **[Ottoman Inspirations](./logo/concept/OTTOMAN_INSPIRATIONS.md)**: Cultural and architectural heritage
