@@ -11,6 +11,7 @@ import { AuthPanel } from './components/auth/AuthPanel';
 import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SitesPage } from './pages/SitesPage';
+import { BillingPage } from './pages/BillingPage';
 import { ChatBubble } from './components/common/ChatBubble';
 import type { User } from './types';
 
@@ -115,6 +116,8 @@ function App() {
             {user?.isAuthenticated ? (
               activeNav === 'sites' ? (
                 <SitesPage onAction={handleQuickAction} userEmail={user.email} />
+              ) : activeNav === 'billing' ? (
+                <BillingPage />
               ) : (
                 <DashboardPage
                   userName={user.name}
