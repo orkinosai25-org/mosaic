@@ -1,8 +1,10 @@
-# OrkinosaiCMS Architecture
+# Mosaic Conversational CMS Architecture
+
+> **⚠️ Note**: This document describes the **Mosaic Conversational CMS** proprietary SaaS platform architecture. This is NOT the future open-source "OrkinosaiCMS" project.
 
 ## Overview
 
-OrkinosaiCMS is a modern, modular Content Management System built on .NET 10 and Blazor, inspired by both Oqtane CMS and SharePoint. It combines the best practices of modern web development with proven enterprise CMS patterns.
+Mosaic Conversational CMS is a modern, modular Content Management System built on .NET 10 and Blazor. It combines best practices of modern web development with proven enterprise CMS patterns, enhanced for multi-tenant SaaS deployment.
 
 ## Design Principles
 

@@ -1,4 +1,6 @@
-# OrkinosaiCMS Setup Guide
+# Mosaic Conversational CMS - Setup Guide
+
+> **⚠️ Note**: This setup guide is for the **Mosaic Conversational CMS** proprietary SaaS platform. This is NOT the future open-source "OrkinosaiCMS" project.
 
 ## Prerequisites
 
@@ -23,8 +25,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/orkinosai25-org/orkinosaiCMS.git
-cd orkinosaiCMS
+git clone https://github.com/orkinosai25-org/mosaic.git
+cd mosaic
 ```
 
 ### 2. Restore Dependencies
@@ -32,6 +34,8 @@ cd orkinosaiCMS
 ```bash
 dotnet restore OrkinosaiCMS.sln
 ```
+
+> **Note**: The solution file is named `OrkinosaiCMS.sln` for legacy compatibility. This will be updated in future releases.
 
 ### 3. Configure Database
 

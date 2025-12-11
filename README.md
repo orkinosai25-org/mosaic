@@ -1,12 +1,42 @@
-# MOSAIC SaaS Platform
+# Mosaic Conversational CMS (SaaS Platform)
 
-**MOSAIC** is the world's first conversational SaaS platform empowering businesses and creators to build, manage, and scale multi-tenant websites—using natural language, not configuration. Built by [Orkinosai](https://github.com/orkinosai25-org), MOSAIC combines powerful enterprise features with an innovative AI-powered conversational interface.
+**Mosaic Conversational CMS** is the world's first conversational SaaS platform empowering businesses and creators to build, manage, and scale multi-tenant websites—using natural language, not configuration. Built by [Orkinosai](https://github.com/orkinosai25-org), Mosaic combines powerful enterprise features with an innovative AI-powered conversational interface.
 
 ![MOSAIC Logo](./logo/src/mosaic-logo-main.svg)
 
+---
+
+## ⚠️ Important: Licensing and Codebase Scope
+
+**This codebase is proprietary software** for the **Mosaic Conversational CMS SaaS platform**.
+
+### Key Clarifications:
+
+1. **This is NOT open-source software** - This repository contains proprietary code for Mosaic's commercial SaaS offering and is licensed under the Apache License 2.0 with specific usage restrictions.
+
+2. **This is NOT the on-premises OrkinosaiCMS** - A separate, open-source, on-premises CMS named "OrkinosaiCMS" is planned for future release. That project will be truly open-source and designed for self-hosting.
+
+3. **Separation of Projects**:
+   - **Mosaic Conversational CMS** (this repo): Proprietary SaaS platform with multi-tenancy, subscriptions, and cloud-native features
+   - **OrkinosaiCMS** (future): Open-source, on-premises CMS for self-hosted deployments
+
+4. **Foundation and Heritage**: This SaaS platform is built upon CMS foundations that share architectural concepts with the planned OrkinosaiCMS, but they are distinct projects with different purposes and licenses.
+
+### Usage Rights:
+
+- ✅ You may use this code to learn, evaluate, and understand the architecture
+- ✅ You may fork and experiment with this code for personal, non-commercial purposes
+- ❌ You may NOT use this code to create competing commercial SaaS offerings
+- ❌ You may NOT redistribute this code as part of a commercial product
+- ❌ You may NOT claim this is open-source software
+
+For commercial licensing inquiries, please contact: support@orkinosai.com
+
+---
+
 ## 🏛️ Heritage & Foundation
 
-MOSAIC is built upon **OrkinosaiCMS**, a modern, modular Content Management System built on .NET 10 and Blazor. We've taken the solid foundation of OrkinosaiCMS and transformed it into a comprehensive multi-tenant SaaS platform while preserving its core architectural strengths:
+Mosaic Conversational CMS is built upon a modern, modular CMS foundation using .NET 10 and Blazor. We've transformed this foundation into a comprehensive multi-tenant SaaS platform while preserving its core architectural strengths:
 
 - **Modular Architecture**: Plugin-based system for unlimited extensibility
 - **Clean Architecture**: Clear separation between Core, Infrastructure, and UI layers
@@ -14,26 +44,26 @@ MOSAIC is built upon **OrkinosaiCMS**, a modern, modular Content Management Syst
 - **Modern Stack**: Built on .NET 10, Blazor, and Entity Framework Core
 - **Flexible Permissions**: Fine-grained, SharePoint-style permission system
 
-### OrkinosaiCMS to MOSAIC Evolution
+### Evolution to Conversational SaaS
 
-The transformation from OrkinosaiCMS to MOSAIC represents a strategic evolution:
+The transformation to Mosaic Conversational CMS represents a strategic evolution:
 
-| Aspect | OrkinosaiCMS (Foundation) | MOSAIC (SaaS Platform) |
-|--------|---------------------------|------------------------|
+| Aspect | CMS Foundation | Mosaic Conversational CMS (SaaS) |
+|--------|----------------|----------------------------------|
 | **Purpose** | Single-tenant CMS | Multi-tenant SaaS platform |
 | **Target Users** | Individual websites | Businesses and creators |
 | **Architecture** | Modular monolith | Multi-tenant with tenant isolation |
 | **Deployment** | Self-hosted | Cloud-native (Azure) |
 | **Interface** | Traditional config | Conversational AI builder |
-| **AI Integration** | Basic (Zoota chat) | Dual AI agents (MOSAIC + Zoota Admin) |
+| **AI Integration** | Basic (Zoota chat) | Dual AI agents (Mosaic + Zoota Admin) |
 | **Payment** | Not included | Integrated Stripe + Microsoft Founder Hub |
 | **Onboarding** | Manual setup | Streamlined sign-up with guided wizard |
 
 ## 🏗️ Architecture Overview
 
-MOSAIC consists of two main components working together:
+Mosaic Conversational CMS consists of two main components working together:
 
-### 1. **MOSAIC Portal** (Frontend - React + Fluent UI)
+### 1. **Mosaic Portal** (Frontend - React + Fluent UI)
 The SaaS management portal where users:
 - **Register and authenticate** (as admin/owner or regular user)
 - **Manage subscriptions and billing** through Stripe integration
@@ -41,7 +71,7 @@ The SaaS management portal where users:
 - **Access analytics and usage metrics**
 - **Navigate to CMS configuration** for each website
 
-### 2. **MOSAIC CMS** (Backend - .NET 10 + Blazor)
+### 2. **Mosaic CMS Backend** (.NET 10 + Blazor)
 The content management system that powers each website:
 - **Configure website content and structure** through admin features
 - **Manage pages, modules, and web parts** (SharePoint-inspired)
@@ -58,7 +88,7 @@ The content management system that powers each website:
 
 ## 🎯 Vision
 
-MOSAIC reimagines website and content management as a service by blending:
+Mosaic Conversational CMS reimagines website and content management as a service by blending:
 - **Conversational AI interface** for intuitive website building without technical configuration
 - **Enterprise-grade multi-tenant architecture** for scalability and security
 - **AI-powered automation** with intelligent agents for both public users and administrators
@@ -139,7 +169,7 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 
 ### 🤖 AI-Powered Agents
 
-#### MOSAIC Public Agent
+#### Mosaic Public Agent
 - **Conversational interface**: Natural language website building and management
 - **Content assistance**: AI helps users create and optimize content
 - **SEO recommendations**: Automated suggestions for better search rankings
@@ -147,7 +177,7 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 - **Accessibility checks**: Ensure sites meet WCAG standards
 - **24/7 availability**: Always-on support for common questions
 
-#### Zoota Admin Agent (Inherited from OrkinosaiCMS)
+#### Zoota Admin Agent (CMS Administration Assistant)
 - **Administrative automation**: Streamline platform management tasks
 - **User support**: Intelligent ticket routing and response suggestions
 - **System monitoring**: Proactive issue detection and resolution
@@ -195,7 +225,7 @@ For pricing comparison and plan details, see our [Pricing Guide](./docs/pricing.
 
 ### SaaS Architecture
 
-MOSAIC uses a multi-tenant architecture with:
+Mosaic Conversational CMS uses a multi-tenant architecture with:
 - **Portal Frontend (React + Fluent UI)**: Public landing page at `/` for registration and authentication
 - **CMS Backend (.NET 10 + Blazor)**: Admin interface at `/admin` for site management (authenticated users only)
 - **API Services**: RESTful endpoints at `/api/*` for portal-backend integration
@@ -395,9 +425,9 @@ After deployment, verify the following:
 
 1. **Portal Landing Page** (Root URL)
    - Visit: `https://mosaic-saas.azurewebsites.net/`
-   - Expected: MOSAIC portal landing page
+   - Expected: Mosaic portal landing page
    - Should show: Registration/login options, features, hero section
-   - Should NOT show: OrkinosaiCMS frontend (Counter, Weather pages)
+   - Should NOT show: Old CMS frontend (Counter, Weather pages)
 
 2. **CMS Admin Interface**
    - Visit: `https://mosaic-saas.azurewebsites.net/admin`
@@ -407,7 +437,7 @@ After deployment, verify the following:
 3. **CMS Content Pages**
    - Visit: `https://mosaic-saas.azurewebsites.net/cms-home`
    - Expected: CMS home page with navigation
-   - Should show: MOSAIC CMS branding, Features, About, Contact links
+   - Should show: Mosaic CMS branding, Features, About, Contact links
 
 4. **API Health Check**
    - Visit: `https://mosaic-saas.azurewebsites.net/api/*` endpoints
@@ -459,7 +489,7 @@ mosaic/
 ```
 ## ☁️ Azure Blob Storage Integration
 
-MOSAIC leverages **Azure Blob Storage** for enterprise-grade media and asset management:
+Mosaic Conversational CMS leverages **Azure Blob Storage** for enterprise-grade media and asset management:
 
 ### Key Features
 
@@ -512,7 +542,7 @@ For detailed information, see the [Azure Blob Storage Integration Guide](./docs/
 
 ## 💼 For Startups
 
-MOSAIC is proud to support startups through the **Microsoft for Startups Founder Hub**:
+Mosaic Conversational CMS is proud to support startups through the **Microsoft for Startups Founder Hub**:
 - Access to Azure credits for infrastructure
 - Preferred pricing for qualifying startups
 - Technical support and architecture guidance
@@ -522,7 +552,7 @@ MOSAIC is proud to support startups through the **Microsoft for Startups Founder
 
 ## 💳 Payment Integration Readiness
 
-MOSAIC is architected to support payment integration out of the box:
+Mosaic Conversational CMS is architected to support payment integration out of the box:
 
 ### Current Architecture Supports:
 - ✅ **User Authentication**: Portal handles registration and login
@@ -595,14 +625,34 @@ Please check our contribution guidelines (coming soon).
 
 ## 📜 License
 
-This project is proprietary software by Orkinosai. See LICENSE file for details.
+**Mosaic Conversational CMS** is proprietary software.
+
+This codebase is licensed under the **Apache License 2.0** with the following important restrictions:
+
+- ✅ **Permitted**: Personal use, learning, evaluation, and non-commercial experimentation
+- ❌ **Prohibited**: Commercial redistribution, creating competing SaaS products, or claiming this is open-source
+
+**Important**: This is NOT open-source software. A separate open-source project called "OrkinosaiCMS" for on-premises deployments is planned for future release.
+
+Copyright © 2024 Orkinosai. All rights reserved.
+
+See the [LICENSE](LICENSE) file for the full Apache License 2.0 text.
 
 ## 🙏 Acknowledgments
 
-- **OrkinosaiCMS** - The foundational CMS that powers MOSAIC
 - **Oqtane CMS** - Inspiration for the modular architecture
 - **SharePoint** - Inspiration for page model and permission system
 - **.NET Team** - For the amazing .NET 10 and Blazor frameworks
+
+## 🔮 Future: Open-Source OrkinosaiCMS
+
+**Note**: A separate open-source project called **OrkinosaiCMS** is planned for future release. This will be:
+- Truly open-source (MIT or similar permissive license)
+- Designed for on-premises, self-hosted deployments
+- A distinct codebase from this proprietary Mosaic Conversational CMS SaaS platform
+- Available for community contributions and commercial use without restrictions
+
+Stay tuned for announcements about the OrkinosaiCMS open-source project!
 
 ## 📞 Contact & Support
 
@@ -627,4 +677,4 @@ See [Setup Guide](docs/SETUP.md) for detailed configuration instructions.
 ---
 
 **Built with ❤️ by [Orkinosai](https://github.com/orkinosai25-org)**  
-**Powered by OrkinosaiCMS** • **Crafted with modern technology**
+**Mosaic Conversational CMS** • **Proprietary SaaS Platform** • **Crafted with modern technology**

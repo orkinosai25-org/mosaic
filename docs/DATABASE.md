@@ -1,10 +1,12 @@
-# OrkinosaiCMS Database Architecture
+# Mosaic Conversational CMS - Database Architecture
 
-This document describes the database architecture, entity models, and data access patterns used in OrkinosaiCMS.
+> **⚠️ Note**: This document describes the database architecture for the **Mosaic Conversational CMS** proprietary SaaS platform. This is NOT the future open-source "OrkinosaiCMS" project.
+
+This document describes the database architecture, entity models, and data access patterns used in Mosaic Conversational CMS.
 
 ## Overview
 
-OrkinosaiCMS uses **Entity Framework Core 10.0** with **SQL Server** (including LocalDB and Azure SQL) as the primary database provider. The architecture follows clean architecture principles with:
+Mosaic Conversational CMS uses **Entity Framework Core 10.0** with **SQL Server** (including LocalDB and Azure SQL) as the primary database provider. The architecture follows clean architecture principles with:
 
 - **Domain Entities** in `OrkinosaiCMS.Core`
 - **DbContext and Migrations** in `OrkinosaiCMS.Infrastructure`

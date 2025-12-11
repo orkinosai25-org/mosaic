@@ -30,16 +30,16 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
 # Create non-root user
-RUN groupadd -r orkinosai && useradd -r -g orkinosai orkinosai
+RUN groupadd -r mosaic && useradd -r -g mosaic mosaic
 
 # Copy published app
 COPY --from=publish /app/publish .
 
 # Set ownership
-RUN chown -R orkinosai:orkinosai /app
+RUN chown -R mosaic:mosaic /app
 
 # Switch to non-root user
-USER orkinosai
+USER mosaic
 
 # Expose ports
 EXPOSE 8080

@@ -9,15 +9,15 @@ services:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=OrkinosaiCMS;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
-      - CMS__SiteName=OrkinosaiCMS Docker
+      - ConnectionStrings__DefaultConnection=Server=db;Database=MosaicCMS;User=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;
+      - CMS__SiteName=Mosaic CMS Docker
       - CMS__DefaultTheme=Default
       - CMS__EnableModuleDiscovery=true
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - orkinosai-network
+      - mosaic-network
     restart: unless-stopped
 
   db:
@@ -31,7 +31,7 @@ services:
     volumes:
       - sqldata:/var/opt/mssql
     networks:
-      - orkinosai-network
+      - mosaic-network
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' || exit 1"]
       interval: 10s
@@ -41,7 +41,7 @@ services:
     restart: unless-stopped
 
 networks:
-  orkinosai-network:
+  mosaic-network:
     driver: bridge
 
 volumes:
