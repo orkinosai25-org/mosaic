@@ -125,7 +125,7 @@ Our goal is to make powerful web infrastructure accessible to everyone through n
 
 ### 💳 Payment Integration & Pricing
 - **Flexible subscription tiers**: Free, Starter, Pro, and Business plans
-- **Transparent pricing**: From $0 to $149/month with annual discounts
+- **Transparent pricing**: From $0 to $250/month with annual discounts (~17% savings)
 - **Microsoft Startup Founder Hub support**: Leverage startup credits and benefits
 - **Stripe integration**: Secure payment processing with support for multiple currencies
 - **No hidden fees**: Clear cost breakdowns and predictable billing

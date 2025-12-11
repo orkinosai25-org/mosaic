@@ -10,37 +10,40 @@ MOSAIC offers flexible pricing plans designed to grow with your business. Whethe
 
 | Feature | **Free** | **Starter** | **Pro** | **Business** |
 |---------|----------|-------------|---------|--------------|
-| **Monthly Price** | $0 | $15/mo | $49/mo | $149/mo |
-| **Yearly Price** | $0 | $144/yr<br/>*(Save $36)* | $499/yr<br/>*(Save $89)* | $1,490/yr<br/>*(Save $298)* |
-| **Target Audience** | Hobbyists, Testing | Individuals, Bloggers | Small Businesses, Startups | Agencies, Enterprises |
+| **Monthly Price** | $0 | $12/mo | $35/mo | $250/mo |
+| **Yearly Price** | $0 | $120/yr<br/>*(Save $24 - 17%)* | $350/yr<br/>*(Save $70 - 17%)* | $2,500/yr<br/>*(Save $500 - 17%)* |
+| **Target Audience** | Hobbyists, Trial Users | Personal, Solopreneurs | Growing Businesses | Agencies, Enterprises |
 | | | | | |
 | **🌐 Websites & Domains** | | | | |
 | Active Websites | 1 | 3 | 10 | 50 |
 | Custom Domains | ❌ | 1 | 10 | 50 |
+| Pages/Posts | Limited | More | Unlimited | Unlimited |
 | MOSAIC Subdomain | ✅ Free | ✅ Included | ✅ Included | ✅ Included |
 | SSL Certificates | ✅ Auto | ✅ Auto | ✅ Auto | ✅ Auto |
 | Bandwidth | 10 GB/mo | 25 GB/mo | 100 GB/mo | 500 GB/mo |
 | Storage | 500 MB | 5 GB | 25 GB | 100 GB |
 | | | | | |
 | **📢 Advertising & Branding** | | | | |
-| Display Ads | ⚠️ **Yes** | ⚠️ **Yes** | ❌ No ads | ❌ No ads |
-| MOSAIC Footer Branding | ⚠️ **Visible** | ⚠️ **Visible** | ✅ Removable | ✅ Removed |
+| Platform Ads | ⚠️ **Yes** (footer) | ❌ No ads | ❌ No ads | ❌ No ads |
+| MOSAIC Footer Branding | ⚠️ **Visible** | ❌ No branding | ❌ No branding | ❌ No branding |
 | Custom Logo | ❌ | ✅ Limited | ✅ Full | ✅ Full |
 | White-Label Option | ❌ | ❌ | ❌ | ✅ Available |
 | | | | | |
 | **🎨 Design & Themes** | | | | |
 | Basic Themes | 3 themes | 10 themes | 25 themes | All themes |
-| Premium Themes | ❌ | ❌ | ✅ Included | ✅ Included |
+| Premium Themes | ❌ | ✅ Limited | ✅ Included | ✅ Included |
+| Advanced Templates | ❌ | ❌ | ✅ Yes | ✅ Yes |
 | Theme Customization | Limited | Basic | Advanced | Full Control |
 | Custom CSS | ❌ | ❌ | ✅ Yes | ✅ Yes |
 | Dark Mode | ❌ | ✅ Yes | ✅ Yes | ✅ Yes |
 | | | | | |
 | **📊 Analytics & SEO** | | | | |
 | Basic Analytics | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| Advanced Analytics | ❌ | ❌ | ✅ Yes | ✅ Enhanced |
-| **AI-Driven Analytics** | ❌ | ❌ | ❌ | ✅ **Exclusive** |
+| Site Analytics Dashboard | ❌ | ❌ | ✅ Yes | ✅ Enhanced |
+| **AI-Powered Analytics** | ❌ | ❌ | ❌ | ✅ **Exclusive** |
+| **AI Content Generation** | ❌ | ❌ | ❌ | ✅ **Exclusive** |
 | **AI-Powered Reporting** | ❌ | ❌ | ❌ | ✅ **Exclusive** |
-| SEO Tools | Basic | Standard | Advanced | Enterprise |
+| SEO Tools | Basic | Basic | Premium SEO | SEO Suite |
 | Meta Tag Editor | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
 | Sitemap Generation | Auto | Auto | Auto | Auto + Priority |
 | Google Analytics Integration | ❌ | ✅ Yes | ✅ Yes | ✅ Yes |
@@ -73,7 +76,7 @@ MOSAIC offers flexible pricing plans designed to grow with your business. Whethe
 | **💬 Support** | | | | |
 | Documentation | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
 | Community Forum | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Priority |
-| Email Support | ❌ | ✅ 48h | ✅ 24h | ✅ 4h |
+| Email Support | ❌ | ✅ Yes | ✅ Yes | ✅ Priority |
 | Chat Support | ❌ | ❌ | ✅ Business Hours | ✅ 24/7 |
 | Phone Support | ❌ | ❌ | ❌ | ✅ Yes |
 | Dedicated Account Manager | ❌ | ❌ | ❌ | ✅ Yes |
@@ -95,9 +98,9 @@ MOSAIC offers flexible pricing plans designed to grow with your business. Whethe
 
 ### 🆓 Free Plan - Get Started at Zero Cost
 
-**Perfect for:** Hobbyists, students, testing ideas, and personal projects
+**Perfect for:** Hobbyists, trial users, students, testing ideas, and personal projects
 
-The Free plan gives you everything you need to explore MOSAIC and build your first website. While you're learning and experimenting, you'll have access to our conversational AI builder and basic themes.
+The Free plan gives you everything you need to explore MOSAIC and build your first website. While you're learning and experimenting, you'll have access to our conversational AI builder and basic themes to get started.
 
 **What You Get:**
 - One website to get started
@@ -107,27 +110,35 @@ The Free plan gives you everything you need to explore MOSAIC and build your fir
 - Basic analytics to track your visitors
 - Auto-renewing SSL certificate for security
 - Community forum support
+- Limited pages/posts (for blog-style content)
 
 **Limitations to Know:**
-- ⚠️ **Advertising**: Small display ads appear on your site footer to support free hosting
-- ⚠️ **Branding**: "Powered by MOSAIC" footer badge is visible on all pages
-- No custom domain support (MOSAIC subdomain only)
+- ⚠️ **Platform Advertising**: Display ads appear in your site footer to support free hosting
+- ⚠️ **MOSAIC Branding**: "Powered by MOSAIC" footer badge is visible on all pages
+- ⚠️ **No Custom Domain**: MOSAIC subdomain only (yoursite.mosaic.app)
+- ⚠️ **Limited Pages/Posts**: Restricted number of pages and blog posts
 - Limited theme selection (3 basic themes)
 - Single admin user only
+- No email support (community forum only)
 
-**Best For:** Testing MOSAIC's capabilities, learning web development, personal blogs, or portfolio sites that don't need custom branding.
+**What You'll See:**
+- **Ads**: Small, family-friendly display ads in footer (~300x50px)
+- **Branding**: Clear "Powered by MOSAIC" badge on every page
+- **Domain**: yoursite.mosaic.app (no custom .com or .org)
 
-**Ready to Upgrade?** When your project grows, upgrading removes ads, adds custom domains, and unlocks premium features. [Compare Plans](#-pricing-overview)
+**Best For:** Testing MOSAIC's capabilities, learning web development, personal blogs, or portfolio sites that don't need custom branding or heavy content.
+
+**Ready to Upgrade?** When your project grows, upgrading to Starter removes ads and branding, adds custom domain support, and unlocks more content. [Compare Plans](#-pricing-overview)
 
 ---
 
 ### 🚀 Starter Plan - Launch Your Online Presence
 
-**$15/month** or **$144/year** (save $36 annually)
+**$12/month** or **$120/year** (save $24 annually - 17% off)
 
-**Perfect for:** Bloggers, freelancers, independent creators, and small side projects
+**Perfect for:** Personal websites, solopreneurs, independent creators, and small side projects
 
-The Starter plan is designed for individuals who want a professional online presence without ads, but don't yet need advanced features. You get custom domain support and expanded resources.
+The Starter plan is designed for individuals who want a professional online presence without the limitations of the Free tier. You get custom domain support, no ads, no branding, expanded resources, and more content capacity.
 
 **What You Get:**
 - Up to 3 websites to manage different projects
@@ -137,34 +148,38 @@ The Starter plan is designed for individuals who want a professional online pres
 - 10 professional themes to choose from
 - Dark mode theme support
 - Basic analytics dashboard
+- Basic SEO tools
 - AI content suggestions (limited)
 - Up to 3 total users (1 admin + 2 contributors)
-- Email support with 48-hour response time
+- Email support
+- **No Platform Ads** - completely ad-free
+- **No MOSAIC Branding** - clean, professional appearance
+- More pages/posts compared to Free
 
-**Still Includes:**
-- ⚠️ **Advertising**: Display ads remain on footer (smaller than Free plan)
-- ⚠️ **Branding**: "Powered by MOSAIC" footer badge still visible
-
-**Removes from Free:**
+**Major Upgrades from Free:**
+- ✅ **Zero advertising** - no platform ads
+- ✅ **No branding** - remove "Powered by MOSAIC" badge
+- ✅ **Custom domain support** (bring your own .com)
 - ✅ Better theme selection (10 themes vs 3)
-- ✅ Custom domain support (bring your own .com)
 - ✅ 2.5x more bandwidth (25 GB vs 10 GB)
 - ✅ 10x more storage (5 GB vs 500 MB)
 - ✅ Multi-user collaboration (add 2 contributors)
+- ✅ More pages/posts for content-heavy sites
+- ✅ Email support
 
-**Best For:** Professional bloggers, freelance portfolios, small business sites, or anyone who wants their own domain name but can accept some advertising.
+**Best For:** Professional bloggers, freelance portfolios, small business sites, or anyone who wants their own domain name with a clean, professional look.
 
-**Need More?** Upgrade to Pro to remove all ads and unlock advanced analytics, more websites, and powerful AI tools. [See Pro Plan](#-pro-plan---power-your-business)
+**Need More?** Upgrade to Pro to unlock site analytics dashboard, premium SEO tools, advanced templates, and unlimited pages. [See Pro Plan](#-pro-plan---power-your-business)
 
 ---
 
 ### 💼 Pro Plan - Power Your Business
 
-**$49/month** or **$499/year** (save $89 annually)
+**$35/month** or **$350/year** (save $70 annually - 17% off)
 
-**Perfect for:** Small businesses, growing startups, professional agencies, and marketing teams
+**Perfect for:** Growing businesses, small businesses, professional agencies, and marketing teams
 
-The Pro plan removes all advertising and branding, giving you a completely professional appearance. You get advanced features, more resources, and priority support to power serious business websites.
+The Pro plan gives you everything you need to run a serious business online. With advanced templates, site analytics dashboard, unlimited pages, premium SEO tools, and priority support, you can scale your business without limits.
 
 **What You Get:**
 - Up to 10 websites - perfect for multiple projects or clients
@@ -172,22 +187,25 @@ The Pro plan removes all advertising and branding, giving you a completely profe
 - 100 GB monthly bandwidth - handle significant traffic
 - 25 GB storage - media libraries, documents, downloads
 - 25 professional themes + premium theme collection
+- **Advanced templates** included
 - Full theme customization with custom CSS
-- **No advertising - completely ad-free experience**
-- **Removable MOSAIC branding** - white-label ready
-- Advanced analytics with detailed reports
-- Full SEO toolset with automated optimization
+- **No advertising** - completely ad-free experience
+- **No MOSAIC branding** - fully professional
+- **Site analytics dashboard** - detailed visitor insights
+- **Unlimited pages** - no content restrictions
+- **Premium SEO** tools with automated optimization
 - Zoota Public Chat Agent for visitor engagement
 - REST API access (10,000 requests/month)
 - Up to 8 total users (3 admins + 5 contributors)
 - Team collaboration features
-- Email support with 24-hour response time
-- Chat support during business hours
+- Email and chat support (business hours)
 - Priority bug fixes and updates
 
 **Major Upgrades from Starter:**
-- ✅ **Zero advertising** - professional, distraction-free sites
-- ✅ **Removable branding** - make it truly yours
+- ✅ **Site analytics dashboard** - comprehensive reporting
+- ✅ **Unlimited pages** - no content limits
+- ✅ **Advanced templates** - professional designs
+- ✅ **Premium SEO** tools vs basic SEO
 - ✅ Advanced analytics and SEO tools
 - ✅ API access for custom integrations
 - ✅ AI-powered chat agent for visitors
@@ -195,20 +213,21 @@ The Pro plan removes all advertising and branding, giving you a completely profe
 - ✅ Priority support via email and chat
 - ✅ 4x more bandwidth (100 GB vs 25 GB)
 - ✅ 5x more storage (25 GB vs 5 GB)
+- ✅ 3x more websites (10 vs 3)
 
-**Best For:** Business websites, agency client sites, SaaS products, online stores, or any professional presence that needs advanced features and white-label capabilities.
+**Best For:** Business websites, agency client sites, SaaS products, online stores, or any professional presence that needs advanced features and analytics.
 
-**Want Enterprise AI?** Upgrade to Business for AI-driven analytics, automated reporting, and the Zoota Admin AI Agent. [See Business Plan](#-business-plan---enterprise-grade-intelligence)
+**Want Enterprise AI?** Upgrade to Business for AI-powered analytics, AI content generation, automated reporting, and the full SEO suite. [See Business Plan](#-business-plan---enterprise-grade-intelligence)
 
 ---
 
 ### 🏢 Business Plan - Enterprise-Grade Intelligence
 
-**$149/month** or **$1,490/year** (save $298 annually)
+**$250/month** or **$2,500/year** (save $500 annually - 17% off)
 
-**Perfect for:** Digital agencies, enterprises, large teams, and organizations requiring AI-powered insights
+**Perfect for:** Agencies, enterprises, large teams, and organizations requiring AI-powered insights and automation
 
-The Business plan delivers enterprise-grade features with exclusive AI capabilities. Get intelligent automation, advanced analytics, and priority support to manage complex operations at scale.
+The Business plan delivers enterprise-grade features with exclusive AI capabilities. Get intelligent automation, AI-powered analytics, AI content generation, and priority support to manage complex operations at scale.
 
 **What You Get:**
 - Up to 50 websites - manage entire agency portfolios
@@ -218,10 +237,11 @@ The Business plan delivers enterprise-grade features with exclusive AI capabilit
 - **All themes unlocked** - entire premium collection
 - Full white-label capability - rebrand as your own
 - **No advertising ever** - pristine professional experience
-- **AI-Driven Analytics (Business Exclusive)** - intelligent insights and predictions
-- **AI-Powered Reporting (Business Exclusive)** - automated business intelligence reports
-- **Zoota Admin AI Agent (Business Exclusive)** - administrative automation and optimization
-- Advanced SEO with enterprise features
+- **No MOSAIC branding** - fully customizable
+- **Unlimited pages** - no restrictions
+- **🤖 AI-Powered Analytics (Business Exclusive)** - intelligent insights and predictions powered by advanced AI
+- **🤖 AI Content Generation & AI Reporting (Business Exclusive)** - automated content creation and business intelligence
+- **Full SEO Suite** - enterprise-level optimization tools
 - GraphQL API access + REST API (100,000 requests/month)
 - Unlimited webhooks for integrations
 - Up to 40 total users (15 admins + 25 contributors)
@@ -229,40 +249,58 @@ The Business plan delivers enterprise-grade features with exclusive AI capabilit
 - User activity logs and audit trails
 - Custom analytics integrations
 - Dedicated account manager
-- Email support with 4-hour response time
+- Priority email support
 - 24/7 chat support
 - Phone support for urgent issues
 - Custom SLA available
 - 99.99% uptime guarantee
 - Real-time backups (90-day retention)
 
-**Exclusive Business Features:**
-- 🤖 **AI-Driven Analytics & Reporting** - Only available in Business plan
-  - Predictive traffic analysis
-  - Automated insight generation
-  - Competitive analysis reports
-  - ROI tracking and optimization
-  - Custom KPI dashboards
-- 🤖 **Zoota Admin AI Agent** - Your intelligent administrative assistant
-  - Automated site optimization
-  - Proactive issue detection
-  - Smart resource allocation
-  - Intelligent user support routing
-  - Performance recommendations
-- 🔧 **Enterprise Integrations**
-  - GraphQL API for flexible data queries
-  - Custom integration development
-  - Priority webhook processing
-  - Advanced authentication options
-- 👥 **Large Team Support**
-  - 40 total users vs 8 in Pro
-  - Detailed role-based access control
-  - Comprehensive activity logging
-  - Team performance analytics
+**Exclusive Business-Tier AI Features:**
+
+🤖 **AI-Powered Analytics & Reporting** - Only available in Business plan
+- **Predictive traffic analysis**: Forecast visitor trends and peak times
+- **Automated insight generation**: AI discovers patterns and opportunities
+- **Competitive analysis reports**: Understand your market position
+- **ROI tracking and optimization**: Maximize return on your content
+- **Custom KPI dashboards**: AI-curated metrics for your business
+- **Behavioral predictions**: Understand and anticipate user actions
+- **Performance recommendations**: AI suggests improvements automatically
+
+🤖 **AI Content Generation & Reporting** - Transform your content workflow
+- **Automated content creation**: Generate blog posts, product descriptions, and landing pages
+- **SEO-optimized writing**: AI writes content that ranks
+- **Content performance reports**: Understand what resonates with your audience
+- **Automated A/B testing**: AI tests and optimizes content variations
+- **Smart content scheduling**: AI recommends optimal publishing times
+- **Multi-language support**: Generate content in multiple languages
+- **Brand voice consistency**: AI learns and maintains your unique style
+
+🤖 **Zoota Admin AI Agent** - Your intelligent administrative assistant
+- **Automated site optimization**: Continuous performance improvements
+- **Proactive issue detection**: Find and fix problems before users notice
+- **Smart resource allocation**: Optimize bandwidth and storage usage
+- **Intelligent user support routing**: Direct queries to the right team members
+- **Performance recommendations**: Get actionable insights for improvement
+- **Automated maintenance tasks**: Routine operations handled by AI
+
+🔧 **Enterprise Integrations**
+- GraphQL API for flexible data queries
+- Custom integration development support
+- Priority webhook processing
+- Advanced authentication options (SSO, SAML)
+
+👥 **Large Team Support**
+- 40 total users vs 8 in Pro
+- Detailed role-based access control
+- Comprehensive activity logging
+- Team performance analytics
 
 **Major Upgrades from Pro:**
-- ✅ **Exclusive AI-driven analytics and reporting** - business intelligence automation
+- ✅ **Exclusive AI-powered analytics and reporting** - business intelligence automation
+- ✅ **AI content generation and reporting** - transform content creation
 - ✅ **Zoota Admin AI Agent** - automated administration and insights
+- ✅ **Full SEO Suite** vs Premium SEO
 - ✅ 5x more websites (50 vs 10)
 - ✅ 5x more bandwidth (500 GB vs 100 GB)
 - ✅ 4x more storage (100 GB vs 25 GB)
@@ -272,8 +310,11 @@ The Business plan delivers enterprise-grade features with exclusive AI capabilit
 - ✅ Dedicated account manager
 - ✅ Custom SLA options
 - ✅ 99.99% uptime guarantee
+- ✅ All themes unlocked
 
-**Best For:** Digital agencies managing multiple clients, large enterprises, high-traffic platforms, and organizations that need intelligent automation and predictive insights.
+**Best For:** Digital agencies managing multiple clients, large enterprises, high-traffic platforms, and organizations that need intelligent automation, AI-powered content creation, and predictive insights.
+
+**Why AI Matters:** The Business plan's AI features don't just analyze data—they predict trends, generate content, automate tasks, and provide actionable recommendations that drive real business growth. From automated content creation to predictive analytics, these AI capabilities save hundreds of hours per month while improving results.
 
 ---
 
@@ -282,7 +323,7 @@ The Business plan delivers enterprise-grade features with exclusive AI capabilit
 Understanding how advertising works across MOSAIC plans is important for making the right choice for your needs.
 
 ### Free Plan - Footer Display Ads
-- **Ad Presence:** Small display advertisements appear in your website footer
+- **Ad Presence:** Display advertisements appear in your website footer
 - **Ad Type:** Contextual display ads (text and small images)
 - **Ad Frequency:** Present on every page load
 - **Revenue Model:** 100% of ad revenue supports free hosting infrastructure
@@ -290,21 +331,18 @@ Understanding how advertising works across MOSAIC plans is important for making 
 - **Control:** No control over ad content (family-friendly, vetted advertisers only)
 - **Size:** Approximately 300x50px footer banner
 
-### Starter Plan - Reduced Footer Ads
-- **Ad Presence:** Smaller display advertisements remain in footer
-- **Ad Type:** Minimal text-based contextual ads
-- **Ad Frequency:** Present on page loads
-- **Revenue Model:** Partially subsidizes the low $15/month pricing
-- **Reduced Impact:** 50% smaller than Free plan ads
-- **Control:** Still no control over ad content
-- **Size:** Approximately 300x25px text banner
+### Starter Plan - Completely Ad-Free ✅
+- **Ad Presence:** Zero advertising - your site is completely clean
+- **Why Ad-Free?** At $12/month, you're funding your hosting and features
+- **Professional Appearance:** No distractions for your visitors
+- **Branding:** No MOSAIC branding either - fully professional
 
 ### Pro Plan - Completely Ad-Free ✅
 - **Ad Presence:** Zero advertising - your site is completely clean
-- **Why Ad-Free?** At $49/month, you're fully funding your hosting and features
+- **Why Ad-Free?** At $35/month, you're fully funding your hosting and features
 - **Professional Appearance:** No distractions for your visitors
 - **Full Control:** Complete control over all content displayed
-- **White-Label Ready:** Remove MOSAIC branding for fully branded experience
+- **White-Label Ready:** No MOSAIC branding for fully branded experience
 
 ### Business Plan - Ad-Free + White Label ✅
 - **Ad Presence:** Zero advertising - pristine professional experience
@@ -315,14 +353,14 @@ Understanding how advertising works across MOSAIC plans is important for making 
 ### Key Considerations
 
 **If you need an ad-free experience:**
-- Upgrade to Pro ($49/month) or higher
-- Pro removes all ads and makes branding optional
-- Business includes white-label capabilities
+- Upgrade to Starter ($12/month) or higher
+- All paid plans are completely ad-free
+- Starter and above also remove MOSAIC branding
 
 **If you can accept advertising:**
 - Free plan is perfect for testing and personal projects
-- Starter plan has minimal ads and adds custom domains
 - Consider that ads may impact user experience and professionalism
+- Great for learning and experimentation
 
 **Impact on Performance:**
 - Ads add minimal load time (~50-100ms)
@@ -337,50 +375,53 @@ Understanding how advertising works across MOSAIC plans is important for making 
 
 Each MOSAIC plan builds on the previous one, giving you more power, control, and intelligence for your online presence.
 
-#### 🆓 Free → 🚀 Starter ($15/mo)
-**Best Upgrade If:** You want your own domain name and better theme selection
+#### 🆓 Free → 🚀 Starter ($12/mo)
+**Best Upgrade If:** You want your own domain name and a professional, ad-free site
 
 **You'll Gain:**
+- ✅ **Zero advertising** - completely ad-free
+- ✅ **No MOSAIC branding** - professional appearance
 - ✅ Custom domain support (use your .com)
 - ✅ 7 more professional themes (10 total)
 - ✅ 2.5x more bandwidth (25 GB vs 10 GB)
 - ✅ 10x more storage (5 GB vs 500 MB)
 - ✅ 2 additional contributors for collaboration
-- ✅ Email support (48h response)
-- ✅ Smaller, less intrusive ads
+- ✅ Email support
+- ✅ More pages/posts for content
 
-**Perfect For:** Stepping up from testing to a real online presence
+**Perfect For:** Stepping up from testing to a real professional online presence
 
 ---
 
-#### 🚀 Starter → 💼 Pro ($49/mo)
-**Best Upgrade If:** You need a professional, ad-free site with advanced features
+#### 🚀 Starter → 💼 Pro ($35/mo)
+**Best Upgrade If:** You need site analytics, unlimited content, advanced templates, and premium SEO
 
 **You'll Gain:**
-- ✅ **Zero advertising** - completely ad-free
-- ✅ **Remove MOSAIC branding** - white-label ready
+- ✅ **Site analytics dashboard** - comprehensive visitor insights
+- ✅ **Unlimited pages** - no content restrictions
+- ✅ **Advanced templates** - professional designs
+- ✅ **Premium SEO** tools with automation
 - ✅ 7 more websites (10 total)
 - ✅ 4x more bandwidth (100 GB vs 25 GB)
 - ✅ 5x more storage (25 GB vs 5 GB)
-- ✅ Advanced analytics and reporting
-- ✅ Full SEO toolkit
 - ✅ Custom CSS control
 - ✅ REST API access (10k requests/month)
 - ✅ Zoota Public Chat Agent
-- ✅ Priority support (24h email + chat)
+- ✅ Priority support (email + chat)
 - ✅ 15 more premium themes
 
-**Perfect For:** Serious businesses and agencies who need professional tools
+**Perfect For:** Growing businesses that need analytics, unlimited content, and advanced tools
 
 ---
 
-#### 💼 Pro → 🏢 Business ($149/mo)
-**Best Upgrade If:** You need AI-powered intelligence and enterprise scalability
+#### 💼 Pro → 🏢 Business ($250/mo)
+**Best Upgrade If:** You need AI-powered analytics, AI content generation, and enterprise scalability
 
 **You'll Gain:**
-- ✅ **AI-Driven Analytics (Exclusive)** - predictive insights
-- ✅ **AI-Powered Reporting (Exclusive)** - automated business intelligence
-- ✅ **Zoota Admin AI Agent (Exclusive)** - intelligent automation
+- ✅ **AI-Powered Analytics (Exclusive)** - predictive insights and automated analysis
+- ✅ **AI Content Generation & Reporting (Exclusive)** - automated content creation and business intelligence
+- ✅ **Zoota Admin AI Agent (Exclusive)** - intelligent automation and optimization
+- ✅ **Full SEO Suite** vs Premium SEO
 - ✅ 5x more websites (50 vs 10)
 - ✅ 5x more bandwidth (500 GB vs 100 GB)
 - ✅ 4x more storage (100 GB vs 25 GB)
@@ -393,7 +434,7 @@ Each MOSAIC plan builds on the previous one, giving you more power, control, and
 - ✅ All themes unlocked
 - ✅ Real-time backups (90 days)
 
-**Perfect For:** Agencies, enterprises, and high-growth companies needing intelligence at scale
+**Perfect For:** Agencies, enterprises, and high-growth companies needing AI intelligence, automated content creation, and scale
 
 ---
 
@@ -412,37 +453,45 @@ Each MOSAIC plan builds on the previous one, giving you more power, control, and
 ### Common Upgrade Triggers
 
 **You Should Upgrade to Starter When:**
+- You want to remove platform ads
+- You want to remove MOSAIC branding
 - You're ready for a custom domain (.com, .org, etc.)
 - You need to collaborate with contributors
 - You want better theme options
-- Free tier bandwidth is insufficient
+- Free tier bandwidth or storage is insufficient
+- You need more pages/posts for your content
 
 **You Should Upgrade to Pro When:**
-- Advertising impacts your brand or professionalism
-- You need MOSAIC branding removed
-- You want advanced analytics and SEO
+- You need site analytics dashboard for visitor insights
+- You want unlimited pages and posts
+- You need advanced templates and premium themes
+- You want premium SEO tools with automation
 - You're building multiple sites (up to 10)
 - You need API access for integrations
 - Priority support is important
+- You need custom CSS capabilities
 
 **You Should Upgrade to Business When:**
-- You need AI-driven analytics and reporting
-- You want the Zoota Admin AI Agent
+- You need AI-powered analytics and reporting
+- You want AI content generation capabilities
+- You need the Zoota Admin AI Agent
 - You're managing 10+ websites
+- You need the full SEO suite
 - You need enterprise-level support (phone, 24/7)
 - GraphQL API access is required
 - You need large team collaboration (40 total users: 15 admins + 25 contributors)
 - 99.99% uptime is critical for your business
+- You want automated business intelligence and insights
 
 ---
 
 ## 🎁 Special Offers
 
 ### Annual Billing Savings
-Save 15-20% by paying annually:
-- **Starter:** Save $36/year - 20% discount (2.4 months free)
-- **Pro:** Save $89/year - 15% discount (1.8 months free)
-- **Business:** Save $298/year - 17% discount (2 months free)
+Save approximately 17% by paying annually:
+- **Starter:** Save $24/year - pay $120/year instead of $144 (monthly × 12)
+- **Pro:** Save $70/year - pay $350/year instead of $420 (monthly × 12)
+- **Business:** Save $500/year - pay $2,500/year instead of $3,000 (monthly × 12)
 
 ### Startup Program
 Are you part of **Microsoft for Startups Founder Hub**? You may qualify for:
