@@ -1,8 +1,10 @@
-# OrkinosaiCMS Extensibility Guide
+# Mosaic Conversational CMS - Extensibility Guide
+
+> **⚠️ Note**: This document describes extensibility for the **Mosaic Conversational CMS** proprietary SaaS platform. This is NOT the future open-source "OrkinosaiCMS" project.
 
 ## Overview
 
-OrkinosaiCMS is designed from the ground up to be extensible. This guide covers all the ways you can extend and customize the CMS to meet your specific needs.
+Mosaic Conversational CMS is designed from the ground up to be extensible. This guide covers all the ways you can extend and customize the CMS to meet your specific needs.
 
 ## Extension Points
 
