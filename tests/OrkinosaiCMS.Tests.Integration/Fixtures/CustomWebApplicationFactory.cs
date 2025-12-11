@@ -19,42 +19,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Testing");
 
-        builder.ConfigureAppConfiguration((context, config) =>
-        {
-            // Override configuration for testing - use InMemory database
-            config.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["DatabaseProvider"] = "InMemory" // Use in-memory for tests
-            });
-        });
+        // Set configuration before services are configured
+        builder.UseSetting("DatabaseProvider", "InMemory");
 
         builder.ConfigureServices(services =>
         {
-            // Remove ALL database-related registrations
-            var descriptors = services.Where(d =>
-                d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>) ||
-                d.ServiceType == typeof(DbContextOptions) ||
-                d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>)
-            ).ToList();
-
-            foreach (var descriptor in descriptors)
-            {
-                services.Remove(descriptor);
-            }
-
-            // Remove ApplicationDbContext itself
-            var contextDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ApplicationDbContext));
-            if (contextDescriptor != null)
-            {
-                services.Remove(contextDescriptor);
-            }
-
-            // Add DbContext using in-memory database for testing
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("InMemoryTestDb_" + Guid.NewGuid().ToString());
-            }, ServiceLifetime.Scoped);
-
             // Build the service provider
             var sp = services.BuildServiceProvider();
 
