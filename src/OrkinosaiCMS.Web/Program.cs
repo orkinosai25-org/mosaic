@@ -41,6 +41,36 @@ try
     builder.Services.AddControllers();
 
     // Add Authentication and Authorization
+    // Configure default authentication scheme to allow anonymous access by default
+    // The custom authentication is used for admin panel authentication via Blazor's AuthenticationStateProvider
+    builder.Services.AddAuthentication("DefaultAuthScheme")
+        .AddCookie("DefaultAuthScheme", options =>
+        {
+            options.LoginPath = "/admin/login";
+            options.LogoutPath = "/admin/logout";
+            // Allow anonymous access by default - authentication is handled by CustomAuthenticationStateProvider
+            options.Cookie.IsEssential = true;
+        });
+    
+    // TODO: To enable Google OAuth authentication, uncomment the following code and configure in appsettings.json or environment variables
+    // Production configuration example:
+    // 1. Set environment variables or appsettings.json:
+    //    "Authentication": {
+    //      "Google": {
+    //        "ClientId": "your-google-client-id.apps.googleusercontent.com",
+    //        "ClientSecret": "your-google-client-secret"
+    //      }
+    //    }
+    // 2. Uncomment and configure AddGoogle:
+    //    .AddGoogle(googleOptions =>
+    //    {
+    //        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Google ClientId not configured");
+    //        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret not configured");
+    //        googleOptions.CallbackPath = "/signin-google";
+    //        googleOptions.SaveTokens = true;
+    //    });
+    // 3. Update the UI to properly redirect to the OAuth flow instead of mock implementation
+    
     builder.Services.AddAuthorizationCore();
     builder.Services.AddCascadingAuthenticationState();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
@@ -139,6 +169,12 @@ try
 
     // Middleware: Serve static files from wwwroot (includes React portal assets)
     app.UseStaticFiles();
+
+    // Authentication and Authorization middleware
+    // These must be added after UseRouting (implicit) and before endpoint mapping
+    // Allows anonymous access by default - admin routes use AuthorizeView with custom authentication
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     // Endpoint mappings
     app.MapStaticAssets();  // Optimized static assets for Blazor

@@ -93,8 +93,17 @@ export const AuthPanel: React.FC<AuthPanelProps> = ({
   };
 
   const handleOAuthLogin = (provider: string) => {
-    // TODO: Implement proper OAuth flow with provider
-    // Mock OAuth login for demonstration only
+    // TODO: Implement proper OAuth flow with backend
+    // PRODUCTION READY IMPLEMENTATION STEPS:
+    // 1. Backend must have OAuth provider configured (e.g., AddGoogle in Program.cs)
+    // 2. Create API endpoint to initiate OAuth flow (redirect to /signin-google for Google)
+    // 3. Handle OAuth callback and create authenticated session
+    // 4. Update this function to redirect to backend OAuth endpoint:
+    //    window.location.href = `/api/auth/login/${provider}`;
+    // 5. Remove mock authentication below
+    
+    // TEMPORARY: Mock OAuth login for demonstration only - DO NOT USE IN PRODUCTION
+    console.warn(`Mock OAuth login for ${provider} - Replace with proper OAuth flow`);
     onAuthenticate(`user@${provider}.com`, `${provider} User`);
   };
 
