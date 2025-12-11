@@ -86,49 +86,58 @@ MOSAIC offers flexible pricing to match your needs, from free hobby sites to ent
 
 | Plan | Best For | Price | Key Features |
 |------|----------|-------|--------------|
-| **Free** | Testing & Personal | $0/mo | 1 site, subdomain, basic features, ads present |
-| **Starter** | Bloggers & Freelancers | $15/mo | 3 sites, 1 custom domain, reduced ads |
-| **Pro** | Small Business | $49/mo | 10 sites, ad-free, advanced analytics |
-| **Business** | Agencies & Enterprise | $149/mo | 50 sites, AI analytics, premium support |
+| **Free** | Testing & Personal | $0/mo | 1 site, subdomain, basic features, ads present, limited pages |
+| **Starter** | Personal & Solopreneurs | $12/mo | 3 sites, 1 custom domain, no ads, no branding |
+| **Pro** | Growing Businesses | $35/mo | 10 sites, analytics dashboard, unlimited pages, premium SEO |
+| **Business** | Agencies & Enterprises | $250/mo | 50 sites, AI analytics, AI content, full SEO suite, priority support |
 
 **📊 [View Complete Pricing Comparison](./pricing.md)** - Detailed feature breakdown, advertising policy, and upgrade benefits
 
 ### Quick Tier Highlights
 
 #### 🆓 Free Tier
-**Perfect for**: Testing, personal projects, MVP validation
+**Perfect for**: Testing, personal projects, MVP validation, trial users
 
 - 1 active website with MOSAIC subdomain
 - ⚠️ Display ads present
+- ⚠️ MOSAIC branding visible
+- ⚠️ No custom domain
+- ⚠️ Limited pages/posts
 - Basic themes and features
 - **Price**: $0/month
 
 #### 🚀 Starter Tier  
-**Perfect for**: Bloggers, independent creators
+**Perfect for**: Personal websites, solopreneurs, independent creators
 
 - 3 websites with 1 custom domain
-- ⚠️ Reduced ads (50% smaller than Free)
+- ✅ **No ads** - completely ad-free
+- ✅ **No MOSAIC branding** - professional appearance
 - 10 professional themes
-- **Price**: $15/month or $144/year
+- More pages/posts than Free
+- **Price**: $12/month or $120/year (save 17%)
 
 #### 💼 Pro Tier
-**Perfect for**: Small businesses, startups, freelancers
+**Perfect for**: Growing businesses, small businesses, startups
 
 - 10 websites with custom domains
 - ✅ **Completely ad-free**
-- Advanced analytics & SEO tools
+- ✅ **Site analytics dashboard** - comprehensive insights
+- ✅ **Unlimited pages** - no content restrictions
+- Advanced templates & premium SEO tools
 - REST API access
-- **Price**: $49/month or $499/year
+- **Price**: $35/month or $350/year (save 17%)
 
 #### 🏢 Business Tier
-**Perfect for**: Growing businesses, agencies, enterprises
+**Perfect for**: Agencies, enterprises, large teams
 
 - 50 websites at scale
 - ✅ **Ad-free + White-label**
-- 🤖 **AI-Driven Analytics & Reporting (Exclusive)**
-- 🤖 **Zoota Admin AI Agent (Exclusive)**
-- GraphQL API + Priority support
-- **Price**: $149/month or $1,490/year
+- 🤖 **AI-Powered Analytics (Exclusive)** - predictive insights
+- 🤖 **AI Content Generation & Reporting (Exclusive)** - automated content creation
+- 🤖 **Zoota Admin AI Agent (Exclusive)** - intelligent automation
+- Full SEO Suite (enterprise-level)
+- GraphQL API + 24/7 Priority support
+- **Price**: $250/month or $2,500/year (save 17%)
 
 **For comprehensive details on all features, advertising policies, and upgrade benefits:**  
 👉 **[Read the Complete Pricing Guide](./pricing.md)**
