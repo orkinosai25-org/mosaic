@@ -1,4 +1,15 @@
-# OrkinosaiCMS
+# OrkinosaiCMS (Legacy Reference Documentation)
+
+> **⚠️ IMPORTANT NOTICE**  
+> This document is kept for **historical reference only**. The codebase in this repository has been rebranded to **Mosaic Conversational CMS**, a proprietary SaaS platform.
+> 
+> **This is NOT the open-source OrkinosaiCMS project**. A separate, truly open-source on-premises CMS named "OrkinosaiCMS" is planned for future release.
+> 
+> For current information about this codebase, see the main [README.md](README.md).
+
+---
+
+## Legacy Documentation Below
 
 A modern, modular Content Management System built on .NET 10 and Blazor, inspired by Oqtane CMS and SharePoint.
 
