@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Infrastructure.Data;
 using OrkinosaiCMS.Web;
 
@@ -47,7 +48,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         // Seed initial test data
         if (!context.Users.Any())
         {
-            var testUser = new OrkinosaiCMS.Core.Entities.Sites.User
+            var testUser = new User
             {
                 Username = "testadmin",
                 Email = "admin@test.com",
@@ -59,7 +60,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             context.Users.Add(testUser);
 
-            var adminRole = new OrkinosaiCMS.Core.Entities.Sites.Role
+            var adminRole = new Role
             {
                 Name = "Administrator",
                 Description = "Administrator role",
@@ -70,7 +71,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             context.SaveChanges();
 
             // Assign role to user
-            var userRole = new OrkinosaiCMS.Core.Entities.Sites.UserRole
+            var userRole = new UserRole
             {
                 UserId = testUser.Id,
                 RoleId = adminRole.Id,

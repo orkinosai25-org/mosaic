@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Entities.Subscriptions;
 using OrkinosaiCMS.Core.Interfaces.Services;
 using OrkinosaiCMS.Infrastructure.Data;
@@ -290,7 +291,7 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         });
 
         // Create a site for this user
-        context.Sites.Add(new OrkinosaiCMS.Core.Entities.Sites.Site
+        context.Sites.Add(new Site
         {
             Name = "Test Site",
             Url = "/testlimit",
