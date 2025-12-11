@@ -43,7 +43,7 @@ try
     // Add Authentication and Authorization
     // Configure default authentication scheme to allow anonymous access by default
     // The custom authentication is used for admin panel authentication via Blazor's AuthenticationStateProvider
-    builder.Services.AddAuthentication()
+    builder.Services.AddAuthentication("DefaultAuthScheme")
         .AddCookie("DefaultAuthScheme", options =>
         {
             options.LoginPath = "/admin/login";
