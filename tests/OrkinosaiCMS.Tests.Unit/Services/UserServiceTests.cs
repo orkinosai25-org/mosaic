@@ -17,28 +17,29 @@ public class UserServiceTests
     private readonly Mock<IRepository<Role>> _roleRepositoryMock;
     private readonly Mock<IRepository<UserRole>> _userRoleRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly ApplicationDbContext _context;
+    private readonly Mock<ApplicationDbContext> _contextMock;
     private readonly UserService _userService;
 
     public UserServiceTests()
     {
-        // Create in-memory database for testing
+        // Use mocks for all dependencies to ensure unit test isolation
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        _context = new ApplicationDbContext(options);
+        var context = new ApplicationDbContext(options);
 
         _userRepositoryMock = new Mock<IRepository<User>>();
         _roleRepositoryMock = new Mock<IRepository<Role>>();
         _userRoleRepositoryMock = new Mock<IRepository<UserRole>>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _contextMock = new Mock<ApplicationDbContext>(options);
 
         _userService = new UserService(
             _userRepositoryMock.Object,
             _roleRepositoryMock.Object,
             _userRoleRepositoryMock.Object,
             _unitOfWorkMock.Object,
-            _context
+            context // Real context needed for some operations that use direct DbContext queries
         );
     }
 

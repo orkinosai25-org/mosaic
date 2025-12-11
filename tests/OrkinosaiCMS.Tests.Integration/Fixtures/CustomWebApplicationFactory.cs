@@ -21,11 +21,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureAppConfiguration((context, config) =>
         {
-            // Override configuration for testing
+            // Override configuration for testing - use InMemory database
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=TestDb;",
-                ["ConnectionStrings:SqliteConnection"] = "Data Source=:memory:",
                 ["DatabaseProvider"] = "InMemory" // Use in-memory for tests
             });
         });
