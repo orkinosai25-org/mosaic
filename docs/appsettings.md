@@ -487,7 +487,13 @@ az keyvault secret set \
   --name SendGridApiKey \
   --value "SG.YOUR_SENDGRID_KEY"
 
-# Azure SQL Connection String
+# Azure SQL Connection String (DefaultConnection)
+az keyvault secret set \
+  --vault-name mosaic-keyvault \
+  --name DefaultConnection \
+  --value "Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;Persist Security Info=False;User ID=sqladmin;Password=YOUR_PRODUCTION_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
+
+# Alternative Azure SQL Connection String
 az keyvault secret set \
   --vault-name mosaic-keyvault \
   --name AzureSqlConnection \
@@ -551,6 +557,106 @@ if (builder.Environment.IsProduction())
     }
 }
 ```
+
+### Environment Variables Override
+
+For cloud deployments (Azure, AWS, Docker), you can override any configuration setting using environment variables. This is particularly useful for connection strings and secrets.
+
+#### Syntax
+
+ASP.NET Core uses double underscores (`__`) to represent nested configuration sections:
+
+```bash
+# Format: Section__SubSection__Key=Value
+ConnectionStrings__DefaultConnection="Server=...;Database=...;"
+Payment__Stripe__SecretKey="sk_live_YOUR_KEY"
+AzureOpenAI__ApiKey="YOUR_KEY"
+```
+
+#### Azure App Service Configuration
+
+**Method 1: Application Settings**
+1. Navigate to Azure Portal → Your App Service
+2. Go to **Configuration** → **Application settings**
+3. Click **+ New application setting**
+4. Add setting:
+   - Name: `ConnectionStrings__DefaultConnection`
+   - Value: `Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;...`
+5. Click **Save** and **Restart** the app
+
+**Method 2: Connection Strings (Recommended for DB connections)**
+1. Navigate to Azure Portal → Your App Service
+2. Go to **Configuration** → **Connection strings**
+3. Click **+ New connection string**
+4. Add connection string:
+   - Name: `DefaultConnection`
+   - Value: `Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;Persist Security Info=False;User ID=sqladmin;Password=YOUR_PRODUCTION_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30`
+   - Type: `SQLServer`
+5. Click **OK**, then **Save** and **Restart** the app
+
+**Note:** Connection strings added in Azure Portal automatically override `appsettings.json` values without needing the `ConnectionStrings__` prefix.
+
+#### Docker/Docker Compose
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  mosaic:
+    image: mosaic-app
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sql-server;Database=mosaic-saas;User ID=sa;Password=YourPassword123!
+      - Payment__Stripe__SecretKey=sk_live_YOUR_KEY
+      - ASPNETCORE_ENVIRONMENT=Production
+```
+
+Or using environment file:
+
+```bash
+# .env.production (Never commit this file!)
+ConnectionStrings__DefaultConnection=Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;Persist Security Info=False;User ID=sqladmin;Password=YOUR_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30
+Payment__Stripe__SecretKey=sk_live_YOUR_STRIPE_KEY
+Payment__Stripe__WebhookSecret=whsec_YOUR_WEBHOOK_SECRET
+AzureOpenAI__ApiKey=YOUR_AZURE_OPENAI_KEY
+```
+
+```bash
+# Run with environment file
+docker run --env-file .env.production mosaic-app
+```
+
+#### AWS Elastic Beanstalk
+
+1. Navigate to Elastic Beanstalk Console → Your Environment
+2. Go to **Configuration** → **Software**
+3. Under **Environment properties**, add:
+   - `ConnectionStrings__DefaultConnection`: `Server=...`
+   - `Payment__Stripe__SecretKey`: `sk_live_...`
+4. Click **Apply**
+
+#### Local Development (.NET User Secrets - Recommended)
+
+```bash
+# Navigate to project directory
+cd src/OrkinosaiCMS.Web
+
+# Set connection string
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;Persist Security Info=False;User ID=sqladmin;Password=YOUR_DEV_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
+
+# Verify
+dotnet user-secrets list
+```
+
+#### Configuration Priority (Highest to Lowest)
+
+1. **Command-line arguments** (highest priority)
+2. **Environment variables**
+3. **Azure Key Vault** (production)
+4. **User Secrets** (development only)
+5. **appsettings.{Environment}.json** (e.g., appsettings.Production.json)
+6. **appsettings.json** (lowest priority)
+
+This means environment variables will always override values in `appsettings.json`, making them safe for production deployments.
 
 ## 🌍 Environment-Specific Configuration
 
