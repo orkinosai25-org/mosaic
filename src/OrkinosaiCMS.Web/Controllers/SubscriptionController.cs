@@ -35,6 +35,9 @@ public class SubscriptionController : ControllerBase
 
     /// <summary>
     /// Get current subscription for a user
+    /// NOTE: This endpoint uses userEmail as a query parameter for demonstration purposes.
+    /// In production, implement proper authentication using JWT tokens or session-based auth
+    /// to identify the current user securely.
     /// </summary>
     [HttpGet("current")]
     [ProducesResponseType(typeof(SubscriptionDto), 200)]

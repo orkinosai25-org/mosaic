@@ -117,7 +117,9 @@ export const BillingPage: React.FC = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [error, setError] = useState<string | null>(null);
   
-  // Mock user email - in real app, get from auth context
+  // TODO: Replace with actual authentication context integration
+  // This should retrieve the authenticated user's email from auth state/context
+  // Example: const { user } = useAuth(); const userEmail = user.email;
   const userEmail = 'user@example.com';
 
   useEffect(() => {

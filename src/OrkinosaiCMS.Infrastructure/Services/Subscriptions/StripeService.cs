@@ -298,8 +298,9 @@ public class StripeService : IStripeService
         
         if (string.IsNullOrEmpty(priceId))
         {
-            _logger.LogWarning("Price ID not configured for {Tier}_{Interval}", tier, interval);
-            return string.Empty;
+            var message = $"Price ID not configured for {tier}_{interval}. Please configure {key} in appsettings.json or environment variables.";
+            _logger.LogError(message);
+            throw new InvalidOperationException(message);
         }
 
         return priceId;

@@ -29,6 +29,9 @@ public class WebhookController : ControllerBase
     {
         try
         {
+            // Enable buffering so the request body can be read multiple times
+            HttpContext.Request.EnableBuffering();
+            
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
             var stripeSignature = Request.Headers["Stripe-Signature"].ToString();
 

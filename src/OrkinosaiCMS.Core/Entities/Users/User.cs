@@ -58,7 +58,8 @@ public class User : BaseEntity
     public string? StripeCustomerId { get; set; }
 
     /// <summary>
-    /// Current subscription tier
+    /// Current subscription tier (stored as int for database compatibility)
+    /// Maps to SubscriptionTier enum: Free = 0, Starter = 1, Pro = 2, Business = 3
     /// </summary>
-    public int SubscriptionTier { get; set; } = 0; // Default to Free tier
+    public int SubscriptionTierValue { get; set; } = 0; // Default to Free tier
 }
