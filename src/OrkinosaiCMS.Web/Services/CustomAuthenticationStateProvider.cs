@@ -67,9 +67,10 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
                 claimsPrincipal = _anonymous;
             }
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex) when (ex.Message.Contains("JavaScript interop") || ex.Message.Contains("statically rendered"))
         {
             // Handle cases where JavaScript interop is not available (e.g., during testing or server-side rendering)
+            // In these scenarios, we still update the authentication state but skip session storage operations
             claimsPrincipal = userSession != null ? CreateClaimsPrincipal(userSession) : _anonymous;
         }
 
