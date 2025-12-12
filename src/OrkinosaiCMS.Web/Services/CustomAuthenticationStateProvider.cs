@@ -54,15 +54,24 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         ClaimsPrincipal claimsPrincipal;
 
-        if (userSession != null)
+        try
         {
-            await _sessionStorage.SetAsync("UserSession", userSession);
-            claimsPrincipal = CreateClaimsPrincipal(userSession);
+            if (userSession != null)
+            {
+                await _sessionStorage.SetAsync("UserSession", userSession);
+                claimsPrincipal = CreateClaimsPrincipal(userSession);
+            }
+            else
+            {
+                await _sessionStorage.DeleteAsync("UserSession");
+                claimsPrincipal = _anonymous;
+            }
         }
-        else
+        catch (InvalidOperationException ex) when (ex.Message.Contains("JavaScript interop") || ex.Message.Contains("statically rendered"))
         {
-            await _sessionStorage.DeleteAsync("UserSession");
-            claimsPrincipal = _anonymous;
+            // Handle cases where JavaScript interop is not available (e.g., during testing or server-side rendering)
+            // In these scenarios, we still update the authentication state but skip session storage operations
+            claimsPrincipal = userSession != null ? CreateClaimsPrincipal(userSession) : _anonymous;
         }
 
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
