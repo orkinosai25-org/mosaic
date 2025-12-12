@@ -4,9 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Infrastructure.Data;
 using OrkinosaiCMS.Web;
+using Serilog;
+using Serilog.Events;
 
 namespace OrkinosaiCMS.Tests.Integration.Fixtures;
 
@@ -22,6 +25,27 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         // Set configuration before services are configured
         builder.UseSetting("DatabaseProvider", "InMemory");
+        
+        // Configure test-specific Stripe settings
+        builder.UseSetting("Payment:Stripe:SecretKey", "sk_test_dummy");
+        builder.UseSetting("Payment:Stripe:PublishableKey", "pk_test_dummy");
+        builder.UseSetting("Payment:Stripe:WebhookSecret", "whsec_test_dummy");
+        
+        // Configure Stripe price IDs for tests
+        builder.UseSetting("Payment:Stripe:PriceIds:Starter_Monthly", "price_test_starter_monthly");
+        builder.UseSetting("Payment:Stripe:PriceIds:Starter_Yearly", "price_test_starter_yearly");
+        builder.UseSetting("Payment:Stripe:PriceIds:Pro_Monthly", "price_test_pro_monthly");
+        builder.UseSetting("Payment:Stripe:PriceIds:Pro_Yearly", "price_test_pro_yearly");
+        builder.UseSetting("Payment:Stripe:PriceIds:Business_Monthly", "price_test_business_monthly");
+        builder.UseSetting("Payment:Stripe:PriceIds:Business_Yearly", "price_test_business_yearly");
+
+        // Configure logging for tests - use a fresh logger instance
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddConsole();
+            logging.SetMinimumLevel(LogLevel.Warning); // Reduce noise in tests
+        });
 
         builder.ConfigureServices(services =>
         {

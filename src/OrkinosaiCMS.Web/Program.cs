@@ -12,26 +12,29 @@ using OrkinosaiCMS.Web.Services;
 using Serilog;
 using Serilog.Events;
 
-// Configure Serilog early in the pipeline for startup logging
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
-
 try
 {
-    Log.Information("Starting OrkinosaiCMS application");
-
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure Serilog from appsettings.json
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .Enrich.WithMachineName()
-        .Enrich.WithThreadId());
+    // Configure Serilog from appsettings.json (skip for Testing environment)
+    if (builder.Environment.EnvironmentName != "Testing")
+    {
+        // Configure Serilog early in the pipeline for startup logging
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .CreateBootstrapLogger();
+
+        Log.Information("Starting OrkinosaiCMS application");
+
+        builder.Host.UseSerilog((context, services, configuration) => configuration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .Enrich.WithMachineName()
+            .Enrich.WithThreadId());
+    }
 
     // Add services to the container.
     builder.Services.AddRazorComponents()
@@ -130,22 +133,25 @@ try
 
     var app = builder.Build();
 
-    // Use Serilog for request logging
-    app.UseSerilogRequestLogging(options =>
+    // Use Serilog for request logging (skip for Testing environment)
+    if (app.Environment.EnvironmentName != "Testing")
     {
-        options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
-        options.GetLevel = (httpContext, elapsed, ex) => ex != null 
-            ? LogEventLevel.Error 
-            : httpContext.Response.StatusCode > 499 
-                ? LogEventLevel.Error 
-                : LogEventLevel.Information;
-        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        app.UseSerilogRequestLogging(options =>
         {
-            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
-            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-            diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
-        };
-    });
+            options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+            options.GetLevel = (httpContext, elapsed, ex) => ex != null 
+                ? LogEventLevel.Error 
+                : httpContext.Response.StatusCode > 499 
+                    ? LogEventLevel.Error 
+                    : LogEventLevel.Information;
+            options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+            {
+                diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+                diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+                diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+            };
+        });
+    }
 
     // Add global exception handler to log all unhandled exceptions
     app.UseGlobalExceptionHandler();
@@ -196,7 +202,10 @@ try
     // This ensures the portal landing page shows at root URL
     app.MapFallbackToFile("index.html", CreateNoCacheStaticFileOptions());
 
-    Log.Information("OrkinosaiCMS application started successfully");
+    if (builder.Environment.EnvironmentName != "Testing")
+    {
+        Log.Information("OrkinosaiCMS application started successfully");
+    }
     app.Run();
 }
 catch (Exception ex)
