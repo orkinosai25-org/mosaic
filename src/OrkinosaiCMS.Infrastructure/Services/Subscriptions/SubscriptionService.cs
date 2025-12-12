@@ -46,19 +46,33 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<Subscription?> GetActiveSubscriptionByUserIdAsync(int userId)
     {
-        // Get all customers for this user
-        var customerIds = await _context.Customers
+        // First, try to get the most recent customer for this user
+        var mostRecentCustomer = await _context.Customers
             .Where(c => c.UserId == userId && !c.IsDeleted)
+            .OrderByDescending(c => c.CreatedOn)
+            .FirstOrDefaultAsync();
+
+        if (mostRecentCustomer == null)
+            return null;
+
+        // Check if the most recent customer has an active subscription
+        var subscription = await GetActiveSubscriptionByCustomerIdAsync(mostRecentCustomer.Id);
+        if (subscription != null)
+            return subscription;
+
+        // If not, check other customers for this user (fallback for edge cases)
+        var otherCustomerIds = await _context.Customers
+            .Where(c => c.UserId == userId && c.Id != mostRecentCustomer.Id && !c.IsDeleted)
             .Select(c => c.Id)
             .ToListAsync();
 
-        if (!customerIds.Any())
+        if (!otherCustomerIds.Any())
             return null;
 
-        // Get the most recent active subscription across all customers
+        // Get the most recent active subscription across other customers
         return await _context.Subscriptions
             .Include(s => s.Customer)
-            .Where(s => customerIds.Contains(s.CustomerId) &&
+            .Where(s => otherCustomerIds.Contains(s.CustomerId) &&
                        (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing) &&
                        !s.IsDeleted)
             .OrderByDescending(s => s.CreatedOn)
