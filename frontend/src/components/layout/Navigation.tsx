@@ -11,6 +11,7 @@ import {
   PaymentRegular,
   QuestionCircleRegular,
   SettingsRegular,
+  PaintBrushRegular,
 } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
@@ -47,6 +48,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const navItems = [
     { key: 'dashboard', text: 'Dashboard', icon: <HomeRegular /> },
     { key: 'sites', text: 'Sites / Workspaces', icon: <BuildingRegular /> },
+    { key: 'themes', text: 'Themes', icon: <PaintBrushRegular /> },
     { key: 'billing', text: 'Billing / Subscription', icon: <PaymentRegular /> },
     { key: 'support', text: 'Support / Help', icon: <QuestionCircleRegular /> },
     { key: 'settings', text: 'Settings', icon: <SettingsRegular /> },
