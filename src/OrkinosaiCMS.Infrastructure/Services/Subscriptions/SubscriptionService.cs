@@ -46,13 +46,23 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<Subscription?> GetActiveSubscriptionByUserIdAsync(int userId)
     {
-        var customer = await _context.Customers
-            .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsDeleted);
+        // Get all customers for this user
+        var customerIds = await _context.Customers
+            .Where(c => c.UserId == userId && !c.IsDeleted)
+            .Select(c => c.Id)
+            .ToListAsync();
 
-        if (customer == null)
+        if (!customerIds.Any())
             return null;
 
-        return await GetActiveSubscriptionByCustomerIdAsync(customer.Id);
+        // Get the most recent active subscription across all customers
+        return await _context.Subscriptions
+            .Include(s => s.Customer)
+            .Where(s => customerIds.Contains(s.CustomerId) &&
+                       (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing) &&
+                       !s.IsDeleted)
+            .OrderByDescending(s => s.CreatedOn)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Subscription> CreateAsync(Subscription subscription)
