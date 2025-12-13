@@ -325,4 +325,39 @@ public class ThemeController : ControllerBase
             return StatusCode(500, new { message = "Error deleting theme" });
         }
     }
+
+    /// <summary>
+    /// Upload a theme package (zip file containing theme assets and metadata)
+    /// </summary>
+    [HttpPost("upload")]
+    [ProducesResponseType(typeof(Theme), 201)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> UploadThemePackage(IFormFile file, [FromForm] string? themeName, [FromForm] string? description)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "No file uploaded" });
+
+            // Validate file type (should be .zip)
+            if (!file.FileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { message = "Only .zip files are supported" });
+
+            // Validate file size (max 10MB)
+            if (file.Length > 10 * 1024 * 1024)
+                return BadRequest(new { message = "File size exceeds 10MB limit" });
+
+            // For now, return a not implemented response
+            // Full implementation would extract the zip, validate contents, and create theme
+            return StatusCode(501, new { 
+                message = "Theme package upload is not yet implemented. Please use the custom theme creator instead.",
+                hint = "Use the 'Create Custom Theme' button to create a new theme with colors and settings."
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading theme package");
+            return StatusCode(500, new { message = "Error uploading theme package" });
+        }
+    }
 }

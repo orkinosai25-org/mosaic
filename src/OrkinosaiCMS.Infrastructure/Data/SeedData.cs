@@ -189,6 +189,248 @@ public static class SeedData
                 IsMobileResponsive = true,
                 CreatedOn = DateTime.UtcNow,
                 CreatedBy = "System"
+            },
+            // New requested themes for SharePoint-like theme selection
+            new Theme
+            {
+                Name = "Modern Minimal",
+                Description = "Sleek, minimalist design focusing on clean lines and whitespace",
+                AssetsPath = "/css/themes/modern-minimal-theme.css",
+                Category = "Business",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#1a1a1a",
+                SecondaryColor = "#f5f5f5",
+                AccentColor = "#0066ff",
+                ThumbnailUrl = "/images/themes/modern-minimal.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#1a1a1a",
+                    SecondaryColor = "#f5f5f5",
+                    AccentColor = "#0066ff",
+                    FontFamily = "Inter, sans-serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Classic Corporate",
+                Description = "Traditional professional theme ideal for corporate websites",
+                AssetsPath = "/css/themes/classic-corporate-theme.css",
+                Category = "Business",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#003366",
+                SecondaryColor = "#336699",
+                AccentColor = "#cc9900",
+                ThumbnailUrl = "/images/themes/classic-corporate.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#003366",
+                    SecondaryColor = "#336699",
+                    AccentColor = "#cc9900",
+                    FontFamily = "Georgia, serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Bright Retail",
+                Description = "Vibrant and eye-catching theme perfect for e-commerce and retail",
+                AssetsPath = "/css/themes/bright-retail-theme.css",
+                Category = "Commerce",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#ff6b6b",
+                SecondaryColor = "#4ecdc4",
+                AccentColor = "#ffe66d",
+                ThumbnailUrl = "/images/themes/bright-retail.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#ff6b6b",
+                    SecondaryColor = "#4ecdc4",
+                    AccentColor = "#ffe66d",
+                    FontFamily = "Poppins, sans-serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Elegant Portfolio",
+                Description = "Sophisticated theme showcasing creative work and portfolios",
+                AssetsPath = "/css/themes/elegant-portfolio-theme.css",
+                Category = "Portfolio",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#2d2d2d",
+                SecondaryColor = "#8b7355",
+                AccentColor = "#d4af37",
+                ThumbnailUrl = "/images/themes/elegant-portfolio.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#2d2d2d",
+                    SecondaryColor = "#8b7355",
+                    AccentColor = "#d4af37",
+                    FontFamily = "Playfair Display, serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Dark Mode Pro",
+                Description = "Professional dark theme reducing eye strain with elegant contrast",
+                AssetsPath = "/css/themes/dark-mode-pro-theme.css",
+                Category = "Modern",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#0a0a0a",
+                SecondaryColor = "#1e1e1e",
+                AccentColor = "#00d9ff",
+                ThumbnailUrl = "/images/themes/dark-mode-pro.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#0a0a0a",
+                    SecondaryColor = "#1e1e1e",
+                    AccentColor = "#00d9ff",
+                    FontFamily = "Inter, sans-serif",
+                    DarkMode = true
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Vibrant Startup",
+                Description = "Bold and energetic theme for innovative startups and tech companies",
+                AssetsPath = "/css/themes/vibrant-startup-theme.css",
+                Category = "Business",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#6c63ff",
+                SecondaryColor = "#ff6584",
+                AccentColor = "#ffd93d",
+                ThumbnailUrl = "/images/themes/vibrant-startup.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#6c63ff",
+                    SecondaryColor = "#ff6584",
+                    AccentColor = "#ffd93d",
+                    FontFamily = "Montserrat, sans-serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "News Magazine",
+                Description = "Content-rich layout optimized for news and editorial websites",
+                AssetsPath = "/css/themes/news-magazine-theme.css",
+                Category = "Blog",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#212121",
+                SecondaryColor = "#757575",
+                AccentColor = "#d32f2f",
+                ThumbnailUrl = "/images/themes/news-magazine.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#212121",
+                    SecondaryColor = "#757575",
+                    AccentColor = "#d32f2f",
+                    FontFamily = "Merriweather, serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Education School",
+                Description = "Friendly and accessible theme for educational institutions",
+                AssetsPath = "/css/themes/education-school-theme.css",
+                Category = "Education",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#1976d2",
+                SecondaryColor = "#43a047",
+                AccentColor = "#ffa726",
+                ThumbnailUrl = "/images/themes/education-school.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#1976d2",
+                    SecondaryColor = "#43a047",
+                    AccentColor = "#ffa726",
+                    FontFamily = "Roboto, sans-serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Health Wellness",
+                Description = "Calming and trustworthy theme for healthcare and wellness sites",
+                AssetsPath = "/css/themes/health-wellness-theme.css",
+                Category = "Health",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#00897b",
+                SecondaryColor = "#4db6ac",
+                AccentColor = "#81c784",
+                ThumbnailUrl = "/images/themes/health-wellness.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#00897b",
+                    SecondaryColor = "#4db6ac",
+                    AccentColor = "#81c784",
+                    FontFamily = "Open Sans, sans-serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Theme
+            {
+                Name = "Restaurant Food",
+                Description = "Appetizing theme designed for restaurants and food businesses",
+                AssetsPath = "/css/themes/restaurant-food-theme.css",
+                Category = "Food",
+                LayoutType = "TopNavigation",
+                PrimaryColor = "#bf360c",
+                SecondaryColor = "#ff6f00",
+                AccentColor = "#ffd54f",
+                ThumbnailUrl = "/images/themes/restaurant-food.png",
+                DefaultSettings = JsonSerializer.Serialize(new
+                {
+                    PrimaryColor = "#bf360c",
+                    SecondaryColor = "#ff6f00",
+                    AccentColor = "#ffd54f",
+                    FontFamily = "Raleway, sans-serif"
+                }),
+                IsEnabled = true,
+                IsSystem = true,
+                IsMobileResponsive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
             }
         };
 

@@ -12,6 +12,7 @@ import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SitesPage } from './pages/SitesPage';
 import { BillingPage } from './pages/BillingPage';
+import { ThemesPage } from './pages/ThemesPage';
 import { ChatBubble } from './components/common/ChatBubble';
 import type { User } from './types';
 
@@ -116,6 +117,8 @@ function App() {
             {user?.isAuthenticated ? (
               activeNav === 'sites' ? (
                 <SitesPage onAction={handleQuickAction} userEmail={user.email} />
+              ) : activeNav === 'themes' ? (
+                <ThemesPage />
               ) : activeNav === 'billing' ? (
                 <BillingPage />
               ) : (
