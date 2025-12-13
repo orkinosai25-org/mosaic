@@ -57,22 +57,28 @@ Added comprehensive endpoint registration logging at startup:
 - Detect missing route registrations immediately
 - Identify configuration issues before first request
 
-### 3. Routing Configuration Review
+### 3. Routing Configuration Fix
 
-**File**: `src/OrkinosaiCMS.Web/Program.cs` (lines 391-399)
+**File**: `src/OrkinosaiCMS.Web/Program.cs` (lines 401-406)
 
-Verified and documented the correct routing order:
+Fixed and improved the routing order with proper fallback constraints:
 
 ```csharp
 1. app.MapStaticAssets()        // Blazor static files
 2. app.MapControllers()         // API endpoints (/api/*)
 3. app.MapRazorComponents<App>() // Blazor pages (/admin/*)
-4. app.MapFallbackToFile()      // SPA fallback (everything else)
+4. app.MapFallbackToFile("{*path:regex(^(?!api|_).*$)}", "index.html", ...) // SPA fallback
 ```
+
+**Key Changes**:
+- **NEW**: Regex pattern `^(?!api|_).*$` excludes `/api/*` and `/_*` routes from fallback
+- **Result**: `/api/nonexistent` now correctly returns 404 instead of serving index.html
+- **Benefit**: Proper RESTful API behavior while maintaining SPA fallback for portal
 
 **Important Notes**:
 - This order is correct - Blazor routes are mapped BEFORE fallback
-- `MapFallbackToFile` should only catch routes that don't match any endpoint above
+- Pattern-based fallback ensures API routes return proper 404 responses
+- Only unmatched non-API, non-Blazor routes serve the React portal (index.html)
 - If `/admin/login` hits fallback, it means Blazor routing isn't working
 
 ## Expected Log Output

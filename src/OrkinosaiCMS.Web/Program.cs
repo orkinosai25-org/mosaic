@@ -401,9 +401,8 @@ try
     // SPA Fallback: Serve React portal (index.html) for non-API, non-Blazor routes
     // This ensures the portal landing page shows at root URL
     // IMPORTANT: Blazor routes (/admin/*) and API routes (/api/*) should NOT fall through to index.html
-    // The MapFallbackToFile will only catch unmatched routes, which should work correctly
-    // since Blazor and API routes are mapped above. However, we need to ensure proper ordering.
-    app.MapFallbackToFile("index.html", CreateNoCacheStaticFileOptions());
+    // Use pattern constraint to exclude /api/* and /_* (Blazor infrastructure) routes
+    app.MapFallbackToFile("{*path:regex(^(?!api|_).*$)}", "index.html", CreateNoCacheStaticFileOptions());
 
     if (builder.Environment.EnvironmentName != "Testing")
     {
