@@ -85,8 +85,12 @@ try
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
 
-    // Add Controllers for API endpoints
-    builder.Services.AddControllers();
+    // Add Controllers for API endpoints with logging filter
+    builder.Services.AddControllers(options =>
+    {
+        // Add global filter to log model validation errors
+        options.Filters.Add<OrkinosaiCMS.Web.Filters.ModelValidationLoggingFilter>();
+    });
 
     // Add Authentication and Authorization
     // Configure default authentication scheme to allow anonymous access by default
@@ -255,6 +259,10 @@ try
             };
         });
     }
+
+    // Add early request logging BEFORE any other middleware
+    // This catches requests that fail in antiforgery, model binding, etc.
+    app.UseRequestLogging();
 
     // Add global exception handler to log all unhandled exceptions
     app.UseGlobalExceptionHandler();

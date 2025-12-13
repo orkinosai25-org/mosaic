@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
@@ -18,6 +19,7 @@ public class UserServiceTests
     private readonly Mock<IRepository<UserRole>> _userRoleRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<ApplicationDbContext> _contextMock;
+    private readonly Mock<ILogger<UserService>> _loggerMock;
     private readonly UserService _userService;
 
     public UserServiceTests()
@@ -33,13 +35,15 @@ public class UserServiceTests
         _userRoleRepositoryMock = new Mock<IRepository<UserRole>>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _contextMock = new Mock<ApplicationDbContext>(options);
+        _loggerMock = new Mock<ILogger<UserService>>();
 
         _userService = new UserService(
             _userRepositoryMock.Object,
             _roleRepositoryMock.Object,
             _userRoleRepositoryMock.Object,
             _unitOfWorkMock.Object,
-            context // Real context needed for some operations that use direct DbContext queries
+            context, // Real context needed for some operations that use direct DbContext queries
+            _loggerMock.Object
         );
     }
 
