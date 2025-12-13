@@ -100,8 +100,9 @@ public class HomePageSeedingTests : IClassFixture<CustomWebApplicationFactory>
 
         // Assert
         navigationPages.Should().NotBeEmpty("navigation should have at least one page");
-        navigationPages.Should().Contain(p => p.Path == "/" || p.Path == "/cms-home", 
-            "navigation should include the home page");
+        // The primary home page at "/" should be in navigation
+        navigationPages.Should().Contain(p => p.Path == "/", 
+            "navigation should include the primary home page at '/'");
     }
 
     [Fact]

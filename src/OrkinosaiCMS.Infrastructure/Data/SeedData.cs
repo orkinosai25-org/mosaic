@@ -621,6 +621,8 @@ public static class SeedData
                 MetaDescription = "Welcome to OrkinosaiCMS - A modern, modular Content Management System built on .NET 10 and Blazor",
                 MetaKeywords = "CMS, .NET, Blazor, Content Management, OrkinosaiCMS",
                 IsPublished = true,
+                // Hidden from navigation - /cms-home is a legacy path kept for backward compatibility
+                // The new home page at "/" is the primary navigation entry
                 ShowInNavigation = false,
                 Order = 1,
                 CreatedOn = DateTime.UtcNow,
