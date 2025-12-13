@@ -12,6 +12,23 @@ using OrkinosaiCMS.Web.Services;
 using Serilog;
 using Serilog.Events;
 
+// Create log directory early to ensure file logging works
+var logDirectory = Path.Combine(AppContext.BaseDirectory, "App_Data", "Logs");
+try
+{
+    if (!Directory.Exists(logDirectory))
+    {
+        Directory.CreateDirectory(logDirectory);
+        Console.WriteLine($"Created log directory: {logDirectory}");
+    }
+}
+catch (Exception ex)
+{
+    // If we can't create the log directory, at least log to console
+    Console.WriteLine($"WARNING: Failed to create log directory at {logDirectory}: {ex.Message}");
+    Console.WriteLine("Logging will continue to console only.");
+}
+
 try
 {
     var builder = WebApplication.CreateBuilder(args);
@@ -20,20 +37,48 @@ try
     if (builder.Environment.EnvironmentName != "Testing")
     {
         // Configure Serilog early in the pipeline for startup logging
-        Log.Logger = new LoggerConfiguration()
+        // Always log to console as a fallback, even if file logging fails
+        var bootstrapLogger = new LoggerConfiguration()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .Enrich.FromLogContext()
-            .WriteTo.Console()
+            .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateBootstrapLogger();
 
+        Log.Logger = bootstrapLogger;
         Log.Information("Starting OrkinosaiCMS application");
+        Log.Information("Environment: {Environment}", builder.Environment.EnvironmentName);
+        Log.Information("Content root: {ContentRoot}", builder.Environment.ContentRootPath);
 
-        builder.Host.UseSerilog((context, services, configuration) => configuration
-            .ReadFrom.Configuration(context.Configuration)
-            .ReadFrom.Services(services)
-            .Enrich.FromLogContext()
-            .Enrich.WithMachineName()
-            .Enrich.WithThreadId());
+        try
+        {
+            builder.Host.UseSerilog((context, services, configuration) =>
+            {
+                configuration
+                    .ReadFrom.Configuration(context.Configuration)
+                    .ReadFrom.Services(services)
+                    .Enrich.FromLogContext()
+                    .Enrich.WithMachineName()
+                    .Enrich.WithThreadId()
+                    // Always ensure console logging is enabled as fallback
+                    .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}");
+            });
+            
+            Log.Information("Serilog configuration completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to configure Serilog from appsettings.json. Using bootstrap logger.");
+        }
+    }
+    else
+    {
+        Console.WriteLine("Running in Testing environment - Serilog disabled");
+    }
+
+    // Log service registration start
+    if (builder.Environment.EnvironmentName != "Testing")
+    {
+        Log.Information("Registering application services...");
     }
 
     // Add services to the container.
@@ -81,6 +126,11 @@ try
 
     // Configure Database
     var databaseProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
+    
+    if (builder.Environment.EnvironmentName != "Testing")
+    {
+        Log.Information("Configuring database with provider: {DatabaseProvider}", databaseProvider);
+    }
 
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
@@ -88,6 +138,10 @@ try
         {
             // Use in-memory database for testing
             options.UseInMemoryDatabase("InMemoryTestDb");
+            if (builder.Environment.EnvironmentName != "Testing")
+            {
+                Log.Information("Using InMemory database provider");
+            }
         }
         else if (databaseProvider.Equals("SQLite", StringComparison.OrdinalIgnoreCase))
         {
@@ -96,11 +150,36 @@ try
             {
                 sqliteOptions.MigrationsAssembly("OrkinosaiCMS.Infrastructure");
             });
+            if (builder.Environment.EnvironmentName != "Testing")
+            {
+                Log.Information("Using SQLite database provider with connection: {Connection}", sqliteConnectionString);
+            }
         }
         else
         {
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                var errorMsg = "Connection string 'DefaultConnection' not found.";
+                if (builder.Environment.EnvironmentName != "Testing")
+                {
+                    Log.Fatal(errorMsg);
+                }
+                throw new InvalidOperationException(errorMsg);
+            }
+            
+            // Sanitize connection string for logging (hide password)
+            var sanitizedConnString = System.Text.RegularExpressions.Regex.Replace(
+                connectionString, 
+                @"Password=[^;]*", 
+                "Password=***");
+            
+            if (builder.Environment.EnvironmentName != "Testing")
+            {
+                Log.Information("Using SQL Server database provider");
+                Log.Information("Connection string (sanitized): {ConnectionString}", sanitizedConnString);
+            }
+            
             options.UseSqlServer(connectionString, sqlOptions =>
             {
                 sqlOptions.EnableRetryOnFailure(
@@ -131,7 +210,18 @@ try
     builder.Services.AddScoped<ISubscriptionService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.SubscriptionService>();
     builder.Services.AddScoped<IStripeService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.StripeService>();
 
+    if (builder.Environment.EnvironmentName != "Testing")
+    {
+        Log.Information("Service registration completed");
+        Log.Information("Building application...");
+    }
+
     var app = builder.Build();
+    
+    if (builder.Environment.EnvironmentName != "Testing")
+    {
+        Log.Information("Application built successfully");
+    }
 
     // Use Serilog for request logging (skip for Testing environment)
     if (app.Environment.EnvironmentName != "Testing")
@@ -143,18 +233,32 @@ try
                 ? LogEventLevel.Error 
                 : httpContext.Response.StatusCode > 499 
                     ? LogEventLevel.Error 
-                    : LogEventLevel.Information;
+                    : httpContext.Response.StatusCode > 399
+                        ? LogEventLevel.Warning  // Log 4xx errors as warnings
+                        : LogEventLevel.Information;
             options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
             {
                 diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
                 diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
                 diagnosticContext.Set("RemoteIpAddress", httpContext.Connection.RemoteIpAddress);
+                diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+                diagnosticContext.Set("ContentType", httpContext.Request.ContentType);
+                
+                // Log additional info for error responses
+                if (httpContext.Response.StatusCode >= 400)
+                {
+                    diagnosticContext.Set("StatusCode", httpContext.Response.StatusCode);
+                    diagnosticContext.Set("QueryString", httpContext.Request.QueryString.Value);
+                }
             };
         });
     }
 
     // Add global exception handler to log all unhandled exceptions
     app.UseGlobalExceptionHandler();
+    
+    // Add status code logging middleware for HTTP errors (400, 500, etc.)
+    app.UseStatusCodeLogging();
 
     // Initialize database with seed data
     using (var scope = app.Services.CreateScope())
@@ -163,7 +267,8 @@ try
         try
         {
             var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("Initializing database with seed data...");
+            logger.LogInformation("Starting database initialization...");
+            logger.LogInformation("Database Provider: {Provider}", databaseProvider);
             
             await SeedData.InitializeAsync(services);
             
@@ -174,10 +279,11 @@ try
             var logger = services.GetRequiredService<ILogger<Program>>();
             logger.LogError(sqlEx, 
                 "SQL connection error occurred while seeding the database. " +
-                "Error Number: {ErrorNumber}, Server: {Server}, Database: {Database}",
+                "Error Number: {ErrorNumber}, Server: {Server}, State: {State}, LineNumber: {LineNumber}",
                 sqlEx.Number,
                 sqlEx.Server,
-                sqlEx.Message);
+                sqlEx.State,
+                sqlEx.LineNumber);
             
             // Log connection string info (without password)
             var config = services.GetRequiredService<IConfiguration>();
@@ -191,27 +297,75 @@ try
                 logger.LogError("Connection string (sanitized): {ConnectionString}", sanitizedConnString);
             }
             
+            logger.LogError("SQL Error Message: {Message}", sqlEx.Message);
             logger.LogWarning("Application will continue but database may not be properly initialized. Admin login may fail.");
+            logger.LogWarning("TROUBLESHOOTING: Check that SQL Server is running, firewall allows connections, and credentials are correct.");
         }
         catch (Exception ex)
         {
             var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogError(ex, "An error occurred seeding the database.");
+            logger.LogError(ex, "An error occurred seeding the database. Type: {ExceptionType}", ex.GetType().FullName);
+            
+            // Log inner exceptions
+            var innerEx = ex.InnerException;
+            var depth = 1;
+            while (innerEx != null && depth <= 3)
+            {
+                logger.LogError("Inner Exception (Depth {Depth}): {Type} - {Message}", 
+                    depth, innerEx.GetType().FullName, innerEx.Message);
+                innerEx = innerEx.InnerException;
+                depth++;
+            }
+            
             logger.LogWarning("Application will continue but database may not be properly initialized.");
         }
     }
 
     // Configure the HTTP request pipeline.
+    if (app.Environment.EnvironmentName != "Testing")
+    {
+        Log.Information("Configuring HTTP request pipeline for environment: {Environment}", app.Environment.EnvironmentName);
+    }
+    
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error", createScopeForErrors: true);
         // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
         app.UseHsts();
+        
+        if (app.Environment.EnvironmentName != "Testing")
+        {
+            Log.Information("Production middleware configured (ExceptionHandler, HSTS)");
+        }
     }
+    else
+    {
+        if (app.Environment.EnvironmentName != "Testing")
+        {
+            Log.Information("Development middleware configured (Developer Exception Page enabled)");
+        }
+    }
+    
     app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
     app.UseHttpsRedirection();
 
-    app.UseAntiforgery();
+    // Configure antiforgery with error logging
+    try
+    {
+        app.UseAntiforgery();
+        if (app.Environment.EnvironmentName != "Testing")
+        {
+            Log.Information("Antiforgery middleware configured");
+        }
+    }
+    catch (Exception ex)
+    {
+        if (app.Environment.EnvironmentName != "Testing")
+        {
+            Log.Error(ex, "Failed to configure antiforgery middleware");
+        }
+        throw;
+    }
 
     // Middleware: Serve static files from wwwroot (includes React portal assets)
     app.UseStaticFiles();
@@ -234,18 +388,59 @@ try
 
     if (builder.Environment.EnvironmentName != "Testing")
     {
+        Log.Information("Endpoint routing configured");
         Log.Information("OrkinosaiCMS application started successfully");
+        Log.Information("Ready to accept requests");
     }
+    
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "OrkinosaiCMS application terminated unexpectedly");
+    // Ensure this is logged even if Serilog hasn't been fully initialized
+    var errorMessage = $"OrkinosaiCMS application terminated unexpectedly: {ex.GetType().FullName}: {ex.Message}";
+    
+    try
+    {
+        Log.Fatal(ex, errorMessage);
+    }
+    catch
+    {
+        // If Serilog fails, write to console
+        Console.Error.WriteLine($"[FATAL] {errorMessage}");
+        Console.Error.WriteLine($"Exception: {ex}");
+    }
+    
+    // Also write to stderr for Azure App Service diagnostics
+    Console.Error.WriteLine($"[FATAL ERROR] {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff} UTC - Application Startup Failed");
+    Console.Error.WriteLine($"Exception Type: {ex.GetType().FullName}");
+    Console.Error.WriteLine($"Message: {ex.Message}");
+    Console.Error.WriteLine($"Stack Trace: {ex.StackTrace}");
+    
+    // Log inner exceptions
+    var innerEx = ex.InnerException;
+    var depth = 1;
+    while (innerEx != null && depth <= 3)
+    {
+        Console.Error.WriteLine($"Inner Exception (Depth {depth}): {innerEx.GetType().FullName}");
+        Console.Error.WriteLine($"Message: {innerEx.Message}");
+        innerEx = innerEx.InnerException;
+        depth++;
+    }
+    
     throw;
 }
 finally
 {
-    Log.CloseAndFlush();
+    try
+    {
+        Log.CloseAndFlush();
+    }
+    catch
+    {
+        // If Log.CloseAndFlush fails, continue shutdown
+        Console.WriteLine("Warning: Failed to flush logs during shutdown");
+    }
 }
 
 // Helper method to configure no-cache headers for index.html
