@@ -8,6 +8,24 @@ namespace OrkinosaiCMS.Web.Controllers;
 
 /// <summary>
 /// API Controller for subscription management
+/// 
+/// ENDPOINTS:
+/// - GET  /api/subscription/current         - Get current subscription for a user
+/// - GET  /api/subscription/plans           - Get available subscription plans
+/// - POST /api/subscription/checkout        - Create checkout session for new subscription
+/// - PUT  /api/subscription/update          - Update (upgrade/downgrade) subscription
+/// - DELETE /api/subscription/cancel        - Cancel subscription
+/// - POST /api/subscription/billing-portal  - Create billing portal session
+/// 
+/// AUTHENTICATION:
+/// Currently uses userEmail query parameter for demonstration.
+/// In production, implement proper authentication (JWT tokens or session-based auth).
+/// 
+/// STATUS CODES:
+/// - 200 OK: Successful operation
+/// - 400 Bad Request: Invalid input (e.g., empty email, invalid tier)
+/// - 404 Not Found: User or subscription not found
+/// - 500 Internal Server Error: Unexpected error
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -38,6 +56,12 @@ public class SubscriptionController : ControllerBase
     /// NOTE: This endpoint uses userEmail as a query parameter for demonstration purposes.
     /// In production, implement proper authentication using JWT tokens or session-based auth
     /// to identify the current user securely.
+    /// 
+    /// BEHAVIOR:
+    /// - If user has an active subscription, returns that subscription with its tier and limits
+    /// - If user has no subscription, returns Free tier (default tier for all users)
+    /// - Returns 400 Bad Request if userEmail is empty
+    /// - Returns 404 Not Found if user doesn't exist
     /// </summary>
     [HttpGet("current")]
     [ProducesResponseType(typeof(SubscriptionDto), 200)]
@@ -60,7 +84,8 @@ public class SubscriptionController : ControllerBase
             var subscription = await _subscriptionService.GetActiveSubscriptionByUserIdAsync(user.Id);
             if (subscription == null)
             {
-                // Return free tier as default
+                // Return free tier as default - all users without a paid subscription get Free tier
+                // Free tier includes: 1 website, 500MB storage, with ads and branding
                 var freeLimits = _subscriptionService.GetTierLimits(SubscriptionTier.Free);
                 return Ok(new SubscriptionDto
                 {

@@ -15,12 +15,25 @@ namespace OrkinosaiCMS.Tests.Integration.Fixtures;
 
 /// <summary>
 /// Custom WebApplicationFactory for integration tests
-/// Configures test database and services
+/// Configures test database and services with proper test isolation
+/// 
+/// KEY FEATURES:
+/// - Uses a unique InMemory database instance per test class to prevent test interference
+/// - Configures test-specific settings (e.g., Stripe test keys)
+/// - Seeds minimal test data (admin user and admin role)
+/// - Isolated from production/CI database configuration
+/// 
+/// TEST ISOLATION STRATEGY:
+/// Each test class that uses this factory gets its own database instance via IClassFixture.
+/// This prevents tests from interfering with each other when they create/modify data.
+/// For example, if one test creates a Pro subscription for admin@test.com, it won't affect
+/// another test that expects admin@test.com to have no subscription (Free tier).
 /// </summary>
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     // Use a unique database name for each test factory instance to avoid test interference
     // This ensures each test class has its own isolated database
+    // Example: One test class creates subscriptions, another tests without subscriptions
     private readonly string _databaseName = $"InMemoryTestDb_{Guid.NewGuid()}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -88,7 +101,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     private void SeedTestData(ApplicationDbContext context)
     {
-        // Seed initial test data
+        // Seed minimal test data for integration tests
+        // Only creates a basic admin user and role - tests should create their own data as needed
+        // This prevents test interference where seeded data affects test expectations
         if (!context.Users.Any())
         {
             var testUser = new User
@@ -96,6 +111,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 Username = "testadmin",
                 Email = "admin@test.com",
                 DisplayName = "Test Admin",
+                // Password: TestPassword123! - used in authentication tests
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
                 IsActive = true,
                 CreatedOn = DateTime.UtcNow
