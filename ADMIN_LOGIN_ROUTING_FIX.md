@@ -2,26 +2,28 @@
 
 ## Problem Statement
 
-The `/admin/login` endpoint was returning HTTP 400 errors and hitting the fallback route (serving `index.html`) instead of the expected Blazor login page. This occurred even though:
-- Database connection was successful
+The `/admin/login` endpoint was returning HTTP 400 errors and hitting the fallback route (EndpointMiddleware serving `index.html`) instead of the expected Blazor login page. This occurred even though:
+- Database connection was successful  
 - SQL queries executed correctly
 - The Login.razor page exists with `@page "/admin/login"` directive
 
 ## Root Cause Analysis
 
-The issue was caused by insufficient routing diagnostics and potential routing order issues:
+The issue was caused by **insufficient routing diagnostics** in production:
 
 1. **Lack of Routing Visibility**: No logging existed to show which endpoint matched each request
-2. **Potential Fallback Greediness**: `MapFallbackToFile("index.html")` could potentially catch routes before Blazor routing completed
-3. **Missing Startup Diagnostics**: No way to verify that Blazor routes were actually registered at startup
+2. **No Way to Detect Fallback Hijacking**: When `/admin/login` incorrectly hit the fallback, there was no warning
+3. **Missing Request Flow Tracking**: Impossible to determine if Blazor routing was working or if fallback was being triggered
+
+**Note**: Blazor endpoints in .NET 8+ are registered dynamically at runtime, not during startup. This is normal behavior and not a bug.
 
 ## Solution Implemented
 
-### 1. Endpoint Routing Logging Middleware
+### 1. Endpoint Routing Logging Middleware (PRIMARY FIX)
 
 **File**: `src/OrkinosaiCMS.Web/Middleware/EndpointRoutingLoggingMiddleware.cs`
 
-This middleware logs which endpoint each request matches, helping diagnose routing issues:
+This middleware logs which endpoint each request matches, with special handling for `/admin/*` routes:
 
 ```csharp
 // Logs routing decisions for each request
