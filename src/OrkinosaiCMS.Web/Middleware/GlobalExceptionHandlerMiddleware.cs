@@ -63,8 +63,8 @@ public class GlobalExceptionHandlerMiddleware
         // Check current exception
         if (exceptionType.Contains("SqlException") || 
             exceptionType.Contains("DbUpdateException") ||
-            exceptionMessage.Contains("timeout") && exceptionMessage.Contains("sql") ||
-            exceptionMessage.Contains("connection") && exceptionMessage.Contains("database") ||
+            (exceptionMessage.Contains("timeout") && exceptionMessage.Contains("sql")) ||
+            (exceptionMessage.Contains("connection") && exceptionMessage.Contains("database")) ||
             exceptionMessage.Contains("cannot open database"))
         {
             return true;
@@ -79,8 +79,8 @@ public class GlobalExceptionHandlerMiddleware
             
             if (innerType.Contains("SqlException") || 
                 innerType.Contains("DbUpdateException") ||
-                innerMessage.Contains("timeout") && innerMessage.Contains("sql") ||
-                innerMessage.Contains("connection") && innerMessage.Contains("database") ||
+                (innerMessage.Contains("timeout") && innerMessage.Contains("sql")) ||
+                (innerMessage.Contains("connection") && innerMessage.Contains("database")) ||
                 innerMessage.Contains("cannot open database"))
             {
                 return true;
