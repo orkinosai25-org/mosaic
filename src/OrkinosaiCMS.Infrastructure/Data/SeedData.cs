@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OrkinosaiCMS.Core.Entities.Sites;
 using System.Text.Json;
 
@@ -19,25 +20,36 @@ public static class SeedData
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var loggerFactory = scope.ServiceProvider.GetService<ILoggerFactory>();
+        var logger = loggerFactory?.CreateLogger("OrkinosaiCMS.SeedData");
 
         // Ensure database is created
         await context.Database.EnsureCreatedAsync();
 
         // Check if data already exists
-        if (await context.Sites.AnyAsync())
+        bool isFirstRun = !await context.Sites.AnyAsync();
+        
+        if (isFirstRun)
         {
-            return; // Database has been seeded
+            logger?.LogInformation("First run detected - seeding initial data...");
+            
+            await SeedThemesAsync(context);
+            await SeedSiteAsync(context);
+            await SeedMasterPagesAsync(context);
+            await SeedModulesAsync(context);
+            await SeedPagesAsync(context, logger);
+            await SeedPermissionsAndRolesAsync(context);
+            await SeedUsersAsync(context, configuration);
+
+            await context.SaveChangesAsync();
+            
+            logger?.LogInformation("Initial data seeding completed successfully");
         }
-
-        await SeedThemesAsync(context);
-        await SeedSiteAsync(context);
-        await SeedMasterPagesAsync(context);
-        await SeedModulesAsync(context);
-        await SeedPagesAsync(context);
-        await SeedPermissionsAndRolesAsync(context);
-        await SeedUsersAsync(context, configuration);
-
-        await context.SaveChangesAsync();
+        else
+        {
+            // Validate and repair critical data
+            await ValidateAndRepairHomePageAsync(context, logger);
+        }
     }
 
     private static async Task SeedThemesAsync(ApplicationDbContext context)
@@ -576,7 +588,7 @@ public static class SeedData
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedPagesAsync(ApplicationDbContext context)
+    private static async Task SeedPagesAsync(ApplicationDbContext context, ILogger? logger)
     {
         var site = await context.Sites.FirstAsync();
         var standardMaster = await context.MasterPages
@@ -590,12 +602,28 @@ public static class SeedData
             {
                 SiteId = site.Id,
                 MasterPageId = fullWidthMaster.Id,
+                Title = "Home",
+                Path = "/",
+                MetaDescription = "Welcome to Mosaic CMS - A modern, modular Content Management System built on .NET 10 and Blazor",
+                MetaKeywords = "CMS, .NET, Blazor, Content Management, Mosaic CMS",
+                IsPublished = true,
+                ShowInNavigation = true,
+                Order = 1,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            },
+            new Page
+            {
+                SiteId = site.Id,
+                MasterPageId = fullWidthMaster.Id,
                 Title = "Home - OrkinosaiCMS",
                 Path = "/cms-home",
                 MetaDescription = "Welcome to OrkinosaiCMS - A modern, modular Content Management System built on .NET 10 and Blazor",
                 MetaKeywords = "CMS, .NET, Blazor, Content Management, OrkinosaiCMS",
                 IsPublished = true,
-                ShowInNavigation = true,
+                // Hidden from navigation - /cms-home is a legacy path kept for backward compatibility
+                // The new home page at "/" is the primary navigation entry
+                ShowInNavigation = false,
                 Order = 1,
                 CreatedOn = DateTime.UtcNow,
                 CreatedBy = "System"
@@ -632,6 +660,80 @@ public static class SeedData
 
         context.Pages.AddRange(pages);
         await context.SaveChangesAsync();
+        
+        logger?.LogInformation("Created {Count} default pages including home page at path '/'", pages.Count);
+    }
+
+    /// <summary>
+    /// Validates that a home page exists and creates one if missing
+    /// </summary>
+    private static async Task ValidateAndRepairHomePageAsync(ApplicationDbContext context, ILogger? logger)
+    {
+        // Check if a home page (path = "/") exists for each site
+        var sites = await context.Sites.ToListAsync();
+        
+        foreach (var site in sites)
+        {
+            var homePage = await context.Pages
+                .FirstOrDefaultAsync(p => p.Path == "/" && p.SiteId == site.Id);
+            
+            if (homePage == null)
+            {
+                logger?.LogWarning("Home page not found for site '{SiteName}' (ID: {SiteId}). Creating default home page...", 
+                    site.Name, site.Id);
+                
+                // Get default master page
+                var defaultMaster = await context.MasterPages
+                    .FirstOrDefaultAsync(m => m.SiteId == site.Id && m.IsDefault)
+                    ?? await context.MasterPages
+                        .FirstOrDefaultAsync(m => m.SiteId == site.Id);
+                
+                if (defaultMaster == null)
+                {
+                    logger?.LogError("No master page found for site '{SiteName}' (ID: {SiteId}). Cannot create home page.", 
+                        site.Name, site.Id);
+                    continue;
+                }
+                
+                var newHomePage = new Page
+                {
+                    SiteId = site.Id,
+                    MasterPageId = defaultMaster.Id,
+                    Title = "Home",
+                    Path = "/",
+                    MetaDescription = $"Welcome to {site.Name}",
+                    IsPublished = true,
+                    ShowInNavigation = true,
+                    Order = 0,
+                    CreatedOn = DateTime.UtcNow,
+                    CreatedBy = "System (Auto-Repair)"
+                };
+                
+                context.Pages.Add(newHomePage);
+                await context.SaveChangesAsync();
+                
+                logger?.LogInformation("Successfully created home page for site '{SiteName}' (ID: {SiteId}) at path '/'", 
+                    site.Name, site.Id);
+            }
+            else
+            {
+                // Ensure home page is published
+                if (!homePage.IsPublished)
+                {
+                    logger?.LogWarning("Home page for site '{SiteName}' (ID: {SiteId}) is not published. Publishing now...", 
+                        site.Name, site.Id);
+                    homePage.IsPublished = true;
+                    homePage.ModifiedOn = DateTime.UtcNow;
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("Home page for site '{SiteName}' has been published", site.Name);
+                }
+                else
+                {
+                    logger?.LogInformation("Home page validation passed for site '{SiteName}' (ID: {SiteId})", 
+                        site.Name, site.Id);
+                }
+            }
+        }
     }
 
     private static async Task SeedPermissionsAndRolesAsync(ApplicationDbContext context)
