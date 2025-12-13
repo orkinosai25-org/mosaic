@@ -270,6 +270,10 @@ try
     // Add status code logging middleware for HTTP errors (400, 500, etc.)
     app.UseStatusCodeLogging();
 
+    // Add endpoint routing logging to diagnose routing issues
+    // This logs which endpoint each request matches (Blazor, API, Fallback, etc.)
+    app.UseEndpointRoutingLogging();
+
     // Initialize database with seed data
     using (var scope = app.Services.CreateScope())
     {
@@ -396,13 +400,20 @@ try
 
     // SPA Fallback: Serve React portal (index.html) for non-API, non-Blazor routes
     // This ensures the portal landing page shows at root URL
-    app.MapFallbackToFile("index.html", CreateNoCacheStaticFileOptions());
+    // IMPORTANT: Blazor routes (/admin/*) and API routes (/api/*) should NOT fall through to index.html
+    // Use pattern constraint to exclude /api/* and /_* (Blazor infrastructure) routes
+    app.MapFallbackToFile("{*path:regex(^(?!api|_).*$)}", "index.html", CreateNoCacheStaticFileOptions());
 
     if (builder.Environment.EnvironmentName != "Testing")
     {
         Log.Information("Endpoint routing configured");
+        Log.Information("  - Static assets: Enabled for Blazor");
+        Log.Information("  - API Controllers: Mapped for /api/* routes");
+        Log.Information("  - Blazor Components: Mapped (includes /admin/login, /admin, /admin/themes)");
+        Log.Information("  - SPA Fallback: index.html for unmatched routes");
         Log.Information("OrkinosaiCMS application started successfully");
         Log.Information("Ready to accept requests");
+        Log.Information("Note: Blazor endpoints are registered dynamically - routing diagnostics will appear on first request");
     }
     
     app.Run();
