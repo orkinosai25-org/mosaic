@@ -26,6 +26,27 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
+    /// <summary>
+    /// Helper method to create a unique test user to avoid test interference
+    /// Each test that creates subscriptions should use its own user to prevent
+    /// tests from affecting each other when they run in parallel or random order
+    /// </summary>
+    private async Task<User> CreateUniqueTestUser(ApplicationDbContext context, string prefix)
+    {
+        var user = new User
+        {
+            Username = prefix,
+            Email = $"{prefix}@test.com",
+            DisplayName = $"{prefix} User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+        return user;
+    }
+
     [Fact]
     public async Task GetCurrentSubscription_WithoutSubscription_ShouldReturnFreeTier()
     {
@@ -131,17 +152,7 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
         // Create a unique test user for this test to avoid interference with other tests
-        var testUser = new User
-        {
-            Username = "createsubtest",
-            Email = "createsubtest@test.com",
-            DisplayName = "Create Sub Test User",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
-            IsActive = true,
-            CreatedOn = DateTime.UtcNow
-        };
-        context.Users.Add(testUser);
-        await context.SaveChangesAsync();
+        var testUser = await CreateUniqueTestUser(context, "createsubtest");
 
         // Create customer
         var customer = await customerService.CreateAsync(new Customer
@@ -191,17 +202,7 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
         // Create a unique test user for this test to avoid interference with other tests
-        var testUser = new User
-        {
-            Username = "activesubtest",
-            Email = "activesubtest@test.com",
-            DisplayName = "Active Sub Test User",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
-            IsActive = true,
-            CreatedOn = DateTime.UtcNow
-        };
-        context.Users.Add(testUser);
-        await context.SaveChangesAsync();
+        var testUser = await CreateUniqueTestUser(context, "activesubtest");
 
         var customer = await customerService.CreateAsync(new Customer
         {
@@ -244,17 +245,7 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
         // Create a unique test user for this test to avoid interference with other tests
-        var testUser = new User
-        {
-            Username = "cancelsubtest",
-            Email = "cancelsubtest@test.com",
-            DisplayName = "Cancel Sub Test User",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
-            IsActive = true,
-            CreatedOn = DateTime.UtcNow
-        };
-        context.Users.Add(testUser);
-        await context.SaveChangesAsync();
+        var testUser = await CreateUniqueTestUser(context, "cancelsubtest");
 
         var customer = await customerService.CreateAsync(new Customer
         {
@@ -299,17 +290,7 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
         // Create a unique test user for this test to avoid interference with other tests
-        var testUser = new User
-        {
-            Username = "limitsubtest",
-            Email = "limitsubtest@test.com",
-            DisplayName = "Limit Sub Test User",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
-            IsActive = true,
-            CreatedOn = DateTime.UtcNow
-        };
-        context.Users.Add(testUser);
-        await context.SaveChangesAsync();
+        var testUser = await CreateUniqueTestUser(context, "limitsubtest");
 
         var customer = await customerService.CreateAsync(new Customer
         {
