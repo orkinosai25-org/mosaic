@@ -49,15 +49,16 @@ public class RequestLoggingMiddleware
                 context.Request.IsHttps,
                 context.Request.Cookies.Count);
             
-            // Check for antiforgery token in headers/cookies
-            var hasAntiforgeryHeader = context.Request.Headers.ContainsKey("RequestVerificationToken");
-            var hasAntiforgeryCookie = context.Request.Cookies.Any(c => c.Key.Contains("antiforgery", StringComparison.OrdinalIgnoreCase));
+            // Check for antiforgery-related cookies (ASP.NET Core uses cookies with .AspNetCore.Antiforgery prefix)
+            var hasAntiforgeryCookie = context.Request.Cookies.Keys.Any(k => 
+                k.Contains("Antiforgery", StringComparison.OrdinalIgnoreCase) || 
+                k.Contains(".AspNetCore.Antiforgery", StringComparison.OrdinalIgnoreCase));
             
             _logger.LogInformation(
-                "=> POST Security [{TraceId}] - HasAntiforgeryHeader: {HasHeader}, HasAntiforgeryCookie: {HasCookie}",
+                "=> POST Security [{TraceId}] - HasAntiforgeryCookie: {HasCookie}, CookieNames: [{CookieNames}]",
                 requestId,
-                hasAntiforgeryHeader,
-                hasAntiforgeryCookie);
+                hasAntiforgeryCookie,
+                string.Join(", ", context.Request.Cookies.Keys.Take(5))); // Log first 5 cookie names for debugging
         }
 
         Exception? capturedException = null;

@@ -53,7 +53,7 @@ public class ModelValidationLoggingFilter : IActionFilter
             }
         }
 
-        // Log action parameters
+        // Log action parameters (with sensitive data filtering)
         if (context.ActionArguments.Count > 0)
         {
             _logger.LogInformation(
@@ -62,14 +62,26 @@ public class ModelValidationLoggingFilter : IActionFilter
                 actionName,
                 context.ActionArguments.Count);
 
+            // Sensitive parameter names to filter (case-insensitive)
+            var sensitiveParamNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "password", "pwd", "secret", "token", "key", "apikey", "api_key",
+                "accesstoken", "access_token", "refreshtoken", "refresh_token",
+                "connectionstring", "connection_string", "credential", "auth"
+            };
+
             foreach (var param in context.ActionArguments)
             {
+                var paramValue = param.Value?.ToString() ?? "null";
+                var isSensitive = sensitiveParamNames.Contains(param.Key) || 
+                                 sensitiveParamNames.Any(s => param.Key.Contains(s, StringComparison.OrdinalIgnoreCase));
+                
                 _logger.LogInformation(
                     "Action parameter [{TraceId}] - Name: {ParamName}, Type: {ParamType}, Value: {ParamValue}",
                     traceId,
                     param.Key,
                     param.Value?.GetType().Name ?? "null",
-                    param.Value?.ToString() ?? "null");
+                    isSensitive ? "***REDACTED***" : paramValue);
             }
         }
     }
