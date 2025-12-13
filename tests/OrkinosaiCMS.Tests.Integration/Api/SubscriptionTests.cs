@@ -130,8 +130,18 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        // Get test user
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = new User
+        {
+            Username = "createsubtest",
+            Email = "createsubtest@test.com",
+            DisplayName = "Create Sub Test User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
+        };
+        context.Users.Add(testUser);
+        await context.SaveChangesAsync();
 
         // Create customer
         var customer = await customerService.CreateAsync(new Customer
@@ -180,7 +190,18 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = new User
+        {
+            Username = "activesubtest",
+            Email = "activesubtest@test.com",
+            DisplayName = "Active Sub Test User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
+        };
+        context.Users.Add(testUser);
+        await context.SaveChangesAsync();
 
         var customer = await customerService.CreateAsync(new Customer
         {
@@ -222,7 +243,18 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = new User
+        {
+            Username = "cancelsubtest",
+            Email = "cancelsubtest@test.com",
+            DisplayName = "Cancel Sub Test User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
+        };
+        context.Users.Add(testUser);
+        await context.SaveChangesAsync();
 
         var customer = await customerService.CreateAsync(new Customer
         {
@@ -266,7 +298,18 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = new User
+        {
+            Username = "limitsubtest",
+            Email = "limitsubtest@test.com",
+            DisplayName = "Limit Sub Test User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
+        };
+        context.Users.Add(testUser);
+        await context.SaveChangesAsync();
 
         var customer = await customerService.CreateAsync(new Customer
         {

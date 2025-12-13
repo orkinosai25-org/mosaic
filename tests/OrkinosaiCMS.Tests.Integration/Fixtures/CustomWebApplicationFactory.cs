@@ -19,6 +19,10 @@ namespace OrkinosaiCMS.Tests.Integration.Fixtures;
 /// </summary>
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    // Use a unique database name for each test factory instance to avoid test interference
+    // This ensures each test class has its own isolated database
+    private readonly string _databaseName = $"InMemoryTestDb_{Guid.NewGuid()}";
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -49,6 +53,21 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
+            // Remove existing DbContext registration to replace with test-specific one
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+            if (descriptor != null)
+            {
+                services.Remove(descriptor);
+            }
+
+            // Add DbContext with unique InMemory database for test isolation
+            // Each test class instance gets its own database to prevent test interference
+            services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                options.UseInMemoryDatabase(_databaseName);
+            });
+
             // Build the service provider
             var sp = services.BuildServiceProvider();
 
