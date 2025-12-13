@@ -270,6 +270,10 @@ try
     // Add status code logging middleware for HTTP errors (400, 500, etc.)
     app.UseStatusCodeLogging();
 
+    // Add endpoint routing logging to diagnose routing issues
+    // This logs which endpoint each request matches (Blazor, API, Fallback, etc.)
+    app.UseEndpointRoutingLogging();
+
     // Initialize database with seed data
     using (var scope = app.Services.CreateScope())
     {
@@ -396,13 +400,98 @@ try
 
     // SPA Fallback: Serve React portal (index.html) for non-API, non-Blazor routes
     // This ensures the portal landing page shows at root URL
+    // IMPORTANT: Blazor routes (/admin/*) and API routes (/api/*) should NOT fall through to index.html
+    // The MapFallbackToFile will only catch unmatched routes, which should work correctly
+    // since Blazor and API routes are mapped above. However, we need to ensure proper ordering.
     app.MapFallbackToFile("index.html", CreateNoCacheStaticFileOptions());
 
     if (builder.Environment.EnvironmentName != "Testing")
     {
         Log.Information("Endpoint routing configured");
+        Log.Information("  - Static assets: Enabled for Blazor");
+        Log.Information("  - API Controllers: Mapped for /api/* routes");
+        Log.Information("  - Blazor Components: Mapped (includes /admin/login, /admin, /admin/themes)");
+        Log.Information("  - SPA Fallback: index.html for unmatched routes");
         Log.Information("OrkinosaiCMS application started successfully");
         Log.Information("Ready to accept requests");
+        
+        // Log endpoint diagnostics after a short delay to allow endpoints to be registered
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(100);  // Wait for endpoints to finish registering
+                
+                // Use the already-built app to access endpoints
+                var endpointDataSources = app.Services.GetServices<Microsoft.AspNetCore.Routing.EndpointDataSource>();
+                var allEndpoints = endpointDataSources.SelectMany(ds => ds.Endpoints).ToList();
+                
+                Log.Information("=== ENDPOINT DIAGNOSTICS ===");
+                Log.Information("Total endpoints registered: {Count}", allEndpoints.Count);
+                
+                // Log Blazor and admin-related endpoints
+                var blazorEndpoints = allEndpoints.Where(e => 
+                    e.DisplayName?.Contains("Blazor", StringComparison.OrdinalIgnoreCase) == true ||
+                    e.DisplayName?.Contains("admin", StringComparison.OrdinalIgnoreCase) == true ||
+                    e.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.Patterns.RoutePattern>()?.RawText?.Contains("admin") == true
+                ).ToList();
+                
+                if (blazorEndpoints.Any())
+                {
+                    Log.Information("Blazor/Admin endpoints: {Count}", blazorEndpoints.Count);
+                    foreach (var endpoint in blazorEndpoints.Take(20))
+                    {
+                        var routePattern = endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.Patterns.RoutePattern>();
+                        Log.Information("  → {DisplayName} | Pattern: {Pattern}", 
+                            endpoint.DisplayName ?? "Unknown", 
+                            routePattern?.RawText ?? "N/A");
+                    }
+                }
+                else
+                {
+                    Log.Warning("⚠️  No Blazor or admin endpoints found!");
+                    Log.Warning("This means /admin/login will fall through to the SPA fallback (index.html)");
+                    Log.Warning("Possible causes:");
+                    Log.Warning("  1. Blazor components not discovered (missing @page directive)");
+                    Log.Warning("  2. Routes.razor misconfigured");
+                    Log.Warning("  3. Component assembly not referenced");
+                }
+                
+                // Log API endpoints
+                var apiEndpoints = allEndpoints.Where(e => 
+                    e.DisplayName?.Contains("api/", StringComparison.OrdinalIgnoreCase) == true
+                ).ToList();
+                
+                if (apiEndpoints.Any())
+                {
+                    Log.Information("API endpoints: {Count}", apiEndpoints.Count);
+                    foreach (var endpoint in apiEndpoints.Take(10))
+                    {
+                        Log.Information("  → {DisplayName}", endpoint.DisplayName ?? "Unknown");
+                    }
+                }
+                
+                // Log fallback endpoint
+                var fallbackEndpoints = allEndpoints.Where(e => 
+                    e.DisplayName?.Contains("Fallback", StringComparison.OrdinalIgnoreCase) == true
+                ).ToList();
+                
+                if (fallbackEndpoints.Any())
+                {
+                    Log.Information("Fallback endpoints: {Count}", fallbackEndpoints.Count);
+                    foreach (var endpoint in fallbackEndpoints)
+                    {
+                        Log.Information("  → {DisplayName}", endpoint.DisplayName ?? "Unknown");
+                    }
+                }
+                
+                Log.Information("=== END ENDPOINT DIAGNOSTICS ===");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to log endpoint diagnostics");
+            }
+        });
     }
     
     app.Run();
