@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Routing.Patterns;
+
 namespace OrkinosaiCMS.Web.Middleware;
 
 /// <summary>
@@ -31,7 +33,7 @@ public class EndpointRoutingLoggingMiddleware
         if (endpoint != null)
         {
             var endpointName = endpoint.DisplayName ?? endpoint.ToString() ?? "Unknown";
-            var routePattern = endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Routing.Patterns.RoutePattern>();
+            var routePattern = endpoint.Metadata.GetMetadata<RoutePattern>();
             
             // Log at different levels based on the endpoint type
             if (endpointName.Contains("Fallback", StringComparison.OrdinalIgnoreCase))
@@ -51,7 +53,7 @@ public class EndpointRoutingLoggingMiddleware
                 }
             }
             else if (endpointName.Contains("Blazor", StringComparison.OrdinalIgnoreCase) || 
-                     routePattern?.RawText?.Contains("admin") == true)
+                     routePattern?.RawText?.Contains("admin", StringComparison.OrdinalIgnoreCase) == true)
             {
                 _logger.LogInformation(
                     "Routing: {Method} {Path} → Blazor: {Endpoint}",
