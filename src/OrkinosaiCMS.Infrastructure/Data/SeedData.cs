@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrkinosaiCMS.Core.Entities.Sites;
 using System.Text.Json;
@@ -17,6 +18,7 @@ public static class SeedData
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
         // Ensure database is created
         await context.Database.EnsureCreatedAsync();
@@ -33,6 +35,7 @@ public static class SeedData
         await SeedModulesAsync(context);
         await SeedPagesAsync(context);
         await SeedPermissionsAndRolesAsync(context);
+        await SeedUsersAsync(context, configuration);
 
         await context.SaveChangesAsync();
     }
@@ -710,6 +713,53 @@ public static class SeedData
             });
         }
 
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedUsersAsync(ApplicationDbContext context, IConfiguration configuration)
+    {
+        // Check if users already exist
+        if (await context.Users.AnyAsync())
+        {
+            return;
+        }
+
+        // Get default admin password from configuration or use default
+        // In production, set this via environment variable: DefaultAdminPassword=YourSecurePassword
+        var defaultPassword = configuration.GetValue<string>("DefaultAdminPassword") ?? "Admin@123";
+
+        // Create default admin user
+        var adminUser = new User
+        {
+            Username = "admin",
+            Email = "admin@mosaicms.com",
+            DisplayName = "Administrator",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(defaultPassword),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow,
+            CreatedBy = "System"
+        };
+
+        context.Users.Add(adminUser);
+        await context.SaveChangesAsync();
+
+        // Assign Administrator role to admin user
+        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Administrator");
+        
+        if (adminRole == null)
+        {
+            throw new InvalidOperationException("Administrator role not found. Ensure roles are seeded before users.");
+        }
+        
+        var userRole = new UserRole
+        {
+            UserId = adminUser.Id,
+            RoleId = adminRole.Id,
+            CreatedOn = DateTime.UtcNow,
+            CreatedBy = "System"
+        };
+
+        context.UserRoles.Add(userRole);
         await context.SaveChangesAsync();
     }
 }

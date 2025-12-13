@@ -224,9 +224,25 @@
                 errorMessage = "Invalid username or password. Please try again.";
             }
         }
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+        {
+            // Handle SQL connection errors specifically
+            if (sqlEx.Message.Contains("timeout") || sqlEx.Message.Contains("connection"))
+            {
+                errorMessage = "Unable to connect to the database. The service may be temporarily unavailable. Please try again in a few moments or contact support if the issue persists.";
+            }
+            else
+            {
+                errorMessage = "A database error occurred. Please try again later or contact support if the issue persists.";
+            }
+        }
+        catch (System.TimeoutException)
+        {
+            errorMessage = "The request timed out. The database service may be temporarily unavailable. Please try again in a few moments.";
+        }
         catch (Exception)
         {
-            errorMessage = "An error occurred during login. Please try again.";
+            errorMessage = "An unexpected error occurred during login. Please try again later or contact support if the issue persists.";
         }
         finally
         {

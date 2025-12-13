@@ -162,12 +162,42 @@ try
         var services = scope.ServiceProvider;
         try
         {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Initializing database with seed data...");
+            
             await SeedData.InitializeAsync(services);
+            
+            logger.LogInformation("Database initialization completed successfully");
+        }
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(sqlEx, 
+                "SQL connection error occurred while seeding the database. " +
+                "Error Number: {ErrorNumber}, Server: {Server}, Database: {Database}",
+                sqlEx.Number,
+                sqlEx.Server,
+                sqlEx.Message);
+            
+            // Log connection string info (without password)
+            var config = services.GetRequiredService<IConfiguration>();
+            var connString = config.GetConnectionString("DefaultConnection");
+            if (!string.IsNullOrEmpty(connString))
+            {
+                var sanitizedConnString = System.Text.RegularExpressions.Regex.Replace(
+                    connString, 
+                    @"Password=[^;]*", 
+                    "Password=***");
+                logger.LogError("Connection string (sanitized): {ConnectionString}", sanitizedConnString);
+            }
+            
+            logger.LogWarning("Application will continue but database may not be properly initialized. Admin login may fail.");
         }
         catch (Exception ex)
         {
             var logger = services.GetRequiredService<ILogger<Program>>();
             logger.LogError(ex, "An error occurred seeding the database.");
+            logger.LogWarning("Application will continue but database may not be properly initialized.");
         }
     }
 

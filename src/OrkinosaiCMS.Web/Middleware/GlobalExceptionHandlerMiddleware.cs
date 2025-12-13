@@ -30,13 +30,21 @@ public class GlobalExceptionHandlerMiddleware
         }
         catch (Exception ex)
         {
+            // Check if this is a database connectivity error
+            var isDatabaseError = IsDatabaseException(ex);
+            if (isDatabaseError)
+            {
+                context.Items["DatabaseError"] = true;
+            }
+
             // Log the exception with full details
             _logger.LogError(ex, 
-                "Unhandled exception occurred. Path: {Path}, Method: {Method}, StatusCode: {StatusCode}, TraceId: {TraceId}",
+                "Unhandled exception occurred. Path: {Path}, Method: {Method}, StatusCode: {StatusCode}, TraceId: {TraceId}, IsDatabaseError: {IsDatabaseError}",
                 context.Request.Path,
                 context.Request.Method,
                 context.Response.StatusCode,
-                context.TraceIdentifier);
+                context.TraceIdentifier,
+                isDatabaseError);
 
             // Log additional context
             LogExceptionDetails(ex, context);
@@ -44,6 +52,44 @@ public class GlobalExceptionHandlerMiddleware
             // Re-throw to let ASP.NET Core's exception handler handle the response
             throw;
         }
+    }
+
+    private bool IsDatabaseException(Exception ex)
+    {
+        // Check for SQL exceptions and timeout errors
+        var exceptionType = ex.GetType().FullName ?? "";
+        var exceptionMessage = ex.Message.ToLower();
+        
+        // Check current exception
+        if (exceptionType.Contains("SqlException") || 
+            exceptionType.Contains("DbUpdateException") ||
+            (exceptionMessage.Contains("timeout") && exceptionMessage.Contains("sql")) ||
+            (exceptionMessage.Contains("connection") && exceptionMessage.Contains("database")) ||
+            exceptionMessage.Contains("cannot open database"))
+        {
+            return true;
+        }
+        
+        // Check inner exceptions
+        var innerException = ex.InnerException;
+        while (innerException != null)
+        {
+            var innerType = innerException.GetType().FullName ?? "";
+            var innerMessage = innerException.Message.ToLower();
+            
+            if (innerType.Contains("SqlException") || 
+                innerType.Contains("DbUpdateException") ||
+                (innerMessage.Contains("timeout") && innerMessage.Contains("sql")) ||
+                (innerMessage.Contains("connection") && innerMessage.Contains("database")) ||
+                innerMessage.Contains("cannot open database"))
+            {
+                return true;
+            }
+            
+            innerException = innerException.InnerException;
+        }
+        
+        return false;
     }
 
     private void LogExceptionDetails(Exception ex, HttpContext context)
