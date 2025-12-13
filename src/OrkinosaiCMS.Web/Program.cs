@@ -169,10 +169,12 @@ try
             }
             
             // Sanitize connection string for logging (hide password)
+            // Support multiple password formats: Password=, pwd=, Pwd=
             var sanitizedConnString = System.Text.RegularExpressions.Regex.Replace(
                 connectionString, 
-                @"Password=[^;]*", 
-                "Password=***");
+                @"(Password|Pwd|pwd)\s*=\s*[^;]*", 
+                "$1=***",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             
             if (builder.Environment.EnvironmentName != "Testing")
             {
@@ -290,10 +292,12 @@ try
             var connString = config.GetConnectionString("DefaultConnection");
             if (!string.IsNullOrEmpty(connString))
             {
+                // Support multiple password formats: Password=, pwd=, Pwd=
                 var sanitizedConnString = System.Text.RegularExpressions.Regex.Replace(
                     connString, 
-                    @"Password=[^;]*", 
-                    "Password=***");
+                    @"(Password|Pwd|pwd)\s*=\s*[^;]*", 
+                    "$1=***",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                 logger.LogError("Connection string (sanitized): {ConnectionString}", sanitizedConnString);
             }
             
@@ -436,10 +440,10 @@ finally
     {
         Log.CloseAndFlush();
     }
-    catch
+    catch (Exception ex)
     {
-        // If Log.CloseAndFlush fails, continue shutdown
-        Console.WriteLine("Warning: Failed to flush logs during shutdown");
+        // If Log.CloseAndFlush fails, log to console and continue shutdown
+        Console.WriteLine($"Warning: Failed to flush logs during shutdown: {ex.Message}");
     }
 }
 

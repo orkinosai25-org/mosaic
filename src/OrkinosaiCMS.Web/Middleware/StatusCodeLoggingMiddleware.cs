@@ -59,7 +59,7 @@ public class StatusCodeLoggingMiddleware
                     // Check for antiforgery token issues
                     if (context.Request.HasFormContentType)
                     {
-                        _logger.LogWarning("Request has form content - possible antiforgery validation failure");
+                        _logger.LogWarning("Request has form content - may indicate antiforgery validation failure or invalid model binding");
                     }
                 }
                 else if (statusCode == 401)
