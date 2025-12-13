@@ -26,6 +26,27 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
+    /// <summary>
+    /// Helper method to create a unique test user to avoid test interference
+    /// Each test that creates subscriptions should use its own user to prevent
+    /// tests from affecting each other when they run in parallel or random order
+    /// </summary>
+    private async Task<User> CreateUniqueTestUser(ApplicationDbContext context, string prefix)
+    {
+        var user = new User
+        {
+            Username = prefix,
+            Email = $"{prefix}@test.com",
+            DisplayName = $"{prefix} User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow
+        };
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+        return user;
+    }
+
     [Fact]
     public async Task GetCurrentSubscription_WithoutSubscription_ShouldReturnFreeTier()
     {
@@ -130,8 +151,8 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        // Get test user
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = await CreateUniqueTestUser(context, "createsubtest");
 
         // Create customer
         var customer = await customerService.CreateAsync(new Customer
@@ -180,7 +201,8 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = await CreateUniqueTestUser(context, "activesubtest");
 
         var customer = await customerService.CreateAsync(new Customer
         {
@@ -222,7 +244,8 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = await CreateUniqueTestUser(context, "cancelsubtest");
 
         var customer = await customerService.CreateAsync(new Customer
         {
@@ -266,7 +289,8 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         var subscriptionService = scope.ServiceProvider.GetRequiredService<ISubscriptionService>();
         var customerService = scope.ServiceProvider.GetRequiredService<ICustomerService>();
 
-        var testUser = context.Users.First(u => u.Email == "admin@test.com");
+        // Create a unique test user for this test to avoid interference with other tests
+        var testUser = await CreateUniqueTestUser(context, "limitsubtest");
 
         var customer = await customerService.CreateAsync(new Customer
         {

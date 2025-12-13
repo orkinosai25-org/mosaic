@@ -129,6 +129,15 @@ try
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
     // Configure Database
+    // Database provider selection priority:
+    // 1. Environment variable: DatabaseProvider (e.g., set in Azure App Service Configuration)
+    // 2. appsettings.{Environment}.json (e.g., appsettings.Production.json)
+    // 3. appsettings.json
+    // 4. Default: SqlServer
+    //
+    // Production/CI: Should use "SqlServer" with DefaultConnection to Azure SQL Database
+    // Testing: Uses "InMemory" (set in CustomWebApplicationFactory)
+    // Development: Can use "SqlServer" (LocalDB) or "SQLite" for local development
     var databaseProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "SqlServer";
     
     if (builder.Environment.EnvironmentName != "Testing")
@@ -402,6 +411,7 @@ try
     // This ensures the portal landing page shows at root URL
     // IMPORTANT: Blazor routes (/admin/*) and API routes (/api/*) should NOT fall through to index.html
     // Use pattern constraint to exclude /api/* and /_* (Blazor infrastructure) routes
+    // NOTE: In test environment, index.html may not exist, so root (/) will return 404
     app.MapFallbackToFile("{*path:regex(^(?!api|_).*$)}", "index.html", CreateNoCacheStaticFileOptions());
 
     if (builder.Environment.EnvironmentName != "Testing")
