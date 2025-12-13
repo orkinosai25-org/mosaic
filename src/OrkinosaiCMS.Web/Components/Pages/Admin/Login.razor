@@ -198,6 +198,12 @@
     private string errorMessage = string.Empty;
     private bool isLoading = false;
 
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("Login page initialized - URL: {Url}", NavigationManager.Uri);
+        base.OnInitialized();
+    }
+
     private class LoginModel
     {
         [Required(ErrorMessage = "Username is required")]
@@ -209,19 +215,28 @@
 
     private async Task HandleLogin()
     {
+        Logger.LogInformation("HandleLogin method called - Username: {Username}, IsLoading: {IsLoading}", 
+            loginModel.Username, isLoading);
+        
         try
         {
             isLoading = true;
             errorMessage = string.Empty;
             
-            Logger.LogInformation("Login attempt for username: {Username}", loginModel.Username);
+            Logger.LogInformation("Login form submitted - Username: {Username}", loginModel.Username);
+            Logger.LogInformation("Calling AuthService.LoginAsync for username: {Username}", loginModel.Username);
 
             var success = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
 
+            Logger.LogInformation("AuthService.LoginAsync returned {Success} for username: {Username}", 
+                success, loginModel.Username);
+
             if (success)
             {
-                Logger.LogInformation("Login successful for username: {Username}", loginModel.Username);
+                Logger.LogInformation("Login successful for username: {Username}, redirecting to /admin", 
+                    loginModel.Username);
                 NavigationManager.NavigateTo("/admin", true);
+                Logger.LogInformation("Navigation initiated for username: {Username}", loginModel.Username);
             }
             else
             {
@@ -232,8 +247,9 @@
         catch (Microsoft.Data.SqlClient.SqlException sqlEx)
         {
             // Handle SQL connection errors specifically
-            Logger.LogError(sqlEx, "SQL error during login for username: {Username} - Error: {ErrorNumber}", 
-                loginModel.Username, sqlEx.Number);
+            Logger.LogError(sqlEx, 
+                "SQL error during login for username: {Username} - Error: {ErrorNumber}, Message: {ErrorMessage}, State: {State}, Server: {Server}", 
+                loginModel.Username, sqlEx.Number, sqlEx.Message, sqlEx.State, sqlEx.Server);
             
             if (sqlEx.Message.Contains("timeout") || sqlEx.Message.Contains("connection"))
             {
@@ -251,13 +267,25 @@
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Unexpected error during login for username: {Username} - Exception: {ExceptionType}", 
-                loginModel.Username, ex.GetType().FullName);
+            Logger.LogError(ex, 
+                "Unexpected error during login for username: {Username} - Exception: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
+                loginModel.Username, ex.GetType().FullName, ex.Message, ex.StackTrace);
+            
+            // Log inner exception if present
+            if (ex.InnerException != null)
+            {
+                Logger.LogError(ex.InnerException, 
+                    "Inner exception during login - Type: {ExceptionType}, Message: {Message}", 
+                    ex.InnerException.GetType().FullName, ex.InnerException.Message);
+            }
+            
             errorMessage = "An unexpected error occurred during login. Please try again later or contact support if the issue persists.";
         }
         finally
         {
             isLoading = false;
+            Logger.LogInformation("HandleLogin method completed - Username: {Username}, IsLoading: {IsLoading}, HasError: {HasError}", 
+                loginModel.Username, isLoading, !string.IsNullOrEmpty(errorMessage));
         }
     }
 }
