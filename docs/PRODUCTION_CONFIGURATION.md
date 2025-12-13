@@ -62,9 +62,16 @@ The `appsettings.Production.json` file has been updated with the following criti
 
 ## Azure Portal Configuration (REQUIRED for Production)
 
-### SECURITY WARNING ⚠️
+### CRITICAL SECURITY WARNING ⚠️
 
-**NEVER** commit production credentials to source control. The connection string in `appsettings.Production.json` contains development/test credentials and must be overridden in Azure Portal for production deployments.
+**The credentials in `appsettings.Production.json` are DEVELOPMENT/TEST credentials shared across the development team. These credentials:**
+
+1. **MUST NOT be used for actual production deployments**
+2. **Should be overridden in Azure Portal Configuration**
+3. **Are included in source control for development/testing purposes only**
+4. **Provide access to a shared development Azure SQL database**
+
+**For production deployments, you MUST configure secure credentials via Azure Portal as described below.**
 
 ### How to Configure Connection Strings in Azure Portal
 
