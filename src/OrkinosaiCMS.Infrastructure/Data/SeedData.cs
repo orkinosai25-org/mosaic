@@ -33,6 +33,7 @@ public static class SeedData
         await SeedModulesAsync(context);
         await SeedPagesAsync(context);
         await SeedPermissionsAndRolesAsync(context);
+        await SeedUsersAsync(context);
 
         await context.SaveChangesAsync();
     }
@@ -710,6 +711,45 @@ public static class SeedData
             });
         }
 
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedUsersAsync(ApplicationDbContext context)
+    {
+        // Check if users already exist
+        if (await context.Users.AnyAsync())
+        {
+            return;
+        }
+
+        // Create default admin user
+        var adminUser = new User
+        {
+            Username = "admin",
+            Email = "admin@mosaicms.com",
+            DisplayName = "Administrator",
+            // BCrypt hash for password "Admin@123"
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+            IsActive = true,
+            CreatedOn = DateTime.UtcNow,
+            CreatedBy = "System"
+        };
+
+        context.Users.Add(adminUser);
+        await context.SaveChangesAsync();
+
+        // Assign Administrator role to admin user
+        var adminRole = await context.Roles.FirstAsync(r => r.Name == "Administrator");
+        
+        var userRole = new UserRole
+        {
+            UserId = adminUser.Id,
+            RoleId = adminRole.Id,
+            CreatedOn = DateTime.UtcNow,
+            CreatedBy = "System"
+        };
+
+        context.UserRoles.Add(userRole);
         await context.SaveChangesAsync();
     }
 }

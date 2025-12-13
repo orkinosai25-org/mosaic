@@ -67,8 +67,19 @@ public class AuthenticationService : IAuthenticationService
 
             return true;
         }
+        catch (Microsoft.Data.SqlClient.SqlException)
+        {
+            // Re-throw SQL exceptions so they can be handled by the caller with specific messaging
+            throw;
+        }
+        catch (TimeoutException)
+        {
+            // Re-throw timeout exceptions so they can be handled by the caller
+            throw;
+        }
         catch
         {
+            // For other exceptions, return false
             return false;
         }
     }
