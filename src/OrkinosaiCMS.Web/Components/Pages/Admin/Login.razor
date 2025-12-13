@@ -3,6 +3,7 @@
 @using OrkinosaiCMS.Web.Services
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavigationManager
+@inject ILogger<Login> Logger
 
 <PageTitle>Admin Login - OrkinosaiCMS</PageTitle>
 
@@ -212,21 +213,28 @@
         {
             isLoading = true;
             errorMessage = string.Empty;
+            
+            Logger.LogInformation("Login attempt for username: {Username}", loginModel.Username);
 
             var success = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
 
             if (success)
             {
+                Logger.LogInformation("Login successful for username: {Username}", loginModel.Username);
                 NavigationManager.NavigateTo("/admin", true);
             }
             else
             {
+                Logger.LogWarning("Login failed - Invalid credentials for username: {Username}", loginModel.Username);
                 errorMessage = "Invalid username or password. Please try again.";
             }
         }
         catch (Microsoft.Data.SqlClient.SqlException sqlEx)
         {
             // Handle SQL connection errors specifically
+            Logger.LogError(sqlEx, "SQL error during login for username: {Username} - Error: {ErrorNumber}", 
+                loginModel.Username, sqlEx.Number);
+            
             if (sqlEx.Message.Contains("timeout") || sqlEx.Message.Contains("connection"))
             {
                 errorMessage = "Unable to connect to the database. The service may be temporarily unavailable. Please try again in a few moments or contact support if the issue persists.";
@@ -236,12 +244,15 @@
                 errorMessage = "A database error occurred. Please try again later or contact support if the issue persists.";
             }
         }
-        catch (System.TimeoutException)
+        catch (System.TimeoutException timeoutEx)
         {
+            Logger.LogError(timeoutEx, "Timeout during login for username: {Username}", loginModel.Username);
             errorMessage = "The request timed out. The database service may be temporarily unavailable. Please try again in a few moments.";
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Unexpected error during login for username: {Username} - Exception: {ExceptionType}", 
+                loginModel.Username, ex.GetType().FullName);
             errorMessage = "An unexpected error occurred during login. Please try again later or contact support if the issue persists.";
         }
         finally

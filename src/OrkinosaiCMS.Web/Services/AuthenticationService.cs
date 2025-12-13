@@ -11,32 +11,45 @@ public class AuthenticationService : IAuthenticationService
     private readonly CustomAuthenticationStateProvider _authStateProvider;
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
+    private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
         AuthenticationStateProvider authStateProvider,
         IUserService userService,
-        IRoleService roleService)
+        IRoleService roleService,
+        ILogger<AuthenticationService> logger)
     {
         _authStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
         _userService = userService;
         _roleService = roleService;
+        _logger = logger;
     }
 
     public async Task<bool> LoginAsync(string username, string password)
     {
         try
         {
+            _logger.LogInformation("Starting authentication for user: {Username}", username);
+            
             // Verify password
             var isValid = await _userService.VerifyPasswordAsync(username, password);
             if (!isValid)
             {
+                _logger.LogWarning("Password verification failed for user: {Username}", username);
                 return false;
             }
 
             // Get user
             var user = await _userService.GetByUsernameAsync(username);
-            if (user == null || !user.IsActive)
+            if (user == null)
             {
+                _logger.LogWarning("User not found: {Username}", username);
+                return false;
+            }
+            
+            if (!user.IsActive)
+            {
+                _logger.LogWarning("User account is inactive: {Username}", username);
                 return false;
             }
 
@@ -47,6 +60,11 @@ public class AuthenticationService : IAuthenticationService
             if (userRoles != null && userRoles.Any())
             {
                 primaryRole = userRoles.First().Name;
+                _logger.LogInformation("User {Username} has role: {Role}", username, primaryRole);
+            }
+            else
+            {
+                _logger.LogWarning("User {Username} has no roles assigned, using default 'User' role", username);
             }
 
             // Create user session
@@ -64,21 +82,26 @@ public class AuthenticationService : IAuthenticationService
 
             // Update last login
             await _userService.UpdateLastLoginAsync(user.Id);
+            
+            _logger.LogInformation("Authentication successful for user: {Username}", username);
 
             return true;
         }
-        catch (Microsoft.Data.SqlClient.SqlException)
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx)
         {
+            _logger.LogError(sqlEx, "SQL error during authentication for user: {Username}", username);
             // Re-throw SQL exceptions so they can be handled by the caller with specific messaging
             throw;
         }
-        catch (TimeoutException)
+        catch (TimeoutException timeoutEx)
         {
+            _logger.LogError(timeoutEx, "Timeout during authentication for user: {Username}", username);
             // Re-throw timeout exceptions so they can be handled by the caller
             throw;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Unexpected error during authentication for user: {Username}", username);
             // For other exceptions, return false
             return false;
         }

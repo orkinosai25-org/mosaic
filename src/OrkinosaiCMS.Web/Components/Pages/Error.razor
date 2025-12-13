@@ -209,5 +209,15 @@
         
         // Check configuration for detailed errors
         ShowDetailedErrors = Configuration.GetValue<bool>("ErrorHandling:ShowDetailedErrors");
+        
+        // Log that the error page was accessed
+        var logger = HttpContext?.RequestServices.GetService<ILogger<Error>>();
+        if (logger != null)
+        {
+            logger.LogWarning("Error page displayed - RequestId: {RequestId}, StatusCode: {StatusCode}, Path: {Path}",
+                RequestId,
+                HttpContext?.Response.StatusCode,
+                HttpContext?.Request.Path);
+        }
     }
 }
