@@ -107,10 +107,7 @@ public class SiteService : ISiteService
         }
 
         // Soft delete
-        site.IsActive = false;
-        site.ModifiedOn = DateTime.UtcNow;
-
-        _siteRepository.Update(site);
+        _siteRepository.Remove(site);
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -208,7 +205,7 @@ public class SiteService : ISiteService
 
     public async Task<bool> IsSiteUrlAvailableAsync(string url)
     {
-        var sites = await _siteRepository.FindAsync(s => s.Url == url && s.IsActive);
+        var sites = await _siteRepository.FindAsync(s => s.Url == url);
         return !sites.Any();
     }
 

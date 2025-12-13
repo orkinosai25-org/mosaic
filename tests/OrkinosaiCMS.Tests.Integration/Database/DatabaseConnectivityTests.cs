@@ -171,7 +171,7 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
         {
             Name = "Page Test Site",
             Description = "Site for page testing",
-            Url = "/pagetest",
+            Url = "/dbpagetest",
             AdminEmail = "admin@pagetest.com",
             IsActive = true,
             CreatedOn = DateTime.UtcNow
@@ -202,7 +202,7 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
         retrievedPage.Should().NotBeNull();
         retrievedPage!.Title.Should().Be("Home Page");
         retrievedPage.Site.Should().NotBeNull();
-        retrievedPage.Site.Url.Should().Be("/pagetest");
+        retrievedPage.Site.Url.Should().Be("/dbpagetest");
     }
 
     [Fact]
