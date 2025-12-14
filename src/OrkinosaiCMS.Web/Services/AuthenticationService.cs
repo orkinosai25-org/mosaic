@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using OrkinosaiCMS.Core.Interfaces.Services;
+using OrkinosaiCMS.Web.Constants;
 using System.Security.Claims;
 
 namespace OrkinosaiCMS.Web.Services;
@@ -111,19 +112,19 @@ public class AuthenticationService : IAuthenticationService
             {
                 _logger.LogInformation("Setting up cookie authentication for user: {Username}", username);
                 
-                var claimsIdentity = new ClaimsIdentity(claims, "DefaultAuthScheme");
+                var claimsIdentity = new ClaimsIdentity(claims, AuthenticationConstants.DefaultAuthScheme);
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
                 var authProperties = new AuthenticationProperties
                 {
                     IsPersistent = false, // Default to session cookie for Blazor login
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8),
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(AuthenticationConstants.DefaultCookieExpirationHours),
                     AllowRefresh = true,
                     IssuedUtc = DateTimeOffset.UtcNow
                 };
 
                 await httpContext.SignInAsync(
-                    "DefaultAuthScheme",
+                    AuthenticationConstants.DefaultAuthScheme,
                     claimsPrincipal,
                     authProperties);
 
@@ -194,7 +195,7 @@ public class AuthenticationService : IAuthenticationService
         if (httpContext != null)
         {
             _logger.LogInformation("Signing out user from cookie authentication");
-            await httpContext.SignOutAsync("DefaultAuthScheme");
+            await httpContext.SignOutAsync(AuthenticationConstants.DefaultAuthScheme);
         }
 
         // Clear Blazor authentication state

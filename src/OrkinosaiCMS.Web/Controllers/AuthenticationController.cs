@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrkinosaiCMS.Core.Interfaces.Services;
 using OrkinosaiCMS.Shared.DTOs.Authentication;
+using OrkinosaiCMS.Web.Constants;
 using System.Security.Claims;
 
 namespace OrkinosaiCMS.Web.Controllers;
@@ -140,14 +141,14 @@ public class AuthenticationController : ControllerBase
             {
                 IsPersistent = request.RememberMe,
                 ExpiresUtc = request.RememberMe 
-                    ? DateTimeOffset.UtcNow.AddDays(30) 
-                    : DateTimeOffset.UtcNow.AddHours(8),
+                    ? DateTimeOffset.UtcNow.AddDays(AuthenticationConstants.RememberMeCookieExpirationDays) 
+                    : DateTimeOffset.UtcNow.AddHours(AuthenticationConstants.DefaultCookieExpirationHours),
                 AllowRefresh = true,
                 IssuedUtc = DateTimeOffset.UtcNow
             };
 
             await HttpContext.SignInAsync(
-                "DefaultAuthScheme",
+                AuthenticationConstants.DefaultAuthScheme,
                 claimsPrincipal,
                 authProperties);
 
@@ -199,7 +200,7 @@ public class AuthenticationController : ControllerBase
 
         try
         {
-            await HttpContext.SignOutAsync("DefaultAuthScheme");
+            await HttpContext.SignOutAsync(AuthenticationConstants.DefaultAuthScheme);
             
             _logger.LogInformation("User logout successful: {Username}", username);
             

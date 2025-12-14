@@ -8,6 +8,7 @@ using OrkinosaiCMS.Infrastructure.Data;
 using OrkinosaiCMS.Infrastructure.Repositories;
 using OrkinosaiCMS.Infrastructure.Services;
 using OrkinosaiCMS.Web.Components;
+using OrkinosaiCMS.Web.Constants;
 using OrkinosaiCMS.Web.Middleware;
 using OrkinosaiCMS.Web.Services;
 using Serilog;
@@ -101,7 +102,7 @@ try
     builder.Services.AddAntiforgery(options =>
     {
         // Configure cookie settings for Azure App Service deployments
-        options.Cookie.Name = ".AspNetCore.Antiforgery";
+        options.Cookie.Name = AuthenticationConstants.AntiforgeryCookieName;
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow HTTP in dev, require HTTPS in prod
         options.Cookie.SameSite = SameSiteMode.Strict;
@@ -148,8 +149,8 @@ try
     // Add Authentication and Authorization
     // Configure default authentication scheme to allow anonymous access by default
     // The custom authentication is used for admin panel authentication via Blazor's AuthenticationStateProvider
-    builder.Services.AddAuthentication("DefaultAuthScheme")
-        .AddCookie("DefaultAuthScheme", options =>
+    builder.Services.AddAuthentication(AuthenticationConstants.DefaultAuthScheme)
+        .AddCookie(AuthenticationConstants.DefaultAuthScheme, options =>
         {
             options.LoginPath = "/admin/login";
             options.LogoutPath = "/admin/logout";

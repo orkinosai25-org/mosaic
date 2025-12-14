@@ -338,10 +338,12 @@ public class AuthenticationTests : IClassFixture<CustomWebApplicationFactory>
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        // Verify Set-Cookie header is present
+        // Verify Set-Cookie header is present with authentication cookie
+        // Note: ASP.NET Core cookie authentication uses a cookie name based on the scheme
         response.Headers.Should().ContainKey("Set-Cookie");
         var cookies = response.Headers.GetValues("Set-Cookie");
-        cookies.Should().Contain(c => c.Contains(".AspNetCore"));
+        cookies.Should().Contain(c => c.Contains(".AspNetCore") || c.Contains("DefaultAuthScheme"),
+            "because authentication should set an ASP.NET Core authentication cookie");
     }
 
     [Fact]
