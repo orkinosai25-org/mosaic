@@ -30,6 +30,20 @@ public class GlobalExceptionHandlerMiddleware
         }
         catch (Exception ex)
         {
+            // Check if this is an antiforgery validation failure
+            var isAntiforgeryError = IsAntiforgeryException(ex);
+            if (isAntiforgeryError)
+            {
+                context.Items["AntiforgeryError"] = true;
+                _logger.LogError(ex, 
+                    "ANTIFORGERY VALIDATION FAILED - Path: {Path}, Method: {Method}, TraceId: {TraceId}, HasAntiforgeryCookie: {HasCookie}, IsHttps: {IsHttps}",
+                    context.Request.Path,
+                    context.Request.Method,
+                    context.TraceIdentifier,
+                    context.Request.Cookies.Keys.Any(k => k.Contains("Antiforgery", StringComparison.OrdinalIgnoreCase)),
+                    context.Request.IsHttps);
+            }
+
             // Check if this is a database connectivity error
             var isDatabaseError = IsDatabaseException(ex);
             if (isDatabaseError)
@@ -39,12 +53,13 @@ public class GlobalExceptionHandlerMiddleware
 
             // Log the exception with full details
             _logger.LogError(ex, 
-                "Unhandled exception occurred. Path: {Path}, Method: {Method}, StatusCode: {StatusCode}, TraceId: {TraceId}, IsDatabaseError: {IsDatabaseError}",
+                "Unhandled exception occurred. Path: {Path}, Method: {Method}, StatusCode: {StatusCode}, TraceId: {TraceId}, IsDatabaseError: {IsDatabaseError}, IsAntiforgeryError: {IsAntiforgeryError}",
                 context.Request.Path,
                 context.Request.Method,
                 context.Response.StatusCode,
                 context.TraceIdentifier,
-                isDatabaseError);
+                isDatabaseError,
+                isAntiforgeryError);
 
             // Log additional context
             LogExceptionDetails(ex, context);
@@ -52,6 +67,44 @@ public class GlobalExceptionHandlerMiddleware
             // Re-throw to let ASP.NET Core's exception handler handle the response
             throw;
         }
+    }
+
+    private bool IsAntiforgeryException(Exception ex)
+    {
+        // Check for antiforgery validation exceptions
+        var exceptionType = ex.GetType().FullName ?? "";
+        var exceptionMessage = ex.Message.ToLower();
+        
+        // Check current exception
+        if (exceptionType.Contains("AntiforgeryValidationException") || 
+            exceptionType.Contains("Antiforgery") ||
+            exceptionMessage.Contains("antiforgery") ||
+            exceptionMessage.Contains("invalid token") ||
+            exceptionMessage.Contains("the antiforgery token"))
+        {
+            return true;
+        }
+        
+        // Check inner exceptions
+        var innerException = ex.InnerException;
+        while (innerException != null)
+        {
+            var innerType = innerException.GetType().FullName ?? "";
+            var innerMessage = innerException.Message.ToLower();
+            
+            if (innerType.Contains("AntiforgeryValidationException") || 
+                innerType.Contains("Antiforgery") ||
+                innerMessage.Contains("antiforgery") ||
+                innerMessage.Contains("invalid token") ||
+                innerMessage.Contains("the antiforgery token"))
+            {
+                return true;
+            }
+            
+            innerException = innerException.InnerException;
+        }
+        
+        return false;
     }
 
     private bool IsDatabaseException(Exception ex)
