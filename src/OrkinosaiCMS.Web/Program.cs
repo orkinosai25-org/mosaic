@@ -402,17 +402,20 @@ try
     app.UseAuthorization();
 
     // Endpoint mappings
-    app.MapStaticAssets();  // Optimized static assets for Blazor
-    app.MapControllers();   // API controllers for portal integration
+    app.MapControllers();  // API controllers for portal integration
+    
+    // Map Blazor components to specific routes only (admin and cms paths)
     app.MapRazorComponents<App>()  // Blazor CMS admin routes
         .AddInteractiveServerRenderMode();
 
-    // SPA Fallback: Serve React portal (index.html) for non-API, non-Blazor routes
+    // SPA Fallback: Serve React portal (index.html) for root and other non-Blazor routes
     // This ensures the portal landing page shows at root URL
-    // IMPORTANT: Blazor routes (/admin/*) and API routes (/api/*) should NOT fall through to index.html
-    // Use pattern constraint to exclude /api/* and /_* (Blazor infrastructure) routes
+    // IMPORTANT: This should catch any route that's not handled by Blazor or API controllers
+    // The fallback will serve index.html for unmatched routes, allowing the React router to handle them
+    // NOTE: MapStaticAssets() was removed to avoid conflicting fallback routes
+    // Static files are still served via UseStaticFiles() middleware configured earlier
     // NOTE: In test environment, index.html may not exist, so root (/) will return 404
-    app.MapFallbackToFile("{*path:regex(^(?!api|_).*$)}", "index.html", CreateNoCacheStaticFileOptions());
+    app.MapFallbackToFile("index.html", CreateNoCacheStaticFileOptions());
 
     if (builder.Environment.EnvironmentName != "Testing")
     {

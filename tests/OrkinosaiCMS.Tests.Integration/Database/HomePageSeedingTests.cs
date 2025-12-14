@@ -7,7 +7,9 @@ using OrkinosaiCMS.Tests.Integration.Fixtures;
 namespace OrkinosaiCMS.Tests.Integration.Database;
 
 /// <summary>
-/// Integration tests for home page seeding and validation
+/// Integration tests for CMS demo home page seeding and validation
+/// Note: The root "/" path is reserved for the SaaS portal (React app)
+/// The CMS demo home page is at "/cms"
 /// </summary>
 public class HomePageSeedingTests : IClassFixture<CustomWebApplicationFactory>
 {
@@ -19,20 +21,20 @@ public class HomePageSeedingTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task SeedData_ShouldCreateHomePageAtRootPath()
+    public async Task SeedData_ShouldCreateCmsHomePageAtCmsPath()
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         // Act
-        var homePage = await context.Pages
-            .FirstOrDefaultAsync(p => p.Path == "/");
+        var cmsHomePage = await context.Pages
+            .FirstOrDefaultAsync(p => p.Path == "/cms");
 
         // Assert
-        homePage.Should().NotBeNull("a home page at path '/' should exist after seeding");
-        homePage!.Title.Should().NotBeNullOrEmpty();
-        homePage.IsPublished.Should().BeTrue("the home page should be published");
+        cmsHomePage.Should().NotBeNull("a CMS demo home page at path '/cms' should exist after seeding");
+        cmsHomePage!.Title.Should().NotBeNullOrEmpty();
+        cmsHomePage.IsPublished.Should().BeTrue("the CMS demo home page should be published");
     }
 
     [Fact]
@@ -52,37 +54,37 @@ public class HomePageSeedingTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task SeedData_HomePageShouldBeInNavigation()
+    public async Task SeedData_CmsHomePageShouldBeInNavigation()
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         // Act
-        var homePage = await context.Pages
-            .FirstOrDefaultAsync(p => p.Path == "/");
+        var cmsHomePage = await context.Pages
+            .FirstOrDefaultAsync(p => p.Path == "/cms");
 
         // Assert
-        homePage.Should().NotBeNull();
-        homePage!.ShowInNavigation.Should().BeTrue("home page should appear in navigation");
+        cmsHomePage.Should().NotBeNull();
+        cmsHomePage!.ShowInNavigation.Should().BeTrue("CMS demo home page should appear in navigation");
     }
 
     [Fact]
-    public async Task SeedData_HomePageShouldHaveValidMasterPage()
+    public async Task SeedData_CmsHomePageShouldHaveValidMasterPage()
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         // Act
-        var homePage = await context.Pages
+        var cmsHomePage = await context.Pages
             .Include(p => p.Site)
-            .FirstOrDefaultAsync(p => p.Path == "/");
+            .FirstOrDefaultAsync(p => p.Path == "/cms");
 
         // Assert
-        homePage.Should().NotBeNull();
-        homePage!.MasterPageId.Should().NotBeNull("home page should have a master page assigned");
-        homePage.SiteId.Should().BeGreaterThan(0, "home page should belong to a site");
+        cmsHomePage.Should().NotBeNull();
+        cmsHomePage!.MasterPageId.Should().NotBeNull("CMS demo home page should have a master page assigned");
+        cmsHomePage.SiteId.Should().BeGreaterThan(0, "CMS demo home page should belong to a site");
     }
 
     [Fact]
@@ -100,23 +102,23 @@ public class HomePageSeedingTests : IClassFixture<CustomWebApplicationFactory>
 
         // Assert
         navigationPages.Should().NotBeEmpty("navigation should have at least one page");
-        // The primary home page at "/" should be in navigation
-        navigationPages.Should().Contain(p => p.Path == "/", 
-            "navigation should include the primary home page at '/'");
+        // The CMS demo home page at "/cms" should be in navigation
+        navigationPages.Should().Contain(p => p.Path == "/cms", 
+            "navigation should include the CMS demo home page at '/cms'");
     }
 
     [Fact]
-    public async Task ValidateAndRepair_ShouldCreateHomePageIfMissing()
+    public async Task ValidateAndRepair_ShouldCreateCmsHomePageIfMissing()
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        // Remove home page if it exists (for testing repair functionality)
-        var existingHomePage = await context.Pages.FirstOrDefaultAsync(p => p.Path == "/");
-        if (existingHomePage != null)
+        // Remove CMS home page if it exists (for testing repair functionality)
+        var existingCmsHomePage = await context.Pages.FirstOrDefaultAsync(p => p.Path == "/cms");
+        if (existingCmsHomePage != null)
         {
-            context.Pages.Remove(existingHomePage);
+            context.Pages.Remove(existingCmsHomePage);
             await context.SaveChangesAsync();
         }
 
@@ -124,37 +126,37 @@ public class HomePageSeedingTests : IClassFixture<CustomWebApplicationFactory>
         await SeedData.InitializeAsync(scope.ServiceProvider);
 
         // Assert
-        var homePage = await context.Pages.FirstOrDefaultAsync(p => p.Path == "/");
-        homePage.Should().NotBeNull("home page should be created by auto-repair");
-        homePage!.IsPublished.Should().BeTrue("auto-created home page should be published");
+        var cmsHomePage = await context.Pages.FirstOrDefaultAsync(p => p.Path == "/cms");
+        cmsHomePage.Should().NotBeNull("CMS demo home page should be created by auto-repair");
+        cmsHomePage!.IsPublished.Should().BeTrue("auto-created CMS demo home page should be published");
     }
 
     [Fact]
-    public async Task ValidateAndRepair_ShouldPublishUnpublishedHomePage()
+    public async Task ValidateAndRepair_ShouldPublishUnpublishedCmsHomePage()
     {
         // Arrange
         using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        // Unpublish home page if it exists
-        var homePage = await context.Pages.FirstOrDefaultAsync(p => p.Path == "/");
-        if (homePage != null)
+        // Unpublish CMS home page if it exists
+        var cmsHomePage = await context.Pages.FirstOrDefaultAsync(p => p.Path == "/cms");
+        if (cmsHomePage != null)
         {
-            homePage.IsPublished = false;
+            cmsHomePage.IsPublished = false;
             await context.SaveChangesAsync();
             
             // Detach the entity so we can get a fresh copy after validation
-            context.Entry(homePage).State = EntityState.Detached;
+            context.Entry(cmsHomePage).State = EntityState.Detached;
         }
 
         // Act - Call the seed data initialization which includes validation
         await SeedData.InitializeAsync(scope.ServiceProvider);
 
         // Assert - Reload from database to get updated state
-        var reloadedHomePage = await context.Pages
+        var reloadedCmsHomePage = await context.Pages
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Path == "/");
-        reloadedHomePage.Should().NotBeNull();
-        reloadedHomePage!.IsPublished.Should().BeTrue("unpublished home page should be auto-published");
+            .FirstOrDefaultAsync(p => p.Path == "/cms");
+        reloadedCmsHomePage.Should().NotBeNull();
+        reloadedCmsHomePage!.IsPublished.Should().BeTrue("unpublished CMS demo home page should be auto-published");
     }
 }
