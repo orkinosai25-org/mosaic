@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Entities.Subscriptions;
 
@@ -6,8 +9,9 @@ namespace OrkinosaiCMS.Infrastructure.Data;
 
 /// <summary>
 /// Main database context for the OrkinosaiCMS
+/// Now integrates with ASP.NET Core Identity following Oqtane's approach
 /// </summary>
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -26,11 +30,12 @@ public class ApplicationDbContext : DbContext
     // Themes
     public DbSet<Theme> Themes => Set<Theme>();
 
-    // Users and Permissions
-    public DbSet<User> Users => Set<User>();
-    public DbSet<Role> Roles => Set<Role>();
+    // Users and Permissions (legacy tables for backward compatibility)
+    // Note: Identity uses AspNetUsers, AspNetRoles, AspNetUserRoles tables
+    public DbSet<User> LegacyUsers => Set<User>();
+    public DbSet<Role> LegacyRoles => Set<Role>();
     public DbSet<Permission> Permissions => Set<Permission>();
-    public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<UserRole> LegacyUserRoles => Set<UserRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     // Content
@@ -49,7 +54,19 @@ public class ApplicationDbContext : DbContext
         // Apply configurations
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-        // Configure soft delete filter
+        // Configure Identity tables with custom names to avoid conflicts
+        modelBuilder.Entity<ApplicationUser>().ToTable("AspNetUsers");
+        modelBuilder.Entity<IdentityRole<int>>().ToTable("AspNetRoles");
+        modelBuilder.Entity<IdentityUserRole<int>>().ToTable("AspNetUserRoles");
+        modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("AspNetUserClaims");
+        modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("AspNetUserLogins");
+        modelBuilder.Entity<IdentityUserToken<int>>().ToTable("AspNetUserTokens");
+        modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("AspNetRoleClaims");
+
+        // Configure soft delete filter for ApplicationUser
+        modelBuilder.Entity<ApplicationUser>().HasQueryFilter(e => !e.IsDeleted);
+
+        // Configure soft delete filter for existing entities
         modelBuilder.Entity<Site>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Page>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<MasterPage>().HasQueryFilter(e => !e.IsDeleted);
@@ -87,6 +104,23 @@ public class ApplicationDbContext : DbContext
             if (entry.State == EntityState.Modified)
             {
                 entity.ModifiedOn = DateTime.UtcNow;
+            }
+        }
+
+        // Handle ApplicationUser timestamps
+        var userEntries = ChangeTracker.Entries<ApplicationUser>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+        foreach (var entry in userEntries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedOn = DateTime.UtcNow;
+            }
+            
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.ModifiedOn = DateTime.UtcNow;
             }
         }
 

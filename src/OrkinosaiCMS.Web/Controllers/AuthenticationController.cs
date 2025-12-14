@@ -1,42 +1,38 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using OrkinosaiCMS.Core.Interfaces.Services;
+using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Shared.DTOs.Authentication;
-using OrkinosaiCMS.Web.Constants;
 using System.Security.Claims;
 
 namespace OrkinosaiCMS.Web.Controllers;
 
 /// <summary>
-/// Authentication API controller for user login/logout operations
-/// Follows patterns from Oqtane and Umbraco for production-ready authentication
+/// Authentication API controller using ASP.NET Core Identity
+/// Copied from Oqtane's proven implementation for production-ready authentication
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthenticationController : ControllerBase
 {
-    private readonly IUserService _userService;
-    private readonly IRoleService _roleService;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ILogger<AuthenticationController> _logger;
 
     public AuthenticationController(
-        IUserService userService,
-        IRoleService roleService,
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
         ILogger<AuthenticationController> logger)
     {
-        _userService = userService;
-        _roleService = roleService;
+        _userManager = userManager;
+        _signInManager = signInManager;
         _logger = logger;
     }
 
     /// <summary>
-    /// Login endpoint that authenticates a user and sets authentication cookie
+    /// Login endpoint using ASP.NET Core Identity (Oqtane pattern)
     /// POST /api/authentication/login
     /// </summary>
-    /// <param name="request">Login credentials</param>
-    /// <returns>Login response with user information or error</returns>
     [HttpPost("login")]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -47,7 +43,6 @@ public class AuthenticationController : ControllerBase
 
         if (!ModelState.IsValid)
         {
-            _logger.LogWarning("Login request validation failed for username: {Username}", request.Username);
             return BadRequest(new LoginResponse
             {
                 Success = false,
@@ -57,13 +52,12 @@ public class AuthenticationController : ControllerBase
 
         try
         {
-            // Verify password using existing UserService
-            _logger.LogDebug("Verifying password for user: {Username}", request.Username);
-            var isValid = await _userService.VerifyPasswordAsync(request.Username, request.Password);
-
-            if (!isValid)
+            // Find user by username using Identity's UserManager (Oqtane approach)
+            var identityUser = await _userManager.FindByNameAsync(request.Username);
+            
+            if (identityUser == null)
             {
-                _logger.LogWarning("Password verification failed for user: {Username}", request.Username);
+                _logger.LogWarning("User not found: {Username}", request.Username);
                 return Unauthorized(new LoginResponse
                 {
                     Success = false,
@@ -71,31 +65,8 @@ public class AuthenticationController : ControllerBase
                 });
             }
 
-            // Get user details
-            _logger.LogDebug("Fetching user details for: {Username}", request.Username);
-            var user = await _userService.GetByUsernameAsync(request.Username);
-            
-            if (user == null)
-            {
-                _logger.LogError("User not found after password verification: {Username}", request.Username);
-                return Unauthorized(new LoginResponse
-                {
-                    Success = false,
-                    ErrorMessage = "User not found."
-                });
-            }
-
-            if (!user.IsActive)
-            {
-                _logger.LogWarning("Inactive user attempted login: {Username}", request.Username);
-                return Unauthorized(new LoginResponse
-                {
-                    Success = false,
-                    ErrorMessage = "User account is inactive."
-                });
-            }
-
-            if (user.IsDeleted)
+            // Check if account is deleted (soft delete)
+            if (identityUser.IsDeleted)
             {
                 _logger.LogWarning("Deleted user attempted login: {Username}", request.Username);
                 return Unauthorized(new LoginResponse
@@ -105,73 +76,89 @@ public class AuthenticationController : ControllerBase
                 });
             }
 
-            // Get user's roles
-            _logger.LogDebug("Fetching roles for user: {Username}", request.Username);
-            var userRoles = await _userService.GetUserRolesAsync(user.Id);
-            var primaryRole = userRoles?.FirstOrDefault()?.Name ?? "User";
+            // Use SignInManager to check password (Oqtane pattern)
+            // This handles password verification, lockout, and two-factor
+            var result = await _signInManager.CheckPasswordSignInAsync(identityUser, request.Password, lockoutOnFailure: true);
 
-            // Create claims for the user (similar to Oqtane's approach)
-            var claims = new List<Claim>
+            if (result.Succeeded)
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim("DisplayName", user.DisplayName),
-                new Claim(ClaimTypes.Role, primaryRole)
-            };
-
-            // Add all roles as claims
-            if (userRoles != null)
-            {
-                foreach (var role in userRoles)
+                // Check if email confirmation is required
+                if (!identityUser.EmailConfirmed && _userManager.Options.SignIn.RequireConfirmedEmail)
                 {
-                    if (role.Name != primaryRole) // Avoid duplicate primary role
+                    _logger.LogWarning("User login denied - Email not confirmed: {Username}", request.Username);
+                    return Unauthorized(new LoginResponse
                     {
-                        claims.Add(new Claim(ClaimTypes.Role, role.Name));
-                    }
+                        Success = false,
+                        ErrorMessage = "Please confirm your email address before logging in."
+                    });
                 }
-            }
 
-            // Create claims identity with authentication type
-            var claimsIdentity = new ClaimsIdentity(claims, "DefaultAuthScheme");
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+                // Sign in the user using SignInManager (Oqtane approach)
+                await _signInManager.SignInAsync(identityUser, request.RememberMe);
 
-            // Sign in the user with cookie authentication (following Oqtane pattern)
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = request.RememberMe,
-                ExpiresUtc = request.RememberMe 
-                    ? DateTimeOffset.UtcNow.AddDays(AuthenticationConstants.RememberMeCookieExpirationDays) 
-                    : DateTimeOffset.UtcNow.AddHours(AuthenticationConstants.DefaultCookieExpirationHours),
-                AllowRefresh = true,
-                IssuedUtc = DateTimeOffset.UtcNow
-            };
+                // Update last login information
+                identityUser.LastLoginOn = DateTime.UtcNow;
+                identityUser.LastIPAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                await _userManager.UpdateAsync(identityUser);
 
-            await HttpContext.SignInAsync(
-                AuthenticationConstants.DefaultAuthScheme,
-                claimsPrincipal,
-                authProperties);
+                _logger.LogInformation("User login successful: {Username} from IP: {IP}", 
+                    identityUser.UserName, identityUser.LastIPAddress);
 
-            // Update last login timestamp
-            await _userService.UpdateLastLoginAsync(user.Id);
+                // Get user's roles
+                var roles = await _userManager.GetRolesAsync(identityUser);
+                var primaryRole = roles.FirstOrDefault() ?? "User";
 
-            _logger.LogInformation("User login successful: {Username}, Role: {Role}", user.Username, primaryRole);
-
-            // Return success response with user info
-            return Ok(new LoginResponse
-            {
-                Success = true,
-                User = new UserInfo
+                return Ok(new LoginResponse
                 {
-                    UserId = user.Id,
-                    Username = user.Username,
-                    Email = user.Email,
-                    DisplayName = user.DisplayName,
-                    Role = primaryRole,
-                    IsAuthenticated = true,
-                    LastLoginOn = user.LastLoginOn
-                }
-            });
+                    Success = true,
+                    User = new UserInfo
+                    {
+                        UserId = identityUser.Id,
+                        Username = identityUser.UserName ?? string.Empty,
+                        Email = identityUser.Email ?? string.Empty,
+                        DisplayName = identityUser.DisplayName,
+                        Role = primaryRole,
+                        IsAuthenticated = true,
+                        LastLoginOn = identityUser.LastLoginOn
+                    }
+                });
+            }
+            else if (result.IsLockedOut)
+            {
+                _logger.LogWarning("User account locked out: {Username}", request.Username);
+                return Unauthorized(new LoginResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Account locked due to multiple failed login attempts. Please try again later."
+                });
+            }
+            else if (result.IsNotAllowed)
+            {
+                _logger.LogWarning("User login not allowed: {Username}", request.Username);
+                return Unauthorized(new LoginResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Login not allowed. Please confirm your account."
+                });
+            }
+            else if (result.RequiresTwoFactor)
+            {
+                _logger.LogInformation("Two-factor authentication required for: {Username}", request.Username);
+                return Ok(new LoginResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Two-factor authentication required."
+                });
+            }
+            else
+            {
+                _logger.LogWarning("Invalid password for user: {Username}", request.Username);
+                return Unauthorized(new LoginResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid username or password."
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -186,10 +173,9 @@ public class AuthenticationController : ControllerBase
     }
 
     /// <summary>
-    /// Logout endpoint that signs out the user and clears authentication cookie
+    /// Logout endpoint using Identity's SignInManager (Oqtane pattern)
     /// POST /api/authentication/logout
     /// </summary>
-    /// <returns>Success status</returns>
     [HttpPost("logout")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -200,7 +186,8 @@ public class AuthenticationController : ControllerBase
 
         try
         {
-            await HttpContext.SignOutAsync(AuthenticationConstants.DefaultAuthScheme);
+            // Use SignInManager.SignOutAsync (Oqtane approach)
+            await _signInManager.SignOutAsync();
             
             _logger.LogInformation("User logout successful: {Username}", username);
             
@@ -217,7 +204,6 @@ public class AuthenticationController : ControllerBase
     /// Check current authentication status
     /// GET /api/authentication/status
     /// </summary>
-    /// <returns>Authentication status and user info if authenticated</returns>
     [HttpGet("status")]
     [ProducesResponseType(typeof(AuthenticateResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAuthenticationStatus()
@@ -230,26 +216,25 @@ public class AuthenticationController : ControllerBase
             {
                 try
                 {
-                    // Verify user still exists and is active
-                    var user = await _userService.GetByIdAsync(userId);
+                    var identityUser = await _userManager.FindByIdAsync(userId.ToString());
                     
-                    if (user != null && user.IsActive && !user.IsDeleted)
+                    if (identityUser != null && !identityUser.IsDeleted)
                     {
-                        var userRoles = await _userService.GetUserRolesAsync(user.Id);
-                        var primaryRole = userRoles?.FirstOrDefault()?.Name ?? "User";
+                        var roles = await _userManager.GetRolesAsync(identityUser);
+                        var primaryRole = roles.FirstOrDefault() ?? "User";
 
                         return Ok(new AuthenticateResponse
                         {
                             IsAuthenticated = true,
                             User = new UserInfo
                             {
-                                UserId = user.Id,
-                                Username = user.Username,
-                                Email = user.Email,
-                                DisplayName = user.DisplayName,
+                                UserId = identityUser.Id,
+                                Username = identityUser.UserName ?? string.Empty,
+                                Email = identityUser.Email ?? string.Empty,
+                                DisplayName = identityUser.DisplayName,
                                 Role = primaryRole,
                                 IsAuthenticated = true,
-                                LastLoginOn = user.LastLoginOn
+                                LastLoginOn = identityUser.LastLoginOn
                             }
                         });
                     }
@@ -269,11 +254,9 @@ public class AuthenticationController : ControllerBase
     }
 
     /// <summary>
-    /// Validates user credentials without creating a session (for API clients)
+    /// Validates user credentials without creating a session
     /// POST /api/authentication/validate
     /// </summary>
-    /// <param name="request">Login credentials</param>
-    /// <returns>Validation result</returns>
     [HttpPost("validate")]
     [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -292,9 +275,9 @@ public class AuthenticationController : ControllerBase
 
         try
         {
-            var isValid = await _userService.VerifyPasswordAsync(request.Username, request.Password);
-
-            if (!isValid)
+            var identityUser = await _userManager.FindByNameAsync(request.Username);
+            
+            if (identityUser == null || identityUser.IsDeleted)
             {
                 return Ok(new LoginResponse
                 {
@@ -303,33 +286,34 @@ public class AuthenticationController : ControllerBase
                 });
             }
 
-            var user = await _userService.GetByUsernameAsync(request.Username);
-            
-            if (user == null || !user.IsActive || user.IsDeleted)
+            // Check password without signing in
+            var result = await _signInManager.CheckPasswordSignInAsync(identityUser, request.Password, lockoutOnFailure: false);
+
+            if (result.Succeeded)
             {
+                var roles = await _userManager.GetRolesAsync(identityUser);
+                var primaryRole = roles.FirstOrDefault() ?? "User";
+
                 return Ok(new LoginResponse
                 {
-                    Success = false,
-                    ErrorMessage = "User account is not available."
+                    Success = true,
+                    User = new UserInfo
+                    {
+                        UserId = identityUser.Id,
+                        Username = identityUser.UserName ?? string.Empty,
+                        Email = identityUser.Email ?? string.Empty,
+                        DisplayName = identityUser.DisplayName,
+                        Role = primaryRole,
+                        IsAuthenticated = false,
+                        LastLoginOn = identityUser.LastLoginOn
+                    }
                 });
             }
 
-            var userRoles = await _userService.GetUserRolesAsync(user.Id);
-            var primaryRole = userRoles?.FirstOrDefault()?.Name ?? "User";
-
             return Ok(new LoginResponse
             {
-                Success = true,
-                User = new UserInfo
-                {
-                    UserId = user.Id,
-                    Username = user.Username,
-                    Email = user.Email,
-                    DisplayName = user.DisplayName,
-                    Role = primaryRole,
-                    IsAuthenticated = false, // Not creating a session
-                    LastLoginOn = user.LastLoginOn
-                }
+                Success = false,
+                ErrorMessage = "Invalid username or password."
             });
         }
         catch (Exception ex)
