@@ -454,3 +454,6 @@ src/OrkinosaiCMS.Web/wwwroot/assets/
 # Serilog log files
 src/OrkinosaiCMS.Web/App_Data/Logs/*.log
 src/OrkinosaiCMS.Web/App_Data/Logs/*.txt
+
+# Data Protection keys (contain sensitive cryptographic keys)
+**/App_Data/DataProtection-Keys/*.xml
