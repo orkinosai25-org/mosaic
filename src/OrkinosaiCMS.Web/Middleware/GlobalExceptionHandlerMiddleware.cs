@@ -73,14 +73,13 @@ public class GlobalExceptionHandlerMiddleware
     {
         // Check for antiforgery validation exceptions
         var exceptionType = ex.GetType().FullName ?? "";
-        var exceptionMessage = ex.Message.ToLower();
         
-        // Check current exception
-        if (exceptionType.Contains("AntiforgeryValidationException") || 
-            exceptionType.Contains("Antiforgery") ||
-            exceptionMessage.Contains("antiforgery") ||
-            exceptionMessage.Contains("invalid token") ||
-            exceptionMessage.Contains("the antiforgery token"))
+        // Check current exception using case-insensitive comparison
+        if (exceptionType.Contains("AntiforgeryValidationException", StringComparison.OrdinalIgnoreCase) || 
+            exceptionType.Contains("Antiforgery", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("antiforgery", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("invalid token", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("the antiforgery token", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -90,13 +89,12 @@ public class GlobalExceptionHandlerMiddleware
         while (innerException != null)
         {
             var innerType = innerException.GetType().FullName ?? "";
-            var innerMessage = innerException.Message.ToLower();
             
-            if (innerType.Contains("AntiforgeryValidationException") || 
-                innerType.Contains("Antiforgery") ||
-                innerMessage.Contains("antiforgery") ||
-                innerMessage.Contains("invalid token") ||
-                innerMessage.Contains("the antiforgery token"))
+            if (innerType.Contains("AntiforgeryValidationException", StringComparison.OrdinalIgnoreCase) || 
+                innerType.Contains("Antiforgery", StringComparison.OrdinalIgnoreCase) ||
+                innerException.Message.Contains("antiforgery", StringComparison.OrdinalIgnoreCase) ||
+                innerException.Message.Contains("invalid token", StringComparison.OrdinalIgnoreCase) ||
+                innerException.Message.Contains("the antiforgery token", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -111,14 +109,13 @@ public class GlobalExceptionHandlerMiddleware
     {
         // Check for SQL exceptions and timeout errors
         var exceptionType = ex.GetType().FullName ?? "";
-        var exceptionMessage = ex.Message.ToLower();
         
-        // Check current exception
-        if (exceptionType.Contains("SqlException") || 
-            exceptionType.Contains("DbUpdateException") ||
-            (exceptionMessage.Contains("timeout") && exceptionMessage.Contains("sql")) ||
-            (exceptionMessage.Contains("connection") && exceptionMessage.Contains("database")) ||
-            exceptionMessage.Contains("cannot open database"))
+        // Check current exception using case-insensitive comparison
+        if (exceptionType.Contains("SqlException", StringComparison.OrdinalIgnoreCase) || 
+            exceptionType.Contains("DbUpdateException", StringComparison.OrdinalIgnoreCase) ||
+            (ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) && ex.Message.Contains("sql", StringComparison.OrdinalIgnoreCase)) ||
+            (ex.Message.Contains("connection", StringComparison.OrdinalIgnoreCase) && ex.Message.Contains("database", StringComparison.OrdinalIgnoreCase)) ||
+            ex.Message.Contains("cannot open database", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -128,13 +125,12 @@ public class GlobalExceptionHandlerMiddleware
         while (innerException != null)
         {
             var innerType = innerException.GetType().FullName ?? "";
-            var innerMessage = innerException.Message.ToLower();
             
-            if (innerType.Contains("SqlException") || 
-                innerType.Contains("DbUpdateException") ||
-                (innerMessage.Contains("timeout") && innerMessage.Contains("sql")) ||
-                (innerMessage.Contains("connection") && innerMessage.Contains("database")) ||
-                innerMessage.Contains("cannot open database"))
+            if (innerType.Contains("SqlException", StringComparison.OrdinalIgnoreCase) || 
+                innerType.Contains("DbUpdateException", StringComparison.OrdinalIgnoreCase) ||
+                (innerException.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) && innerException.Message.Contains("sql", StringComparison.OrdinalIgnoreCase)) ||
+                (innerException.Message.Contains("connection", StringComparison.OrdinalIgnoreCase) && innerException.Message.Contains("database", StringComparison.OrdinalIgnoreCase)) ||
+                innerException.Message.Contains("cannot open database", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

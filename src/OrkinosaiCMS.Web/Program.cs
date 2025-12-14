@@ -109,6 +109,14 @@ try
     // Configure Data Protection for Azure App Service multi-instance deployments
     // Without this, antiforgery tokens will fail when load balanced across multiple instances
     // Each instance generates different keys, causing validation failures
+    //
+    // AZURE APP SERVICE NOTE:
+    // - ContentRootPath in Azure maps to /home/site/wwwroot which is persistent storage
+    // - This directory is shared across scale-out instances via Azure Files
+    // - Keys persist across app restarts and deployments
+    // - For production with multiple App Services, consider Azure Blob Storage or Key Vault:
+    //   .PersistKeysToAzureBlobStorage(blobUri)
+    //   .ProtectKeysWithAzureKeyVault(keyId, credential)
     var dataProtectionPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtection-Keys");
     builder.Services.AddDataProtection()
         .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
