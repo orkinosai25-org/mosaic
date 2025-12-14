@@ -59,6 +59,22 @@ public class RequestLoggingMiddleware
                 requestId,
                 hasAntiforgeryCookie,
                 string.Join(", ", context.Request.Cookies.Keys.Take(5))); // Log first 5 cookie names for debugging
+            
+            // Special logging for Blazor Server endpoints
+            if (context.Request.Path.StartsWithSegments("/admin") || 
+                context.Request.Path.StartsWithSegments("/_blazor"))
+            {
+                // Check for antiforgery-related headers (optimize by checking once)
+                var hasAntiforgeryHeader = context.Request.Headers.ContainsKey("RequestVerificationToken") || 
+                                          context.Request.Headers.ContainsKey("X-CSRF-TOKEN");
+                
+                _logger.LogInformation(
+                    "=> Blazor POST [{TraceId}] - Path: {Path}, ContentType: {ContentType}, HasAntiforgeryHeader: {HasHeader}",
+                    requestId,
+                    context.Request.Path,
+                    context.Request.ContentType,
+                    hasAntiforgeryHeader);
+            }
         }
 
         Exception? capturedException = null;

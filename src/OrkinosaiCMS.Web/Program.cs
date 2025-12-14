@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
@@ -91,6 +92,55 @@ try
         // Add global filter to log model validation errors
         options.Filters.Add<OrkinosaiCMS.Web.Filters.ModelValidationLoggingFilter>();
     });
+
+    // Configure Antiforgery for Blazor Server
+    // This is REQUIRED for Blazor Server forms and interactive components
+    builder.Services.AddAntiforgery(options =>
+    {
+        // Configure cookie settings for Azure App Service deployments
+        options.Cookie.Name = ".AspNetCore.Antiforgery";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow HTTP in dev, require HTTPS in prod
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        // Make cookie essential so it's not blocked by consent requirements
+        options.Cookie.IsEssential = true;
+    });
+
+    // Configure Data Protection for Azure App Service multi-instance deployments
+    // Without this, antiforgery tokens will fail when load balanced across multiple instances
+    // Each instance generates different keys, causing validation failures
+    //
+    // AZURE APP SERVICE NOTE:
+    // - ContentRootPath in Azure maps to /home/site/wwwroot which is persistent storage
+    // - This directory is shared across scale-out instances via Azure Files
+    // - Keys persist across app restarts and deployments
+    // - For production with multiple App Services, consider Azure Blob Storage or Key Vault:
+    //   .PersistKeysToAzureBlobStorage(blobUri)
+    //   .ProtectKeysWithAzureKeyVault(keyId, credential)
+    var dataProtectionPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtection-Keys");
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
+        .SetApplicationName("OrkinosaiCMS");
+    
+    // Ensure data protection directory exists
+    try
+    {
+        if (!Directory.Exists(dataProtectionPath))
+        {
+            Directory.CreateDirectory(dataProtectionPath);
+            if (builder.Environment.EnvironmentName != "Testing")
+            {
+                Log.Information("Created data protection keys directory: {Path}", dataProtectionPath);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        if (builder.Environment.EnvironmentName != "Testing")
+        {
+            Log.Warning(ex, "Failed to create data protection keys directory at {Path}. Keys will be stored in memory (not recommended for production)", dataProtectionPath);
+        }
+    }
 
     // Add Authentication and Authorization
     // Configure default authentication scheme to allow anonymous access by default
@@ -374,13 +424,24 @@ try
     app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
     app.UseHttpsRedirection();
 
-    // Configure antiforgery with error logging
+    // Middleware: Serve static files from wwwroot (includes React portal assets)
+    app.UseStaticFiles();
+
+    // Authentication and Authorization middleware
+    // These must be added after UseRouting (implicit) and before endpoint mapping
+    // Allows anonymous access by default - admin routes use AuthorizeView with custom authentication
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    // Configure antiforgery AFTER authentication/authorization and BEFORE endpoint mapping
+    // This is critical for Blazor Server forms to work correctly
+    // Antiforgery middleware validates tokens on POST requests
     try
     {
         app.UseAntiforgery();
         if (app.Environment.EnvironmentName != "Testing")
         {
-            Log.Information("Antiforgery middleware configured");
+            Log.Information("Antiforgery middleware configured (after authentication)");
         }
     }
     catch (Exception ex)
@@ -391,15 +452,6 @@ try
         }
         throw;
     }
-
-    // Middleware: Serve static files from wwwroot (includes React portal assets)
-    app.UseStaticFiles();
-
-    // Authentication and Authorization middleware
-    // These must be added after UseRouting (implicit) and before endpoint mapping
-    // Allows anonymous access by default - admin routes use AuthorizeView with custom authentication
-    app.UseAuthentication();
-    app.UseAuthorization();
 
     // Endpoint mappings
     app.MapControllers();  // API controllers for portal integration

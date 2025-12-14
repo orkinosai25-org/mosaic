@@ -30,6 +30,20 @@ public class GlobalExceptionHandlerMiddleware
         }
         catch (Exception ex)
         {
+            // Check if this is an antiforgery validation failure
+            var isAntiforgeryError = IsAntiforgeryException(ex);
+            if (isAntiforgeryError)
+            {
+                context.Items["AntiforgeryError"] = true;
+                _logger.LogError(ex, 
+                    "ANTIFORGERY VALIDATION FAILED - Path: {Path}, Method: {Method}, TraceId: {TraceId}, HasAntiforgeryCookie: {HasCookie}, IsHttps: {IsHttps}",
+                    context.Request.Path,
+                    context.Request.Method,
+                    context.TraceIdentifier,
+                    context.Request.Cookies.Keys.Any(k => k.Contains("Antiforgery", StringComparison.OrdinalIgnoreCase)),
+                    context.Request.IsHttps);
+            }
+
             // Check if this is a database connectivity error
             var isDatabaseError = IsDatabaseException(ex);
             if (isDatabaseError)
@@ -39,12 +53,13 @@ public class GlobalExceptionHandlerMiddleware
 
             // Log the exception with full details
             _logger.LogError(ex, 
-                "Unhandled exception occurred. Path: {Path}, Method: {Method}, StatusCode: {StatusCode}, TraceId: {TraceId}, IsDatabaseError: {IsDatabaseError}",
+                "Unhandled exception occurred. Path: {Path}, Method: {Method}, StatusCode: {StatusCode}, TraceId: {TraceId}, IsDatabaseError: {IsDatabaseError}, IsAntiforgeryError: {IsAntiforgeryError}",
                 context.Request.Path,
                 context.Request.Method,
                 context.Response.StatusCode,
                 context.TraceIdentifier,
-                isDatabaseError);
+                isDatabaseError,
+                isAntiforgeryError);
 
             // Log additional context
             LogExceptionDetails(ex, context);
@@ -54,18 +69,17 @@ public class GlobalExceptionHandlerMiddleware
         }
     }
 
-    private bool IsDatabaseException(Exception ex)
+    private bool IsAntiforgeryException(Exception ex)
     {
-        // Check for SQL exceptions and timeout errors
+        // Check for antiforgery validation exceptions
         var exceptionType = ex.GetType().FullName ?? "";
-        var exceptionMessage = ex.Message.ToLower();
         
-        // Check current exception
-        if (exceptionType.Contains("SqlException") || 
-            exceptionType.Contains("DbUpdateException") ||
-            (exceptionMessage.Contains("timeout") && exceptionMessage.Contains("sql")) ||
-            (exceptionMessage.Contains("connection") && exceptionMessage.Contains("database")) ||
-            exceptionMessage.Contains("cannot open database"))
+        // Check current exception using case-insensitive comparison
+        if (exceptionType.Contains("AntiforgeryValidationException", StringComparison.OrdinalIgnoreCase) || 
+            exceptionType.Contains("Antiforgery", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("antiforgery", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("invalid token", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("the antiforgery token", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
@@ -75,13 +89,48 @@ public class GlobalExceptionHandlerMiddleware
         while (innerException != null)
         {
             var innerType = innerException.GetType().FullName ?? "";
-            var innerMessage = innerException.Message.ToLower();
             
-            if (innerType.Contains("SqlException") || 
-                innerType.Contains("DbUpdateException") ||
-                (innerMessage.Contains("timeout") && innerMessage.Contains("sql")) ||
-                (innerMessage.Contains("connection") && innerMessage.Contains("database")) ||
-                innerMessage.Contains("cannot open database"))
+            if (innerType.Contains("AntiforgeryValidationException", StringComparison.OrdinalIgnoreCase) || 
+                innerType.Contains("Antiforgery", StringComparison.OrdinalIgnoreCase) ||
+                innerException.Message.Contains("antiforgery", StringComparison.OrdinalIgnoreCase) ||
+                innerException.Message.Contains("invalid token", StringComparison.OrdinalIgnoreCase) ||
+                innerException.Message.Contains("the antiforgery token", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            
+            innerException = innerException.InnerException;
+        }
+        
+        return false;
+    }
+
+    private bool IsDatabaseException(Exception ex)
+    {
+        // Check for SQL exceptions and timeout errors
+        var exceptionType = ex.GetType().FullName ?? "";
+        
+        // Check current exception using case-insensitive comparison
+        if (exceptionType.Contains("SqlException", StringComparison.OrdinalIgnoreCase) || 
+            exceptionType.Contains("DbUpdateException", StringComparison.OrdinalIgnoreCase) ||
+            (ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) && ex.Message.Contains("sql", StringComparison.OrdinalIgnoreCase)) ||
+            (ex.Message.Contains("connection", StringComparison.OrdinalIgnoreCase) && ex.Message.Contains("database", StringComparison.OrdinalIgnoreCase)) ||
+            ex.Message.Contains("cannot open database", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        
+        // Check inner exceptions
+        var innerException = ex.InnerException;
+        while (innerException != null)
+        {
+            var innerType = innerException.GetType().FullName ?? "";
+            
+            if (innerType.Contains("SqlException", StringComparison.OrdinalIgnoreCase) || 
+                innerType.Contains("DbUpdateException", StringComparison.OrdinalIgnoreCase) ||
+                (innerException.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) && innerException.Message.Contains("sql", StringComparison.OrdinalIgnoreCase)) ||
+                (innerException.Message.Contains("connection", StringComparison.OrdinalIgnoreCase) && innerException.Message.Contains("database", StringComparison.OrdinalIgnoreCase)) ||
+                innerException.Message.Contains("cannot open database", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
