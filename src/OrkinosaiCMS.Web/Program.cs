@@ -86,6 +86,9 @@ try
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
 
+    // Add HttpContextAccessor for accessing HttpContext in services
+    builder.Services.AddHttpContextAccessor();
+
     // Add Controllers for API endpoints with logging filter
     builder.Services.AddControllers(options =>
     {

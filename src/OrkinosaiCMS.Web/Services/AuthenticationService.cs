@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using OrkinosaiCMS.Core.Interfaces.Services;
+using System.Security.Claims;
 
 namespace OrkinosaiCMS.Web.Services;
 
 /// <summary>
 /// Service for handling authentication operations
+/// Enhanced to use ASP.NET Core cookie authentication following Oqtane/Umbraco patterns
 /// </summary>
 public class AuthenticationService : IAuthenticationService
 {
@@ -12,17 +15,20 @@ public class AuthenticationService : IAuthenticationService
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
     private readonly ILogger<AuthenticationService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public AuthenticationService(
         AuthenticationStateProvider authStateProvider,
         IUserService userService,
         IRoleService roleService,
-        ILogger<AuthenticationService> logger)
+        ILogger<AuthenticationService> logger,
+        IHttpContextAccessor httpContextAccessor)
     {
         _authStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
         _userService = userService;
         _roleService = roleService;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<bool> LoginAsync(string username, string password)
@@ -77,8 +83,55 @@ public class AuthenticationService : IAuthenticationService
                 _logger.LogWarning("User {Username} has no roles assigned, using default 'User' role", username);
             }
 
-            // Create user session
-            _logger.LogInformation("Creating user session for: {Username}", username);
+            // Create claims for cookie authentication (following Oqtane/Umbraco pattern)
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim("DisplayName", user.DisplayName),
+                new Claim(ClaimTypes.Role, primaryRole)
+            };
+
+            // Add all user roles as claims
+            if (userRoles != null)
+            {
+                foreach (var role in userRoles)
+                {
+                    if (role.Name != primaryRole) // Avoid duplicate primary role
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, role.Name));
+                    }
+                }
+            }
+
+            // Sign in using ASP.NET Core cookie authentication (production-ready approach)
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext != null)
+            {
+                _logger.LogInformation("Setting up cookie authentication for user: {Username}", username);
+                
+                var claimsIdentity = new ClaimsIdentity(claims, "DefaultAuthScheme");
+                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = false, // Default to session cookie for Blazor login
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8),
+                    AllowRefresh = true,
+                    IssuedUtc = DateTimeOffset.UtcNow
+                };
+
+                await httpContext.SignInAsync(
+                    "DefaultAuthScheme",
+                    claimsPrincipal,
+                    authProperties);
+
+                _logger.LogInformation("Cookie authentication set for user: {Username}", username);
+            }
+
+            // Create user session for Blazor state provider
+            _logger.LogInformation("Creating user session for Blazor state: {Username}", username);
             var userSession = new UserSession
             {
                 UserId = user.Id,
@@ -88,10 +141,10 @@ public class AuthenticationService : IAuthenticationService
                 Role = primaryRole
             };
 
-            // Update authentication state
-            _logger.LogInformation("Updating authentication state for user: {Username}", username);
+            // Update Blazor authentication state
+            _logger.LogInformation("Updating Blazor authentication state for user: {Username}", username);
             await _authStateProvider.UpdateAuthenticationState(userSession);
-            _logger.LogInformation("Authentication state updated for user: {Username}", username);
+            _logger.LogInformation("Blazor authentication state updated for user: {Username}", username);
 
             // Update last login
             _logger.LogInformation("Updating last login timestamp for user: {Username}", username);
@@ -136,6 +189,15 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task LogoutAsync()
     {
+        // Sign out from cookie authentication
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            _logger.LogInformation("Signing out user from cookie authentication");
+            await httpContext.SignOutAsync("DefaultAuthScheme");
+        }
+
+        // Clear Blazor authentication state
         await _authStateProvider.UpdateAuthenticationState(null);
     }
 
