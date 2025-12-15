@@ -49,7 +49,18 @@ public static class SeedData
         {
             logger?.LogError(ex, "Error while checking or applying migrations. Attempting to ensure database exists...");
             // Fallback to EnsureCreated if migrations fail (e.g., in InMemory database for tests)
-            await context.Database.EnsureCreatedAsync();
+            // NOTE: EnsureCreated does NOT apply migrations and may create inconsistent database state
+            // This should only be used for InMemory databases in testing scenarios
+            try
+            {
+                await context.Database.EnsureCreatedAsync();
+                logger?.LogWarning("Database created using EnsureCreatedAsync (migrations not applied). This should only be used for InMemory databases in testing.");
+            }
+            catch (Exception ensureEx)
+            {
+                logger?.LogCritical(ensureEx, "Failed to create database using both MigrateAsync and EnsureCreatedAsync. Database initialization failed.");
+                throw;
+            }
         }
 
         // Check if data already exists (now safe to query tables after migration)
