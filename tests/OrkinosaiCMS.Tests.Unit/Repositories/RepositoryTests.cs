@@ -42,7 +42,7 @@ public class RepositoryTests
 
         // Assert
         result.Should().NotBeNull();
-        var savedUser = await _context.Users.FindAsync(user.Id);
+        var savedUser = await _context.LegacyUsers.FindAsync(user.Id);
         savedUser.Should().NotBeNull();
         savedUser!.Username.Should().Be("testuser");
     }
@@ -58,7 +58,7 @@ public class RepositoryTests
             DisplayName = "Test User",
             PasswordHash = "hash"
         };
-        await _context.Users.AddAsync(user);
+        await _context.LegacyUsers.AddAsync(user);
         await _context.SaveChangesAsync();
 
         // Act
@@ -79,7 +79,7 @@ public class RepositoryTests
             new User { Username = "user2", Email = "user2@example.com", DisplayName = "User 2", PasswordHash = "hash2" },
             new User { Username = "user3", Email = "user3@example.com", DisplayName = "User 3", PasswordHash = "hash3" }
         };
-        await _context.Users.AddRangeAsync(users);
+        await _context.LegacyUsers.AddRangeAsync(users);
         await _context.SaveChangesAsync();
 
         // Act
@@ -100,7 +100,7 @@ public class RepositoryTests
             new User { Username = "user", Email = "user@example.com", DisplayName = "User", PasswordHash = "hash2", IsActive = true },
             new User { Username = "inactive", Email = "inactive@example.com", DisplayName = "Inactive", PasswordHash = "hash3", IsActive = false }
         };
-        await _context.Users.AddRangeAsync(users);
+        await _context.LegacyUsers.AddRangeAsync(users);
         await _context.SaveChangesAsync();
 
         // Act
@@ -121,7 +121,7 @@ public class RepositoryTests
             new User { Username = "user1", Email = "user1@example.com", DisplayName = "User 1", PasswordHash = "hash1" },
             new User { Username = "user2", Email = "user2@example.com", DisplayName = "User 2", PasswordHash = "hash2" }
         };
-        await _context.Users.AddRangeAsync(users);
+        await _context.LegacyUsers.AddRangeAsync(users);
         await _context.SaveChangesAsync();
 
         // Act
@@ -143,7 +143,7 @@ public class RepositoryTests
             DisplayName = "Test User",
             PasswordHash = "hash"
         };
-        await _context.Users.AddAsync(user);
+        await _context.LegacyUsers.AddAsync(user);
         await _context.SaveChangesAsync();
 
         // Act
@@ -152,7 +152,7 @@ public class RepositoryTests
         await _context.SaveChangesAsync();
 
         // Assert
-        var updatedUser = await _context.Users.FindAsync(user.Id);
+        var updatedUser = await _context.LegacyUsers.FindAsync(user.Id);
         updatedUser!.DisplayName.Should().Be("Updated Name");
     }
 
@@ -167,7 +167,7 @@ public class RepositoryTests
             DisplayName = "Test User",
             PasswordHash = "hash"
         };
-        await _context.Users.AddAsync(user);
+        await _context.LegacyUsers.AddAsync(user);
         await _context.SaveChangesAsync();
 
         // Act
@@ -179,7 +179,7 @@ public class RepositoryTests
         
         // Note: In-memory database may not fully enforce query filters in all scenarios
         // In production with SQL Server/SQLite, soft-deleted entities are filtered automatically
-        var userInDb = await _context.Users.FindAsync(user.Id);
+        var userInDb = await _context.LegacyUsers.FindAsync(user.Id);
         if (userInDb != null)
         {
             // Verify it's marked as deleted even if query filter doesn't work in in-memory DB
@@ -197,7 +197,7 @@ public class RepositoryTests
             new User { Username = "user2", Email = "user2@example.com", DisplayName = "User 2", PasswordHash = "hash2" },
             new User { Username = "user3", Email = "user3@example.com", DisplayName = "User 3", PasswordHash = "hash3" }
         };
-        await _context.Users.AddRangeAsync(users);
+        await _context.LegacyUsers.AddRangeAsync(users);
         await _context.SaveChangesAsync();
 
         // Act
@@ -217,7 +217,7 @@ public class RepositoryTests
             new User { Username = "user2", Email = "user2@example.com", DisplayName = "User 2", PasswordHash = "hash2", IsActive = true },
             new User { Username = "user3", Email = "user3@example.com", DisplayName = "User 3", PasswordHash = "hash3", IsActive = false }
         };
-        await _context.Users.AddRangeAsync(users);
+        await _context.LegacyUsers.AddRangeAsync(users);
         await _context.SaveChangesAsync();
 
         // Act
@@ -238,7 +238,7 @@ public class RepositoryTests
             DisplayName = "Test User",
             PasswordHash = "hash"
         };
-        await _context.Users.AddAsync(user);
+        await _context.LegacyUsers.AddAsync(user);
         await _context.SaveChangesAsync();
 
         // Act
@@ -259,7 +259,7 @@ public class RepositoryTests
             DisplayName = "Test User",
             PasswordHash = "hash"
         };
-        await _context.Users.AddAsync(user);
+        await _context.LegacyUsers.AddAsync(user);
         await _context.SaveChangesAsync();
 
         // Act

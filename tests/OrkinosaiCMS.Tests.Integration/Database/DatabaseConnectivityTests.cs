@@ -51,35 +51,35 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
         };
 
         // Act - Create
-        await context.Users.AddAsync(user);
+        await context.LegacyUsers.AddAsync(user);
         await context.SaveChangesAsync();
 
         // Assert - Read
-        var retrievedUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "newuser");
+        var retrievedUser = await context.LegacyUsers.FirstOrDefaultAsync(u => u.Username == "newuser");
         retrievedUser.Should().NotBeNull();
         retrievedUser!.Email.Should().Be("newuser@test.com");
 
         // Act - Update
         retrievedUser.DisplayName = "Updated User";
-        context.Users.Update(retrievedUser);
+        context.LegacyUsers.Update(retrievedUser);
         await context.SaveChangesAsync();
 
         // Assert - Update
-        var updatedUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "newuser");
+        var updatedUser = await context.LegacyUsers.FirstOrDefaultAsync(u => u.Username == "newuser");
         updatedUser!.DisplayName.Should().Be("Updated User");
 
         // Act - Delete (Soft Delete)
         retrievedUser.IsDeleted = true;
-        context.Users.Update(retrievedUser);
+        context.LegacyUsers.Update(retrievedUser);
         await context.SaveChangesAsync();
 
         // Assert - Delete
-        var deletedUser = await context.Users.IgnoreQueryFilters()
+        var deletedUser = await context.LegacyUsers.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Username == "newuser");
         deletedUser!.IsDeleted.Should().BeTrue();
 
         // Verify query filter excludes soft-deleted entities
-        var queryResult = await context.Users.FirstOrDefaultAsync(u => u.Username == "newuser");
+        var queryResult = await context.LegacyUsers.FirstOrDefaultAsync(u => u.Username == "newuser");
         queryResult.Should().BeNull();
     }
 
@@ -108,8 +108,8 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
         };
 
         // Act
-        await context.Roles.AddAsync(role);
-        await context.Users.AddAsync(user);
+        await context.LegacyRoles.AddAsync(role);
+        await context.LegacyUsers.AddAsync(user);
         await context.SaveChangesAsync();
 
         var userRole = new UserRole
@@ -119,11 +119,11 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
             CreatedOn = DateTime.UtcNow
         };
 
-        await context.UserRoles.AddAsync(userRole);
+        await context.LegacyUserRoles.AddAsync(userRole);
         await context.SaveChangesAsync();
 
         // Assert
-        var userWithRoles = await context.Users
+        var userWithRoles = await context.LegacyUsers
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Username == "roleuser");
@@ -234,13 +234,13 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
             CreatedOn = DateTime.UtcNow
         };
 
-        await context.Users.AddAsync(user1);
-        await context.Users.AddAsync(user2);
+        await context.LegacyUsers.AddAsync(user1);
+        await context.LegacyUsers.AddAsync(user2);
         await context.SaveChangesAsync();
 
         // Act
-        var activeUsers = await context.Users.ToListAsync();
-        var allUsersIncludingDeleted = await context.Users.IgnoreQueryFilters().ToListAsync();
+        var activeUsers = await context.LegacyUsers.ToListAsync();
+        var allUsersIncludingDeleted = await context.LegacyUsers.IgnoreQueryFilters().ToListAsync();
 
         // Assert
         activeUsers.Should().Contain(u => u.Username == "active");
@@ -265,7 +265,7 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
         };
 
         // Act - Create
-        await context.Users.AddAsync(user);
+        await context.LegacyUsers.AddAsync(user);
         await context.SaveChangesAsync();
 
         var beforeUpdate = DateTime.UtcNow;
@@ -273,7 +273,7 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
 
         // Act - Update
         user.DisplayName = "Updated Name";
-        context.Users.Update(user);
+        context.LegacyUsers.Update(user);
         await context.SaveChangesAsync();
 
         // Assert

@@ -104,7 +104,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         // Seed minimal test data for integration tests
         // Only creates a basic admin user and role - tests should create their own data as needed
         // This prevents test interference where seeded data affects test expectations
-        if (!context.Users.Any())
+        if (!context.LegacyUsers.Any())
         {
             var testUser = new User
             {
@@ -117,7 +117,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 CreatedOn = DateTime.UtcNow
             };
 
-            context.Users.Add(testUser);
+            context.LegacyUsers.Add(testUser);
 
             var adminRole = new Role
             {
@@ -126,7 +126,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 CreatedOn = DateTime.UtcNow
             };
 
-            context.Roles.Add(adminRole);
+            context.LegacyRoles.Add(adminRole);
             context.SaveChanges();
 
             // Assign role to user
@@ -137,7 +137,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 CreatedOn = DateTime.UtcNow
             };
 
-            context.UserRoles.Add(userRole);
+            context.LegacyUserRoles.Add(userRole);
             context.SaveChanges();
         }
     }

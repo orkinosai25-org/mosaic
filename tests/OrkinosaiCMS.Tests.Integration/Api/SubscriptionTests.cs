@@ -42,7 +42,7 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
             IsActive = true,
             CreatedOn = DateTime.UtcNow
         };
-        context.Users.Add(user);
+        context.LegacyUsers.Add(user);
         await context.SaveChangesAsync();
         return user;
     }
