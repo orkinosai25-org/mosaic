@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Core.Interfaces.Services;
@@ -9,6 +11,7 @@ namespace OrkinosaiCMS.Infrastructure.Services;
 
 /// <summary>
 /// Service implementation for user management operations
+/// Enhanced to support both legacy User table and ASP.NET Core Identity
 /// </summary>
 public class UserService : IUserService
 {
@@ -17,6 +20,7 @@ public class UserService : IUserService
     private readonly IRepository<UserRole> _userRoleRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<UserService> _logger;
 
     public UserService(
@@ -25,6 +29,7 @@ public class UserService : IUserService
         IRepository<UserRole> userRoleRepository,
         IUnitOfWork unitOfWork,
         ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
         ILogger<UserService> logger)
     {
         _userRepository = userRepository;
@@ -32,6 +37,7 @@ public class UserService : IUserService
         _userRoleRepository = userRoleRepository;
         _unitOfWork = unitOfWork;
         _context = context;
+        _userManager = userManager;
         _logger = logger;
     }
 
@@ -48,19 +54,45 @@ public class UserService : IUserService
         try
         {
             _logger.LogInformation("UserService.GetByUsernameAsync called for username: {Username}", username);
-            var user = await _userRepository.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
             
-            if (user != null)
+            // First, try to find user in Identity (AspNetUsers)
+            var identityUser = await _userManager.FindByNameAsync(username);
+            if (identityUser != null)
             {
-                _logger.LogInformation("User found - Username: {Username}, Id: {UserId}, Email: {Email}, IsActive: {IsActive}", 
-                    user.Username, user.Id, user.Email, user.IsActive);
+                _logger.LogInformation("User found in Identity system - Username: {Username}, Id: {UserId}, Email: {Email}", 
+                    identityUser.UserName, identityUser.Id, identityUser.Email);
+                
+                // Convert ApplicationUser to legacy User for compatibility
+                // This allows existing code to work with Identity users
+                var user = new User
+                {
+                    Id = identityUser.Id,
+                    Username = identityUser.UserName ?? string.Empty,
+                    Email = identityUser.Email ?? string.Empty,
+                    DisplayName = identityUser.DisplayName,
+                    IsActive = !identityUser.IsDeleted, // Identity users are active if not deleted
+                    CreatedOn = identityUser.CreatedOn,
+                    ModifiedOn = identityUser.ModifiedOn
+                };
+                
+                return user;
+            }
+            
+            // Fall back to legacy Users table
+            _logger.LogInformation("User not found in Identity, checking legacy Users table for username: {Username}", username);
+            var legacyUser = await _userRepository.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
+            
+            if (legacyUser != null)
+            {
+                _logger.LogInformation("User found in legacy table - Username: {Username}, Id: {UserId}, Email: {Email}, IsActive: {IsActive}", 
+                    legacyUser.Username, legacyUser.Id, legacyUser.Email, legacyUser.IsActive);
             }
             else
             {
-                _logger.LogWarning("User not found by username: {Username}", username);
+                _logger.LogWarning("User not found in either Identity or legacy Users table: {Username}", username);
             }
             
-            return user;
+            return legacyUser;
         }
         catch (Exception ex)
         {
@@ -175,22 +207,52 @@ public class UserService : IUserService
         {
             _logger.LogInformation("UserService.GetUserRolesAsync called for userId: {UserId}", userId);
             
+            // First, try to get roles from Identity system
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (identityUser != null)
+            {
+                _logger.LogInformation("User found in Identity system, fetching Identity roles for userId: {UserId}", userId);
+                var identityRoleNames = await _userManager.GetRolesAsync(identityUser);
+                
+                if (identityRoleNames.Any())
+                {
+                    _logger.LogInformation("Found {Count} Identity roles for userId: {UserId} - Roles: [{Roles}]", 
+                        identityRoleNames.Count, userId, string.Join(", ", identityRoleNames));
+                    
+                    // Convert Identity role names to legacy Role objects for compatibility
+                    var roles = identityRoleNames.Select(roleName => new Role
+                    {
+                        Id = 0, // Identity roles don't map to legacy role IDs
+                        Name = roleName,
+                        Description = $"Identity role: {roleName}",
+                        IsSystem = true,
+                        CreatedOn = DateTime.UtcNow
+                    }).ToList();
+                    
+                    return roles;
+                }
+                
+                _logger.LogWarning("User found in Identity but has no roles assigned: userId: {UserId}", userId);
+            }
+            
+            // Fall back to legacy role system
+            _logger.LogInformation("Checking legacy role system for userId: {UserId}", userId);
             var userRoles = await _userRoleRepository.FindAsync(ur => ur.UserId == userId, cancellationToken);
             var roleIds = userRoles.Select(ur => ur.RoleId).ToList();
 
-            _logger.LogInformation("Found {Count} role mappings for userId: {UserId}, RoleIds: [{RoleIds}]", 
+            _logger.LogInformation("Found {Count} legacy role mappings for userId: {UserId}, RoleIds: [{RoleIds}]", 
                 roleIds.Count, userId, string.Join(", ", roleIds));
 
             if (!roleIds.Any())
             {
-                _logger.LogWarning("No roles found for userId: {UserId}", userId);
+                _logger.LogWarning("No roles found in either Identity or legacy system for userId: {UserId}", userId);
                 return Enumerable.Empty<Role>();
             }
 
-            var roles = await _roleRepository.FindAsync(r => roleIds.Contains(r.Id), cancellationToken);
-            var rolesList = roles.ToList();
+            var legacyRoles = await _roleRepository.FindAsync(r => roleIds.Contains(r.Id), cancellationToken);
+            var rolesList = legacyRoles.ToList();
             
-            _logger.LogInformation("Retrieved {Count} roles for userId: {UserId} - Roles: [{RoleNames}]", 
+            _logger.LogInformation("Retrieved {Count} legacy roles for userId: {UserId} - Roles: [{RoleNames}]", 
                 rolesList.Count, userId, string.Join(", ", rolesList.Select(r => r.Name)));
             
             return rolesList;
@@ -210,18 +272,43 @@ public class UserService : IUserService
         {
             _logger.LogInformation("UserService.VerifyPasswordAsync called for username: {Username}", username);
             
-            var user = await GetByUsernameAsync(username, cancellationToken);
-            if (user == null)
+            // First, try to authenticate with Identity (AspNetUsers)
+            _logger.LogInformation("Checking Identity (AspNetUsers) for username: {Username}", username);
+            var identityUser = await _userManager.FindByNameAsync(username);
+            
+            if (identityUser != null)
             {
-                _logger.LogWarning("User not found in VerifyPasswordAsync: {Username}", username);
+                _logger.LogInformation("User found in Identity system - UserId: {UserId}, Username: {Username}, Email: {Email}", 
+                    identityUser.Id, identityUser.UserName, identityUser.Email);
+                
+                // Verify password using Identity's password hasher
+                var passwordValid = await _userManager.CheckPasswordAsync(identityUser, password);
+                _logger.LogInformation("Identity password verification result for {Username}: {IsValid}", username, passwordValid);
+                
+                if (passwordValid)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                _logger.LogInformation("User not found in Identity system, checking legacy Users table");
+            }
+            
+            // Fall back to legacy User table for backward compatibility
+            _logger.LogInformation("Checking legacy Users table for username: {Username}", username);
+            var legacyUser = await GetByUsernameAsync(username, cancellationToken);
+            if (legacyUser == null)
+            {
+                _logger.LogWarning("User not found in either Identity or legacy Users table: {Username}", username);
                 return false;
             }
 
-            _logger.LogInformation("User found for password verification - Username: {Username}, UserId: {UserId}, IsActive: {IsActive}", 
-                username, user.Id, user.IsActive);
+            _logger.LogInformation("User found in legacy table - Username: {Username}, UserId: {UserId}, IsActive: {IsActive}", 
+                username, legacyUser.Id, legacyUser.IsActive);
 
-            var isValid = VerifyHashedPassword(user.PasswordHash, password);
-            _logger.LogInformation("Password hash verification result for {Username}: {IsValid}", username, isValid);
+            var isValid = VerifyHashedPassword(legacyUser.PasswordHash, password);
+            _logger.LogInformation("Legacy password hash verification result for {Username}: {IsValid}", username, isValid);
             
             return isValid;
         }
@@ -260,6 +347,18 @@ public class UserService : IUserService
         {
             _logger.LogInformation("UserService.UpdateLastLoginAsync called for userId: {UserId}", userId);
             
+            // Try to update Identity user first
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (identityUser != null)
+            {
+                _logger.LogInformation("Updating last login for Identity user: {UserId}", userId);
+                identityUser.ModifiedOn = DateTime.UtcNow;
+                await _userManager.UpdateAsync(identityUser);
+                _logger.LogInformation("Last login updated for Identity user: {UserId}", userId);
+                return;
+            }
+            
+            // Fall back to legacy user
             var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
             if (user != null)
             {
@@ -269,12 +368,12 @@ public class UserService : IUserService
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 
                 _logger.LogInformation(
-                    "Last login updated for userId: {UserId} - Previous: {PreviousLogin}, New: {NewLogin}", 
+                    "Last login updated for legacy userId: {UserId} - Previous: {PreviousLogin}, New: {NewLogin}", 
                     userId, previousLogin, user.LastLoginOn);
             }
             else
             {
-                _logger.LogWarning("User not found in UpdateLastLoginAsync for userId: {UserId}", userId);
+                _logger.LogWarning("User not found in either Identity or legacy system for UpdateLastLoginAsync: userId {UserId}", userId);
             }
         }
         catch (Exception ex)

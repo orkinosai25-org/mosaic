@@ -23,8 +23,34 @@ public static class SeedData
         var loggerFactory = scope.ServiceProvider.GetService<ILoggerFactory>();
         var logger = loggerFactory?.CreateLogger("OrkinosaiCMS.SeedData");
 
-        // Ensure database is created
-        await context.Database.EnsureCreatedAsync();
+        // Apply pending migrations to ensure all database tables exist (including Identity tables)
+        // This is critical for production deployments where migrations need to be applied
+        // Note: EnsureCreated() does NOT apply migrations and would skip Identity tables
+        logger?.LogInformation("Checking for pending database migrations...");
+        try
+        {
+            var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+            var pendingMigrationsList = pendingMigrations.ToList();
+            
+            if (pendingMigrationsList.Any())
+            {
+                logger?.LogWarning("Found {Count} pending migrations: {Migrations}", 
+                    pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
+                logger?.LogInformation("Applying pending migrations to database...");
+                await context.Database.MigrateAsync();
+                logger?.LogInformation("Database migrations applied successfully");
+            }
+            else
+            {
+                logger?.LogInformation("No pending migrations - database is up to date");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Error while checking or applying migrations. Attempting to ensure database exists...");
+            // Fallback to EnsureCreated if migrations fail (e.g., in InMemory database for tests)
+            await context.Database.EnsureCreatedAsync();
+        }
 
         // Check if data already exists
         bool isFirstRun = !await context.Sites.AnyAsync();
@@ -821,58 +847,13 @@ public static class SeedData
 
     private static async Task SeedUsersAsync(ApplicationDbContext context, IConfiguration configuration)
     {
-        // Check if Identity users already exist
-        if (await context.Set<Core.Entities.Identity.ApplicationUser>().AnyAsync())
-        {
-            return;
-        }
-
-        // Get default admin password from configuration or use default
+        // Note: Identity users (AspNetUsers, AspNetRoles) are seeded by IdentityUserSeeder
+        // which uses UserManager to properly hash passwords and create users.
+        // This method only seeds legacy users for backward compatibility.
+        
         var defaultPassword = configuration.GetValue<string>("DefaultAdminPassword") ?? "Admin@123";
-
-        // Create default admin user in AspNetUsers (Identity table)
-        var adminUser = new Core.Entities.Identity.ApplicationUser
-        {
-            UserName = "admin",
-            Email = "admin@mosaicms.com",
-            DisplayName = "Administrator",
-            EmailConfirmed = true, // Auto-confirm for default admin
-            IsDeleted = false,
-            CreatedOn = DateTime.UtcNow
-        };
-
-        // Note: We can't use UserManager here in static method, so we'll use a simpler approach
-        // The password will need to be set properly when Identity is fully initialized
-        // For now, create the user record
-        context.Set<Core.Entities.Identity.ApplicationUser>().Add(adminUser);
-        await context.SaveChangesAsync();
-
-        // Create Administrator role in AspNetRoles if it doesn't exist
-        var adminRole = await context.Set<Microsoft.AspNetCore.Identity.IdentityRole<int>>()
-            .FirstOrDefaultAsync(r => r.Name == "Administrator");
         
-        if (adminRole == null)
-        {
-            adminRole = new Microsoft.AspNetCore.Identity.IdentityRole<int>
-            {
-                Name = "Administrator",
-                NormalizedName = "ADMINISTRATOR"
-            };
-            context.Set<Microsoft.AspNetCore.Identity.IdentityRole<int>>().Add(adminRole);
-            await context.SaveChangesAsync();
-        }
-
-        // Assign Administrator role to admin user in AspNetUserRoles
-        var userRole = new Microsoft.AspNetCore.Identity.IdentityUserRole<int>
-        {
-            UserId = adminUser.Id,
-            RoleId = adminRole.Id
-        };
-
-        context.Set<Microsoft.AspNetCore.Identity.IdentityUserRole<int>>().Add(userRole);
-        await context.SaveChangesAsync();
-        
-        // Also maintain old Users table for backward compatibility (optional)
+        // Only seed legacy Users table for backward compatibility
         // This can be removed once fully migrated to Identity
         if (!await context.LegacyUsers.AnyAsync())
         {
