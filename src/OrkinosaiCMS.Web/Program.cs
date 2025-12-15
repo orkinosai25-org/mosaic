@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Core.Interfaces.Services;
@@ -15,6 +17,7 @@ using OrkinosaiCMS.Web.Middleware;
 using OrkinosaiCMS.Web.Services;
 using Serilog;
 using Serilog.Events;
+using System.Text;
 
 // Create log directory early to ensure file logging works
 var logDirectory = Path.Combine(AppContext.BaseDirectory, "App_Data", "Logs");
@@ -188,6 +191,68 @@ try
         options.SlidingExpiration = true;
     });
     
+    // Configure JWT Bearer authentication (following Oqtane's pattern for API clients)
+    // Cookie auth is used for Blazor admin portal, JWT for API clients, mobile apps, and external integrations
+    var jwtSecretKey = builder.Configuration["Authentication:Jwt:SecretKey"];
+    if (!string.IsNullOrEmpty(jwtSecretKey) && jwtSecretKey.Length >= 32)
+    {
+        var key = Encoding.UTF8.GetBytes(jwtSecretKey);
+        var issuer = builder.Configuration["Authentication:Jwt:Issuer"] ?? "OrkinosaiCMS";
+        var audience = builder.Configuration["Authentication:Jwt:Audience"] ?? "OrkinosaiCMS.API";
+
+        builder.Services.AddAuthentication()
+            .AddJwtBearer(AuthenticationConstants.JwtBearerScheme, options =>
+            {
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = issuer,
+                    ValidateAudience = true,
+                    ValidAudience = audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+
+                // Configure events for logging and debugging
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        if (builder.Environment.EnvironmentName != "Testing")
+                        {
+                            Log.Warning("JWT authentication failed: {Error}", context.Exception.Message);
+                        }
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        if (builder.Environment.EnvironmentName != "Testing")
+                        {
+                            var username = context.Principal?.Identity?.Name;
+                            Log.Information("JWT token validated for user: {Username}", username);
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
+        if (builder.Environment.EnvironmentName != "Testing")
+        {
+            Log.Information("JWT Bearer authentication configured (for API clients)");
+        }
+    }
+    else
+    {
+        if (builder.Environment.EnvironmentName != "Testing")
+        {
+            Log.Warning("JWT authentication not configured - SecretKey missing or too short (must be 32+ chars)");
+            Log.Information("Cookie authentication only (Blazor admin portal)");
+        }
+    }
+    
     // TODO: To enable Google OAuth authentication, uncomment the following code and configure in appsettings.json or environment variables
     // Production configuration example:
     // 1. Set environment variables or appsettings.json:
@@ -212,6 +277,7 @@ try
     builder.Services.AddCascadingAuthenticationState();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+    builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
     
     // Register Identity user seeder
     builder.Services.AddScoped<IdentityUserSeeder>();
