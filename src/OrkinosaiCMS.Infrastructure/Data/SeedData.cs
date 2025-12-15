@@ -821,48 +821,88 @@ public static class SeedData
 
     private static async Task SeedUsersAsync(ApplicationDbContext context, IConfiguration configuration)
     {
-        // Check if users already exist
-        if (await context.Users.AnyAsync())
+        // Check if Identity users already exist
+        if (await context.Set<Core.Entities.Identity.ApplicationUser>().AnyAsync())
         {
             return;
         }
 
         // Get default admin password from configuration or use default
-        // In production, set this via environment variable: DefaultAdminPassword=YourSecurePassword
         var defaultPassword = configuration.GetValue<string>("DefaultAdminPassword") ?? "Admin@123";
 
-        // Create default admin user
-        var adminUser = new User
+        // Create default admin user in AspNetUsers (Identity table)
+        var adminUser = new Core.Entities.Identity.ApplicationUser
         {
-            Username = "admin",
+            UserName = "admin",
             Email = "admin@mosaicms.com",
             DisplayName = "Administrator",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(defaultPassword),
-            IsActive = true,
-            CreatedOn = DateTime.UtcNow,
-            CreatedBy = "System"
+            EmailConfirmed = true, // Auto-confirm for default admin
+            IsDeleted = false,
+            CreatedOn = DateTime.UtcNow
         };
 
-        context.Users.Add(adminUser);
+        // Note: We can't use UserManager here in static method, so we'll use a simpler approach
+        // The password will need to be set properly when Identity is fully initialized
+        // For now, create the user record
+        context.Set<Core.Entities.Identity.ApplicationUser>().Add(adminUser);
         await context.SaveChangesAsync();
 
-        // Assign Administrator role to admin user
-        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Administrator");
+        // Create Administrator role in AspNetRoles if it doesn't exist
+        var adminRole = await context.Set<Microsoft.AspNetCore.Identity.IdentityRole<int>>()
+            .FirstOrDefaultAsync(r => r.Name == "Administrator");
         
         if (adminRole == null)
         {
-            throw new InvalidOperationException("Administrator role not found. Ensure roles are seeded before users.");
+            adminRole = new Microsoft.AspNetCore.Identity.IdentityRole<int>
+            {
+                Name = "Administrator",
+                NormalizedName = "ADMINISTRATOR"
+            };
+            context.Set<Microsoft.AspNetCore.Identity.IdentityRole<int>>().Add(adminRole);
+            await context.SaveChangesAsync();
         }
-        
-        var userRole = new UserRole
+
+        // Assign Administrator role to admin user in AspNetUserRoles
+        var userRole = new Microsoft.AspNetCore.Identity.IdentityUserRole<int>
         {
             UserId = adminUser.Id,
-            RoleId = adminRole.Id,
-            CreatedOn = DateTime.UtcNow,
-            CreatedBy = "System"
+            RoleId = adminRole.Id
         };
 
-        context.UserRoles.Add(userRole);
+        context.Set<Microsoft.AspNetCore.Identity.IdentityUserRole<int>>().Add(userRole);
         await context.SaveChangesAsync();
+        
+        // Also maintain old Users table for backward compatibility (optional)
+        // This can be removed once fully migrated to Identity
+        if (!await context.LegacyUsers.AnyAsync())
+        {
+            var legacyAdminUser = new User
+            {
+                Username = "admin",
+                Email = "admin@mosaicms.com",
+                DisplayName = "Administrator",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(defaultPassword),
+                IsActive = true,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            };
+
+            context.LegacyUsers.Add(legacyAdminUser);
+            
+            var legacyAdminRole = await context.LegacyRoles.FirstOrDefaultAsync(r => r.Name == "Administrator");
+            if (legacyAdminRole != null)
+            {
+                var legacyUserRole = new UserRole
+                {
+                    UserId = legacyAdminUser.Id,
+                    RoleId = legacyAdminRole.Id,
+                    CreatedOn = DateTime.UtcNow,
+                    CreatedBy = "System"
+                };
+                context.LegacyUserRoles.Add(legacyUserRole);
+            }
+            
+            await context.SaveChangesAsync();
+        }
     }
 }

@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Core.Interfaces.Services;
 using OrkinosaiCMS.Infrastructure.Data;
 using OrkinosaiCMS.Infrastructure.Repositories;
 using OrkinosaiCMS.Infrastructure.Services;
 using OrkinosaiCMS.Web.Components;
+using OrkinosaiCMS.Web.Constants;
 using OrkinosaiCMS.Web.Middleware;
 using OrkinosaiCMS.Web.Services;
 using Serilog;
@@ -86,6 +89,9 @@ try
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
 
+    // Add HttpContextAccessor for accessing HttpContext in services
+    builder.Services.AddHttpContextAccessor();
+
     // Add Controllers for API endpoints with logging filter
     builder.Services.AddControllers(options =>
     {
@@ -98,7 +104,7 @@ try
     builder.Services.AddAntiforgery(options =>
     {
         // Configure cookie settings for Azure App Service deployments
-        options.Cookie.Name = ".AspNetCore.Antiforgery";
+        options.Cookie.Name = AuthenticationConstants.AntiforgeryCookieName;
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow HTTP in dev, require HTTPS in prod
         options.Cookie.SameSite = SameSiteMode.Strict;
@@ -142,17 +148,45 @@ try
         }
     }
 
+    // Add ASP.NET Core Identity (following Oqtane's approach)
+    // This provides battle-tested authentication with UserManager and SignInManager
+    builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
+    {
+        // Password settings (following Oqtane's defaults)
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        
+        // Lockout settings
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+        options.Lockout.MaxFailedAccessAttempts = 10;
+        options.Lockout.AllowedForNewUsers = true;
+        
+        // User settings
+        options.User.RequireUniqueEmail = true;
+        
+        // Sign in settings
+        options.SignIn.RequireConfirmedEmail = false; // Can be enabled later
+        options.SignIn.RequireConfirmedPhoneNumber = false;
+    })
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
     // Add Authentication and Authorization
-    // Configure default authentication scheme to allow anonymous access by default
-    // The custom authentication is used for admin panel authentication via Blazor's AuthenticationStateProvider
-    builder.Services.AddAuthentication("DefaultAuthScheme")
-        .AddCookie("DefaultAuthScheme", options =>
-        {
-            options.LoginPath = "/admin/login";
-            options.LogoutPath = "/admin/logout";
-            // Allow anonymous access by default - authentication is handled by CustomAuthenticationStateProvider
-            options.Cookie.IsEssential = true;
-        });
+    // Configure default authentication scheme using Identity's cookie scheme
+    builder.Services.ConfigureApplicationCookie(options =>
+    {
+        options.LoginPath = "/admin/login";
+        options.LogoutPath = "/admin/logout";
+        options.AccessDeniedPath = "/admin/login";
+        options.Cookie.Name = AuthenticationConstants.DefaultAuthScheme;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.Cookie.SameSite = SameSiteMode.Lax; // Oqtane uses Lax for better compatibility
+        options.ExpireTimeSpan = TimeSpan.FromHours(AuthenticationConstants.DefaultCookieExpirationHours);
+        options.SlidingExpiration = true;
+    });
     
     // TODO: To enable Google OAuth authentication, uncomment the following code and configure in appsettings.json or environment variables
     // Production configuration example:
@@ -164,6 +198,7 @@ try
     //      }
     //    }
     // 2. Uncomment and configure AddGoogle:
+    //    builder.Services.AddAuthentication()
     //    .AddGoogle(googleOptions =>
     //    {
     //        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Google ClientId not configured");
@@ -177,6 +212,9 @@ try
     builder.Services.AddCascadingAuthenticationState();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+    
+    // Register Identity user seeder
+    builder.Services.AddScoped<IdentityUserSeeder>();
 
     // Configure Database
     // Database provider selection priority:
@@ -344,6 +382,11 @@ try
             logger.LogInformation("Database Provider: {Provider}", databaseProvider);
             
             await SeedData.InitializeAsync(services);
+            
+            // Seed Identity users using UserManager (Oqtane approach)
+            logger.LogInformation("Seeding Identity users...");
+            var identitySeeder = services.GetRequiredService<IdentityUserSeeder>();
+            await identitySeeder.SeedAsync();
             
             logger.LogInformation("Database initialization completed successfully");
         }
