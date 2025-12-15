@@ -44,7 +44,8 @@ public class AuthenticationConfigurationTests : IClassFixture<WebApplicationFact
 
         // Assert
         defaultScheme.Should().NotBeNull();
-        defaultScheme!.Name.Should().Be("DefaultAuthScheme");
+        // ASP.NET Core Identity uses "Identity.Application" as the default scheme
+        defaultScheme!.Name.Should().Be("Identity.Application");
     }
 
     [Fact]
@@ -55,7 +56,8 @@ public class AuthenticationConfigurationTests : IClassFixture<WebApplicationFact
         var authenticationSchemeProvider = scope.ServiceProvider.GetRequiredService<IAuthenticationSchemeProvider>();
 
         // Act
-        var scheme = await authenticationSchemeProvider.GetSchemeAsync("DefaultAuthScheme");
+        // ASP.NET Core Identity uses "Identity.Application" as the cookie scheme
+        var scheme = await authenticationSchemeProvider.GetSchemeAsync("Identity.Application");
 
         // Assert
         scheme.Should().NotBeNull();
@@ -100,7 +102,8 @@ public class AuthenticationConfigurationTests : IClassFixture<WebApplicationFact
         // Assert
         schemes.Should().NotBeNull();
         schemes.Should().NotBeEmpty();
-        schemes.Should().Contain(s => s.Name == "DefaultAuthScheme");
+        // ASP.NET Core Identity uses "Identity.Application" as the default cookie scheme
+        schemes.Should().Contain(s => s.Name == "Identity.Application");
     }
 
     [Fact]

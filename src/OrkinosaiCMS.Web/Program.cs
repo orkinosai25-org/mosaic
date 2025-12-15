@@ -173,8 +173,8 @@ try
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-    // Add Authentication and Authorization
-    // Configure default authentication scheme using Identity's cookie scheme
+    // Configure the Identity application cookie
+    // Note: Identity automatically registers authentication with "Identity.Application" as the scheme name
     builder.Services.ConfigureApplicationCookie(options =>
     {
         options.LoginPath = "/admin/login";
