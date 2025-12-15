@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using OrkinosaiCMS.Core.Interfaces.Services;
 using OrkinosaiCMS.Web.Constants;
 using System.Security.Claims;
@@ -106,13 +107,14 @@ public class AuthenticationService : IAuthenticationService
                 }
             }
 
-            // Sign in using ASP.NET Core cookie authentication (production-ready approach)
+            // Sign in using ASP.NET Core Identity cookie authentication scheme
+            // Use IdentityConstants.ApplicationScheme instead of custom scheme for consistency
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext != null)
             {
                 _logger.LogInformation("Setting up cookie authentication for user: {Username}", username);
                 
-                var claimsIdentity = new ClaimsIdentity(claims, AuthenticationConstants.DefaultAuthScheme);
+                var claimsIdentity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
                 var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
                 var authProperties = new AuthenticationProperties
@@ -124,7 +126,7 @@ public class AuthenticationService : IAuthenticationService
                 };
 
                 await httpContext.SignInAsync(
-                    AuthenticationConstants.DefaultAuthScheme,
+                    IdentityConstants.ApplicationScheme,
                     claimsPrincipal,
                     authProperties);
 
@@ -190,12 +192,12 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task LogoutAsync()
     {
-        // Sign out from cookie authentication
+        // Sign out from cookie authentication using Identity's scheme
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext != null)
         {
             _logger.LogInformation("Signing out user from cookie authentication");
-            await httpContext.SignOutAsync(AuthenticationConstants.DefaultAuthScheme);
+            await httpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
         }
 
         // Clear Blazor authentication state

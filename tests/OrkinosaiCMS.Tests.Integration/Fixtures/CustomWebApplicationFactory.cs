@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Infrastructure.Data;
 using OrkinosaiCMS.Web;
@@ -20,7 +22,7 @@ namespace OrkinosaiCMS.Tests.Integration.Fixtures;
 /// KEY FEATURES:
 /// - Uses a unique InMemory database instance per test class to prevent test interference
 /// - Configures test-specific settings (e.g., Stripe test keys)
-/// - Seeds minimal test data (admin user and admin role)
+/// - Seeds minimal test data (admin user and admin role using ASP.NET Core Identity)
 /// - Isolated from production/CI database configuration
 /// 
 /// TEST ISOLATION STRATEGY:
@@ -89,24 +91,86 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 var scopedServices = scope.ServiceProvider;
                 var db = scopedServices.GetRequiredService<ApplicationDbContext>();
+                var userManager = scopedServices.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = scopedServices.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
                 // Ensure the database is created
                 db.Database.EnsureCreated();
 
                 // Seed test data if needed
-                SeedTestData(db);
+                SeedTestData(db, userManager, roleManager).Wait();
             }
         });
     }
 
-    private void SeedTestData(ApplicationDbContext context)
+    private async Task SeedTestData(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole<int>> roleManager)
     {
-        // Seed minimal test data for integration tests
+        // Seed minimal test data for integration tests using ASP.NET Core Identity
         // Only creates a basic admin user and role - tests should create their own data as needed
         // This prevents test interference where seeded data affects test expectations
-        if (!context.LegacyUsers.Any())
+        
+        // Check if user already exists
+        var existingUser = await userManager.FindByNameAsync("testadmin");
+        if (existingUser == null)
         {
-            var testUser = new User
+            // Create Administrator role first in AspNetRoles (Identity table)
+            var adminRoleExists = await roleManager.RoleExistsAsync("Administrator");
+            if (!adminRoleExists)
+            {
+                var adminRole = new IdentityRole<int>
+                {
+                    Name = "Administrator",
+                    NormalizedName = "ADMINISTRATOR"
+                };
+                var roleResult = await roleManager.CreateAsync(adminRole);
+                if (!roleResult.Succeeded)
+                {
+                    throw new Exception($"Failed to create Administrator role: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+                }
+            }
+
+            // Create test user in AspNetUsers (Identity table)
+            var testUser = new ApplicationUser
+            {
+                UserName = "testadmin",
+                Email = "admin@test.com",
+                DisplayName = "Test Admin",
+                EmailConfirmed = true, // Auto-confirm for tests
+                CreatedOn = DateTime.UtcNow
+            };
+
+            // Password: TestPassword123! - used in authentication tests
+            var userResult = await userManager.CreateAsync(testUser, "TestPassword123!");
+            if (!userResult.Succeeded)
+            {
+                throw new Exception($"Failed to create test user: {string.Join(", ", userResult.Errors.Select(e => e.Description))}");
+            }
+
+            // Assign Administrator role to user in AspNetUserRoles (Identity table)
+            var addRoleResult = await userManager.AddToRoleAsync(testUser, "Administrator");
+            if (!addRoleResult.Succeeded)
+            {
+                throw new Exception($"Failed to assign role to test user: {string.Join(", ", addRoleResult.Errors.Select(e => e.Description))}");
+            }
+
+            // Also seed legacy tables for backward compatibility tests
+            // Create role first to avoid FK constraint errors
+            var legacyAdminRole = new Role
+            {
+                Name = "Administrator",
+                Description = "Administrator role",
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
+            };
+
+            context.LegacyRoles.Add(legacyAdminRole);
+            await context.SaveChangesAsync();
+
+            // Then create legacy user
+            var legacyTestUser = new User
             {
                 Username = "testadmin",
                 Email = "admin@test.com",
@@ -114,31 +178,24 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 // Password: TestPassword123! - used in authentication tests
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword123!"),
                 IsActive = true,
-                CreatedOn = DateTime.UtcNow
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
             };
 
-            context.LegacyUsers.Add(testUser);
+            context.LegacyUsers.Add(legacyTestUser);
+            await context.SaveChangesAsync();
 
-            var adminRole = new Role
+            // Finally assign role to user (now both FK references exist)
+            var legacyUserRole = new UserRole
             {
-                Name = "Administrator",
-                Description = "Administrator role",
-                CreatedOn = DateTime.UtcNow
+                UserId = legacyTestUser.Id,
+                RoleId = legacyAdminRole.Id,
+                CreatedOn = DateTime.UtcNow,
+                CreatedBy = "System"
             };
 
-            context.LegacyRoles.Add(adminRole);
-            context.SaveChanges();
-
-            // Assign role to user
-            var userRole = new UserRole
-            {
-                UserId = testUser.Id,
-                RoleId = adminRole.Id,
-                CreatedOn = DateTime.UtcNow
-            };
-
-            context.LegacyUserRoles.Add(userRole);
-            context.SaveChanges();
+            context.LegacyUserRoles.Add(legacyUserRole);
+            await context.SaveChangesAsync();
         }
     }
 }
