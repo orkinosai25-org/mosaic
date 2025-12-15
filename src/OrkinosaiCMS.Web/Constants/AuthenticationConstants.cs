@@ -13,6 +13,12 @@ public static class AuthenticationConstants
     public const string DefaultAuthScheme = "DefaultAuthScheme";
 
     /// <summary>
+    /// JWT Bearer authentication scheme name
+    /// Used for API authentication with JSON Web Tokens
+    /// </summary>
+    public const string JwtBearerScheme = "JwtBearer";
+
+    /// <summary>
     /// Default session cookie expiration in hours (non-persistent)
     /// </summary>
     public const int DefaultCookieExpirationHours = 8;

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Shared.DTOs.Authentication;
+using OrkinosaiCMS.Web.Services;
 using System.Security.Claims;
 
 namespace OrkinosaiCMS.Web.Controllers;
@@ -10,6 +11,7 @@ namespace OrkinosaiCMS.Web.Controllers;
 /// <summary>
 /// Authentication API controller using ASP.NET Core Identity
 /// Copied from Oqtane's proven implementation for production-ready authentication
+/// Supports both cookie-based authentication (for Blazor) and JWT tokens (for APIs)
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -17,15 +19,21 @@ public class AuthenticationController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IJwtTokenService _jwtTokenService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationController> _logger;
 
     public AuthenticationController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+        IJwtTokenService jwtTokenService,
+        IConfiguration configuration,
         ILogger<AuthenticationController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _jwtTokenService = jwtTokenService;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -321,6 +329,127 @@ public class AuthenticationController : ControllerBase
             _logger.LogError(ex, "Error during credential validation for username: {Username}", request.Username);
             
             return StatusCode(StatusCodes.Status500InternalServerError, new LoginResponse
+            {
+                Success = false,
+                ErrorMessage = "An unexpected error occurred. Please try again later."
+            });
+        }
+    }
+
+    /// <summary>
+    /// Generate JWT token for API authentication (Oqtane pattern)
+    /// POST /api/authentication/token
+    /// This endpoint generates a JWT Bearer token for use with API clients, mobile apps, and external integrations.
+    /// Cookie authentication is used for the Blazor admin portal, JWT for programmatic access.
+    /// </summary>
+    [HttpPost("token")]
+    [ProducesResponseType(typeof(JwtTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GenerateToken([FromBody] LoginRequest request)
+    {
+        _logger.LogInformation("JWT token generation attempt for username: {Username}", request.Username);
+
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new JwtTokenResponse
+            {
+                Success = false,
+                ErrorMessage = "Invalid request. Username and password are required."
+            });
+        }
+
+        try
+        {
+            // Find user by username
+            var identityUser = await _userManager.FindByNameAsync(request.Username);
+            
+            if (identityUser == null || identityUser.IsDeleted)
+            {
+                _logger.LogWarning("JWT token generation failed - User not found: {Username}", request.Username);
+                return Unauthorized(new JwtTokenResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid username or password."
+                });
+            }
+
+            // Verify password without creating a session
+            var result = await _signInManager.CheckPasswordSignInAsync(identityUser, request.Password, lockoutOnFailure: true);
+
+            if (result.Succeeded)
+            {
+                // Get user's roles
+                var roles = await _userManager.GetRolesAsync(identityUser);
+                
+                // Generate JWT token
+                var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(identityUser, roles);
+                var refreshToken = _jwtTokenService.GenerateRefreshToken();
+                
+                // Get token expiration from configuration
+                var expirationMinutes = int.Parse(_configuration["Authentication:Jwt:ExpirationMinutes"] ?? "480");
+
+                // Update last login information
+                identityUser.LastLoginOn = DateTime.UtcNow;
+                identityUser.LastIPAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                await _userManager.UpdateAsync(identityUser);
+
+                _logger.LogInformation("JWT token generated successfully for user: {Username}", identityUser.UserName);
+
+                var primaryRole = roles.FirstOrDefault() ?? "User";
+
+                return Ok(new JwtTokenResponse
+                {
+                    Success = true,
+                    AccessToken = accessToken,
+                    TokenType = "Bearer",
+                    ExpiresIn = expirationMinutes * 60, // Convert to seconds
+                    RefreshToken = refreshToken,
+                    User = new UserInfo
+                    {
+                        UserId = identityUser.Id,
+                        Username = identityUser.UserName ?? string.Empty,
+                        Email = identityUser.Email ?? string.Empty,
+                        DisplayName = identityUser.DisplayName,
+                        Role = primaryRole,
+                        IsAuthenticated = true,
+                        LastLoginOn = identityUser.LastLoginOn
+                    }
+                });
+            }
+            else if (result.IsLockedOut)
+            {
+                _logger.LogWarning("JWT token generation failed - Account locked out: {Username}", request.Username);
+                return Unauthorized(new JwtTokenResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Account locked due to multiple failed login attempts. Please try again later."
+                });
+            }
+            else if (result.IsNotAllowed)
+            {
+                _logger.LogWarning("JWT token generation failed - Login not allowed: {Username}", request.Username);
+                return Unauthorized(new JwtTokenResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Login not allowed. Please confirm your account."
+                });
+            }
+            else
+            {
+                _logger.LogWarning("JWT token generation failed - Invalid password: {Username}", request.Username);
+                return Unauthorized(new JwtTokenResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Invalid username or password."
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during JWT token generation for username: {Username}", request.Username);
+            
+            return StatusCode(StatusCodes.Status500InternalServerError, new JwtTokenResponse
             {
                 Success = false,
                 ErrorMessage = "An unexpected error occurred. Please try again later."
