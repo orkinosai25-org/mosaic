@@ -26,52 +26,125 @@ public static class SeedData
         // Apply pending migrations to ensure all database tables exist (including Identity tables)
         // This is critical for production deployments where migrations need to be applied
         // Note: EnsureCreated() does NOT apply migrations and would skip Identity tables
+        logger?.LogInformation("=== Starting Database Initialization ===");
         logger?.LogInformation("Checking for pending database migrations...");
+        
         try
         {
+            // Check if database exists
+            var canConnect = await context.Database.CanConnectAsync();
+            logger?.LogInformation("Database connection status: {Status}", canConnect ? "Connected" : "Cannot connect");
+            
             var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
             var pendingMigrationsList = pendingMigrations.ToList();
             
             if (pendingMigrationsList.Any())
             {
-                logger?.LogWarning("Found {Count} pending migrations: {Migrations}", 
-                    pendingMigrationsList.Count, string.Join(", ", pendingMigrationsList));
+                logger?.LogWarning("Found {Count} pending migrations that need to be applied:", pendingMigrationsList.Count);
+                foreach (var migration in pendingMigrationsList)
+                {
+                    logger?.LogWarning("  - {Migration}", migration);
+                }
+                
                 logger?.LogInformation("Applying pending migrations to database...");
+                logger?.LogInformation("This may take a few moments for large migrations...");
+                
                 await context.Database.MigrateAsync();
-                logger?.LogInformation("Database migrations applied successfully");
+                
+                logger?.LogInformation("✓ Database migrations applied successfully");
+                logger?.LogInformation("All database tables should now exist, including AspNetRoles, AspNetUsers, etc.");
             }
             else
             {
-                logger?.LogInformation("No pending migrations - database is up to date");
+                logger?.LogInformation("✓ No pending migrations - database schema is up to date");
+                
+                // Verify critical Identity tables exist
+                try
+                {
+                    var identityTablesExist = await context.Database.SqlQueryRaw<int>(
+                        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AspNetRoles'").FirstOrDefaultAsync();
+                    logger?.LogInformation("Identity tables verification: AspNetRoles table exists = {Exists}", identityTablesExist > 0);
+                }
+                catch (Exception verifyEx)
+                {
+                    logger?.LogWarning(verifyEx, "Could not verify Identity tables existence (this is normal for InMemory database)");
+                }
+            }
+        }
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+        {
+            logger?.LogError(sqlEx, "SQL Server error during migration check/apply:");
+            logger?.LogError("  SQL Error Number: {ErrorNumber}", sqlEx.Number);
+            logger?.LogError("  SQL Server: {Server}", sqlEx.Server);
+            logger?.LogError("  SQL State: {State}", sqlEx.State);
+            logger?.LogError("  Message: {Message}", sqlEx.Message);
+            
+            // Fallback to EnsureCreated for testing scenarios only
+            logger?.LogWarning("Attempting fallback to EnsureCreatedAsync (for InMemory/testing databases only)...");
+            try
+            {
+                await context.Database.EnsureCreatedAsync();
+                logger?.LogWarning("✓ Database created using EnsureCreatedAsync");
+                logger?.LogWarning("WARNING: Migrations were NOT applied. This should only be used for InMemory databases in testing.");
+            }
+            catch (Exception ensureEx)
+            {
+                logger?.LogCritical(ensureEx, "CRITICAL: Failed to initialize database using both MigrateAsync and EnsureCreatedAsync");
+                logger?.LogCritical("Please check:");
+                logger?.LogCritical("  1. SQL Server is running and accessible");
+                logger?.LogCritical("  2. Connection string is correct");
+                logger?.LogCritical("  3. Database user has permissions to create/modify database");
+                logger?.LogCritical("  4. Firewall allows database connections");
+                throw new InvalidOperationException(
+                    "Database initialization failed. Please check logs for details and verify database connectivity.", 
+                    ensureEx);
             }
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "Error while checking or applying migrations. Attempting to ensure database exists...");
+            logger?.LogError(ex, "Unexpected error during migration check/apply: {Type}", ex.GetType().FullName);
+            
             // Fallback to EnsureCreated if migrations fail (e.g., in InMemory database for tests)
             // NOTE: EnsureCreated does NOT apply migrations and may create inconsistent database state
             // This should only be used for InMemory databases in testing scenarios
+            logger?.LogWarning("Attempting fallback to EnsureCreatedAsync (for InMemory/testing databases only)...");
             try
             {
                 await context.Database.EnsureCreatedAsync();
-                logger?.LogWarning("Database created using EnsureCreatedAsync (migrations not applied). This should only be used for InMemory databases in testing.");
+                logger?.LogWarning("✓ Database created using EnsureCreatedAsync");
+                logger?.LogWarning("WARNING: Migrations were NOT applied. This should only be used for InMemory databases in testing.");
             }
             catch (Exception ensureEx)
             {
-                logger?.LogCritical(ensureEx, "Failed to create database using both MigrateAsync and EnsureCreatedAsync. Database initialization failed.");
-                throw;
+                logger?.LogCritical(ensureEx, "CRITICAL: Failed to initialize database using both MigrateAsync and EnsureCreatedAsync");
+                throw new InvalidOperationException(
+                    "Database initialization failed. Please check logs for details.", 
+                    ensureEx);
             }
         }
 
         // Check if data already exists (now safe to query tables after migration)
+        logger?.LogInformation("Checking if initial data seeding is required...");
         bool isFirstRun = false;
         try
         {
             isFirstRun = !await context.Sites.AnyAsync();
+            logger?.LogInformation("First run check: {IsFirstRun} (Sites table {Status})", 
+                isFirstRun, isFirstRun ? "is empty" : "has data");
+        }
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+        {
+            logger?.LogError(sqlEx, "SQL error checking Sites table existence:");
+            logger?.LogError("  SQL Error Number: {ErrorNumber} (Object name '{ObjectName}' may be invalid)", 
+                sqlEx.Number, sqlEx.Number == 208 ? "Sites" : "unknown");
+            logger?.LogWarning("Sites table may not exist yet. Treating as first run.");
+            // If Sites table doesn't exist, it's definitely a first run
+            isFirstRun = true;
         }
         catch (Exception ex)
         {
             logger?.LogWarning(ex, "Unable to check if Sites table exists. Database may not be fully initialized.");
+            logger?.LogWarning("Error type: {Type}", ex.GetType().FullName);
             // If Sites table doesn't exist, it's definitely a first run
             isFirstRun = true;
         }
