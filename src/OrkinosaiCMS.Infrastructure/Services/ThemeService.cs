@@ -1,4 +1,6 @@
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Core.Interfaces.Services;
@@ -7,21 +9,25 @@ namespace OrkinosaiCMS.Infrastructure.Services;
 
 /// <summary>
 /// Service for managing CMS themes
+/// Based on Oqtane CMS error handling patterns for robust database operations
 /// </summary>
 public class ThemeService : IThemeService
 {
     private readonly IRepository<Theme> _themeRepository;
     private readonly IRepository<Site> _siteRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ThemeService> _logger;
 
     public ThemeService(
         IRepository<Theme> themeRepository,
         IRepository<Site> siteRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<ThemeService> logger)
     {
         _themeRepository = themeRepository;
         _siteRepository = siteRepository;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<Theme>> GetAllThemesAsync()
@@ -80,17 +86,89 @@ public class ThemeService : IThemeService
         }
     }
 
+    /// <summary>
+    /// Apply theme to a site with robust error handling
+    /// Following Oqtane CMS patterns for database exception handling
+    /// </summary>
     public async Task ApplyThemeToSiteAsync(int siteId, int themeId)
     {
-        var site = await _siteRepository.GetByIdAsync(siteId);
-        var theme = await _themeRepository.GetByIdAsync(themeId);
-
-        if (site != null && theme != null && theme.IsEnabled)
+        try
         {
+            _logger.LogInformation("Attempting to apply theme {ThemeId} to site {SiteId}", themeId, siteId);
+
+            // Validate site exists
+            var site = await _siteRepository.GetByIdAsync(siteId);
+            if (site == null)
+            {
+                var errorMsg = $"Site with ID {siteId} not found. Cannot apply theme.";
+                _logger.LogError(errorMsg);
+                throw new InvalidOperationException(errorMsg);
+            }
+
+            // Validate theme exists
+            var theme = await _themeRepository.GetByIdAsync(themeId);
+            if (theme == null)
+            {
+                var errorMsg = $"Theme with ID {themeId} not found.";
+                _logger.LogError(errorMsg);
+                throw new InvalidOperationException(errorMsg);
+            }
+
+            // Validate theme is enabled
+            if (!theme.IsEnabled)
+            {
+                var errorMsg = $"Theme '{theme.Name}' is disabled and cannot be applied.";
+                _logger.LogWarning(errorMsg);
+                throw new InvalidOperationException(errorMsg);
+            }
+
+            // Apply theme to site
             site.ThemeId = themeId;
             site.ModifiedOn = DateTime.UtcNow;
             _siteRepository.Update(site);
+            
             await _unitOfWork.SaveChangesAsync();
+            
+            _logger.LogInformation("Successfully applied theme '{ThemeName}' (ID: {ThemeId}) to site '{SiteName}' (ID: {SiteId})", 
+                theme.Name, themeId, site.Name, siteId);
+        }
+        catch (SqlException sqlEx)
+        {
+            // Handle SQL-specific exceptions (following Oqtane pattern)
+            _logger.LogError(sqlEx, 
+                "SQL error applying theme {ThemeId} to site {SiteId}. Error Number: {ErrorNumber}, State: {State}, Server: {Server}",
+                themeId, siteId, sqlEx.Number, sqlEx.State, sqlEx.Server);
+            
+            throw new InvalidOperationException(
+                $"Unable to apply theme due to a database error. Please try again or contact support if the issue persists.",
+                sqlEx);
+        }
+        catch (DbUpdateException dbEx)
+        {
+            // Handle EF Core update exceptions
+            _logger.LogError(dbEx, 
+                "Database update error applying theme {ThemeId} to site {SiteId}",
+                themeId, siteId);
+            
+            throw new InvalidOperationException(
+                $"Unable to save theme changes to the database. Please try again or contact support if the issue persists.",
+                dbEx);
+        }
+        catch (InvalidOperationException)
+        {
+            // Re-throw validation errors as-is
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Handle any other unexpected exceptions
+            _logger.LogError(ex, 
+                "Unexpected error applying theme {ThemeId} to site {SiteId}",
+                themeId, siteId);
+            
+            throw new InvalidOperationException(
+                $"An unexpected error occurred while applying the theme. Please try again or contact support if the issue persists.",
+                ex);
         }
     }
 
