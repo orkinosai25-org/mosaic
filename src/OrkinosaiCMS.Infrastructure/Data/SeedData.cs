@@ -52,8 +52,18 @@ public static class SeedData
             await context.Database.EnsureCreatedAsync();
         }
 
-        // Check if data already exists
-        bool isFirstRun = !await context.Sites.AnyAsync();
+        // Check if data already exists (now safe to query tables after migration)
+        bool isFirstRun = false;
+        try
+        {
+            isFirstRun = !await context.Sites.AnyAsync();
+        }
+        catch (Exception ex)
+        {
+            logger?.LogWarning(ex, "Unable to check if Sites table exists. Database may not be fully initialized.");
+            // If Sites table doesn't exist, it's definitely a first run
+            isFirstRun = true;
+        }
         
         if (isFirstRun)
         {
