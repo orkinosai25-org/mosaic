@@ -798,11 +798,11 @@ public static class SeedData
             }
         };
 
-        context.Roles.AddRange(roles);
+        context.LegacyRoles.AddRange(roles);
         await context.SaveChangesAsync();
 
         // Assign permissions to roles
-        var adminRole = await context.Roles.FirstAsync(r => r.Name == "Administrator");
+        var adminRole = await context.LegacyRoles.FirstAsync(r => r.Name == "Administrator");
         var allPermissions = await context.Permissions.ToListAsync();
         
         foreach (var permission in allPermissions)
