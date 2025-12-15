@@ -30,56 +30,131 @@ public class IdentityUserSeeder
 
     public async Task SeedAsync()
     {
-        // Create Administrator role if it doesn't exist
-        var adminRoleName = "Administrator";
-        if (!await _roleManager.RoleExistsAsync(adminRoleName))
+        try
         {
-            _logger.LogInformation("Creating Administrator role");
-            var adminRole = new IdentityRole<int> { Name = adminRoleName };
-            await _roleManager.CreateAsync(adminRole);
-        }
-
-        // Check if admin user already exists
-        var adminUsername = "admin";
-        var existingAdmin = await _userManager.FindByNameAsync(adminUsername);
-        
-        if (existingAdmin == null)
-        {
-            _logger.LogInformation("Creating default admin user");
+            _logger.LogInformation("Starting Identity user seeding...");
             
-            // Get default admin password from configuration or use default
-            var defaultPassword = _configuration.GetValue<string>("DefaultAdminPassword") ?? "Admin@123";
-
-            var adminUser = new ApplicationUser
+            // Create Administrator role if it doesn't exist
+            var adminRoleName = "Administrator";
+            if (!await _roleManager.RoleExistsAsync(adminRoleName))
             {
-                UserName = adminUsername,
-                Email = "admin@mosaicms.com",
-                DisplayName = "Administrator",
-                EmailConfirmed = true,
-                IsDeleted = false,
-                CreatedOn = DateTime.UtcNow
-            };
-
-            // Create user with password using UserManager (Oqtane approach)
-            var result = await _userManager.CreateAsync(adminUser, defaultPassword);
-            
-            if (result.Succeeded)
-            {
-                _logger.LogInformation("Admin user created successfully");
+                _logger.LogInformation("Creating Administrator role in AspNetRoles table");
+                var adminRole = new IdentityRole<int> { Name = adminRoleName };
+                var roleResult = await _roleManager.CreateAsync(adminRole);
                 
-                // Assign Administrator role
-                await _userManager.AddToRoleAsync(adminUser, adminRoleName);
-                _logger.LogInformation("Administrator role assigned to admin user");
+                if (roleResult.Succeeded)
+                {
+                    _logger.LogInformation("Administrator role created successfully");
+                }
+                else
+                {
+                    _logger.LogError("Failed to create Administrator role: {Errors}", 
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                    throw new InvalidOperationException($"Failed to create Administrator role: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+                }
             }
             else
             {
-                _logger.LogError("Failed to create admin user: {Errors}", 
-                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                _logger.LogInformation("Administrator role already exists in AspNetRoles table");
             }
+
+            // Check if admin user already exists
+            var adminUsername = "admin";
+            var existingAdmin = await _userManager.FindByNameAsync(adminUsername);
+            
+            if (existingAdmin == null)
+            {
+                _logger.LogInformation("Creating default admin user in AspNetUsers table");
+                
+                // Get default admin password from configuration or use default
+                var defaultPassword = _configuration.GetValue<string>("DefaultAdminPassword") ?? "Admin@123";
+                _logger.LogInformation("Using configured admin password (DefaultAdminPassword from config)");
+
+                var adminUser = new ApplicationUser
+                {
+                    UserName = adminUsername,
+                    Email = "admin@mosaicms.com",
+                    DisplayName = "Administrator",
+                    EmailConfirmed = true,
+                    IsDeleted = false,
+                    CreatedOn = DateTime.UtcNow
+                };
+
+                // Create user with password using UserManager (Oqtane approach)
+                // UserManager will properly hash the password using Identity's password hasher
+                var result = await _userManager.CreateAsync(adminUser, defaultPassword);
+                
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("Admin user created successfully in AspNetUsers table with UserId: {UserId}", adminUser.Id);
+                    
+                    // Assign Administrator role
+                    var roleAssignResult = await _userManager.AddToRoleAsync(adminUser, adminRoleName);
+                    if (roleAssignResult.Succeeded)
+                    {
+                        _logger.LogInformation("Administrator role assigned to admin user successfully");
+                        
+                        // Verify the user can be found and has the role
+                        var verifyUser = await _userManager.FindByNameAsync(adminUsername);
+                        if (verifyUser != null)
+                        {
+                            var roles = await _userManager.GetRolesAsync(verifyUser);
+                            _logger.LogInformation("Verification: Admin user exists with roles: {Roles}", string.Join(", ", roles));
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to assign Administrator role to admin user: {Errors}", 
+                            string.Join(", ", roleAssignResult.Errors.Select(e => e.Description)));
+                    }
+                }
+                else
+                {
+                    _logger.LogError("Failed to create admin user in AspNetUsers table: {Errors}", 
+                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                    
+                    // Log detailed error information
+                    foreach (var error in result.Errors)
+                    {
+                        _logger.LogError("Identity Error - Code: {Code}, Description: {Description}", 
+                            error.Code, error.Description);
+                    }
+                    
+                    throw new InvalidOperationException($"Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Admin user already exists in AspNetUsers table with UserId: {UserId}", existingAdmin.Id);
+                
+                // Verify the user has the Administrator role
+                var roles = await _userManager.GetRolesAsync(existingAdmin);
+                if (!roles.Contains(adminRoleName))
+                {
+                    _logger.LogWarning("Admin user exists but doesn't have Administrator role. Adding role...");
+                    var roleAssignResult = await _userManager.AddToRoleAsync(existingAdmin, adminRoleName);
+                    if (roleAssignResult.Succeeded)
+                    {
+                        _logger.LogInformation("Administrator role added to existing admin user");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to add Administrator role to existing admin user: {Errors}", 
+                            string.Join(", ", roleAssignResult.Errors.Select(e => e.Description)));
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("Admin user already has Administrator role: {Roles}", string.Join(", ", roles));
+                }
+            }
+            
+            _logger.LogInformation("Identity user seeding completed successfully");
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogInformation("Admin user already exists, skipping creation");
+            _logger.LogError(ex, "Error during Identity user seeding: {Message}", ex.Message);
+            throw;
         }
     }
 }
