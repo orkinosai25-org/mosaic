@@ -78,11 +78,11 @@ public class SubscriptionTests : IClassFixture<CustomWebApplicationFactory>
         plans.Should().NotBeNull();
         plans!.Should().HaveCount(4); // Free, Starter, Pro, Business
         
-        var freePlan = plans.FirstOrDefault(p => p.Tier == "Free");
+        var freePlan = plans!.FirstOrDefault(p => p.Tier == "Free");
         freePlan.Should().NotBeNull();
         freePlan!.MonthlyPrice.Should().Be(0);
         
-        var starterPlan = plans.FirstOrDefault(p => p.Tier == "Starter");
+        var starterPlan = plans!.FirstOrDefault(p => p.Tier == "Starter");
         starterPlan.Should().NotBeNull();
         starterPlan!.MonthlyPrice.Should().Be(12);
     }

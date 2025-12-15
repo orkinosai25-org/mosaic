@@ -1,7 +1,9 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Entities.Sites;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Infrastructure.Data;
@@ -19,6 +21,7 @@ public class UserServiceTests
     private readonly Mock<IRepository<UserRole>> _userRoleRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<ApplicationDbContext> _contextMock;
+    private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
     private readonly Mock<ILogger<UserService>> _loggerMock;
     private readonly UserService _userService;
 
@@ -36,6 +39,21 @@ public class UserServiceTests
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         _contextMock = new Mock<ApplicationDbContext>(options);
         _loggerMock = new Mock<ILogger<UserService>>();
+        
+        // Create UserManager mock - UserManager requires an IUserStore and several other dependencies
+        // We pass null for the optional dependencies as they're not needed in our tests
+        var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
+        _userManagerMock = new Mock<UserManager<ApplicationUser>>(
+            userStoreMock.Object, 
+            null /* IOptions<IdentityOptions> */,
+            null /* IPasswordHasher<ApplicationUser> */,
+            null /* IEnumerable<IUserValidator<ApplicationUser>> */,
+            null /* IEnumerable<IPasswordValidator<ApplicationUser>> */,
+            null /* ILookupNormalizer */,
+            null /* IdentityErrorDescriber */,
+            null /* IServiceProvider */,
+            null /* ILogger<UserManager<ApplicationUser>> */
+        );
 
         _userService = new UserService(
             _userRepositoryMock.Object,
@@ -43,6 +61,7 @@ public class UserServiceTests
             _userRoleRepositoryMock.Object,
             _unitOfWorkMock.Object,
             context, // Real context needed for some operations that use direct DbContext queries
+            _userManagerMock.Object,
             _loggerMock.Object
         );
     }

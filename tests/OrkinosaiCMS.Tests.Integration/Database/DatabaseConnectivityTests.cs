@@ -130,7 +130,7 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
 
         userWithRoles.Should().NotBeNull();
         userWithRoles!.UserRoles.Should().HaveCount(1);
-        userWithRoles.UserRoles.First().Role.Name.Should().Be("TestRole");
+        userWithRoles!.UserRoles.First().Role!.Name.Should().Be("TestRole");
     }
 
     [Fact]
@@ -201,8 +201,8 @@ public class DatabaseConnectivityTests : IClassFixture<CustomWebApplicationFacto
 
         retrievedPage.Should().NotBeNull();
         retrievedPage!.Title.Should().Be("Home Page");
-        retrievedPage.Site.Should().NotBeNull();
-        retrievedPage.Site.Url.Should().Be("/dbpagetest");
+        retrievedPage!.Site.Should().NotBeNull();
+        retrievedPage!.Site!.Url.Should().Be("/dbpagetest");
     }
 
     [Fact]
