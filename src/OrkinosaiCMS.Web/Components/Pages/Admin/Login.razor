@@ -259,12 +259,41 @@
                 errorMessage = "Invalid username or password. Please try again.";
             }
         }
+        catch (FileNotFoundException fileEx)
+        {
+            // Handle file not found errors (e.g., log files, configuration files)
+            // These should not block login functionality
+            Console.WriteLine($"WARNING: File not found during login - this should not affect login: {fileEx.Message}");
+            // Log to console since file logging might be the issue
+            Console.WriteLine($"File path: {fileEx.FileName}");
+            
+            // Don't show this error to the user - it's an internal logging issue
+            // The login should still work even if logging fails
+            errorMessage = "An unexpected error occurred during login. Please try again.";
+        }
+        catch (System.IO.IOException ioEx)
+        {
+            // Handle IO errors (e.g., log file write failures, disk full)
+            // These should not block login functionality
+            Console.WriteLine($"WARNING: IO error during login - this should not affect login: {ioEx.Message}");
+            
+            // Don't show this error to the user - it's an internal issue
+            errorMessage = "An unexpected error occurred during login. Please try again.";
+        }
         catch (Microsoft.Data.SqlClient.SqlException sqlEx)
         {
             // Handle SQL connection errors specifically
-            Logger.LogError(sqlEx, 
-                "SQL error during login for username: {Username} - Error: {ErrorNumber}, Message: {ErrorMessage}, State: {State}, Server: {Server}", 
-                loginModel.Username, sqlEx.Number, sqlEx.Message, sqlEx.State, sqlEx.Server);
+            try
+            {
+                Logger.LogError(sqlEx, 
+                    "SQL error during login for username: {Username} - Error: {ErrorNumber}, Message: {ErrorMessage}, State: {State}, Server: {Server}", 
+                    loginModel.Username, sqlEx.Number, sqlEx.Message, sqlEx.State, sqlEx.Server);
+            }
+            catch
+            {
+                // If logging fails, write to console as fallback
+                Console.WriteLine($"SQL error during login for {loginModel.Username}: {sqlEx.Message}");
+            }
             
             if (sqlEx.Message.Contains("timeout") || sqlEx.Message.Contains("connection"))
             {
@@ -277,21 +306,37 @@
         }
         catch (System.TimeoutException timeoutEx)
         {
-            Logger.LogError(timeoutEx, "Timeout during login for username: {Username}", loginModel.Username);
+            try
+            {
+                Logger.LogError(timeoutEx, "Timeout during login for username: {Username}", loginModel.Username);
+            }
+            catch
+            {
+                // If logging fails, write to console as fallback
+                Console.WriteLine($"Timeout during login for {loginModel.Username}: {timeoutEx.Message}");
+            }
             errorMessage = "The request timed out. The database service may be temporarily unavailable. Please try again in a few moments.";
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, 
-                "Unexpected error during login for username: {Username} - Exception: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
-                loginModel.Username, ex.GetType().FullName, ex.Message, ex.StackTrace);
-            
-            // Log inner exception if present
-            if (ex.InnerException != null)
+            try
             {
-                Logger.LogError(ex.InnerException, 
-                    "Inner exception during login - Type: {ExceptionType}, Message: {Message}", 
-                    ex.InnerException.GetType().FullName, ex.InnerException.Message);
+                Logger.LogError(ex, 
+                    "Unexpected error during login for username: {Username} - Exception: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
+                    loginModel.Username, ex.GetType().FullName, ex.Message, ex.StackTrace);
+                
+                // Log inner exception if present
+                if (ex.InnerException != null)
+                {
+                    Logger.LogError(ex.InnerException, 
+                        "Inner exception during login - Type: {ExceptionType}, Message: {Message}", 
+                        ex.InnerException.GetType().FullName, ex.InnerException.Message);
+                }
+            }
+            catch
+            {
+                // If logging fails, write to console as fallback
+                Console.WriteLine($"Unexpected error during login for {loginModel.Username}: {ex.GetType().FullName} - {ex.Message}");
             }
             
             errorMessage = "An unexpected error occurred during login. Please try again later or contact support if the issue persists.";
