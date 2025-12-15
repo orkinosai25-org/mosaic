@@ -1,5 +1,6 @@
 @page "/admin/login"
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
 @using OrkinosaiCMS.Web.Services
 @inject IAuthenticationService AuthService
 @inject NavigationManager NavigationManager
@@ -28,10 +29,10 @@
                 <label for="username">Username</label>
                 <InputText id="username" 
                           class="form-control" 
-                          @bind-Value="loginModel.Username" 
+                          @bind-Value="loginModel!.Username" 
                           placeholder="Enter username"
                           disabled="@isLoading" />
-                <ValidationMessage For="@(() => loginModel.Username)" />
+                <ValidationMessage For="@(() => loginModel!.Username)" />
             </div>
 
             <div class="form-group">
@@ -39,10 +40,10 @@
                 <InputText id="password" 
                           type="password" 
                           class="form-control" 
-                          @bind-Value="loginModel.Password" 
+                          @bind-Value="loginModel!.Password" 
                           placeholder="Enter password"
                           disabled="@isLoading" />
-                <ValidationMessage For="@(() => loginModel.Password)" />
+                <ValidationMessage For="@(() => loginModel!.Password)" />
             </div>
 
             <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
@@ -194,13 +195,19 @@
 </style>
 
 @code {
-    private LoginModel loginModel = new();
+    [SupplyParameterFromForm(FormName = "login")]
+    private LoginModel? loginModel { get; set; }
+    
     private string errorMessage = string.Empty;
     private bool isLoading = false;
 
     protected override void OnInitialized()
     {
         Logger.LogInformation("Login page initialized - URL: {Url}", NavigationManager.Uri);
+        
+        // Initialize model if not supplied from form (first render)
+        loginModel ??= new LoginModel();
+        
         base.OnInitialized();
     }
 
@@ -215,6 +222,14 @@
 
     private async Task HandleLogin()
     {
+        // Ensure loginModel is not null (should always be initialized by OnInitialized or form post)
+        if (loginModel == null)
+        {
+            Logger.LogError("HandleLogin called with null loginModel");
+            errorMessage = "An unexpected error occurred. Please refresh the page and try again.";
+            return;
+        }
+        
         Logger.LogInformation("HandleLogin method called - Username: {Username}, IsLoading: {IsLoading}", 
             loginModel.Username, isLoading);
         
