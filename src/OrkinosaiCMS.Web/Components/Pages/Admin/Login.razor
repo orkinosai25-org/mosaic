@@ -259,10 +259,24 @@
                 errorMessage = "Invalid username or password. Please try again.";
             }
         }
+        catch (System.IO.IOException ioEx)
+        {
+            // Handle IO errors including FileNotFoundException (e.g., log files, configuration files)
+            // These should not block login functionality
+            Console.WriteLine($"WARNING: IO error during login - this should not affect login: {ioEx.Message}");
+            if (ioEx is FileNotFoundException fileEx)
+            {
+                Console.WriteLine($"File path: {fileEx.FileName}");
+            }
+            
+            // Don't show this error to the user - it's an internal logging issue
+            // The login should still work even if logging fails
+            errorMessage = "An unexpected error occurred during login. Please try again.";
+        }
         catch (Microsoft.Data.SqlClient.SqlException sqlEx)
         {
             // Handle SQL connection errors specifically
-            Logger.LogError(sqlEx, 
+            SafeLogError(sqlEx, 
                 "SQL error during login for username: {Username} - Error: {ErrorNumber}, Message: {ErrorMessage}, State: {State}, Server: {Server}", 
                 loginModel.Username, sqlEx.Number, sqlEx.Message, sqlEx.State, sqlEx.Server);
             
@@ -277,19 +291,19 @@
         }
         catch (System.TimeoutException timeoutEx)
         {
-            Logger.LogError(timeoutEx, "Timeout during login for username: {Username}", loginModel.Username);
+            SafeLogError(timeoutEx, "Timeout during login for username: {Username}", loginModel.Username);
             errorMessage = "The request timed out. The database service may be temporarily unavailable. Please try again in a few moments.";
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, 
+            SafeLogError(ex, 
                 "Unexpected error during login for username: {Username} - Exception: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
                 loginModel.Username, ex.GetType().FullName, ex.Message, ex.StackTrace);
             
             // Log inner exception if present
             if (ex.InnerException != null)
             {
-                Logger.LogError(ex.InnerException, 
+                SafeLogError(ex.InnerException, 
                     "Inner exception during login - Type: {ExceptionType}, Message: {Message}", 
                     ex.InnerException.GetType().FullName, ex.InnerException.Message);
             }
@@ -301,6 +315,23 @@
             isLoading = false;
             Logger.LogInformation("HandleLogin method completed - Username: {Username}, IsLoading: {IsLoading}, HasError: {HasError}", 
                 loginModel.Username, isLoading, !string.IsNullOrEmpty(errorMessage));
+        }
+    }
+    
+    /// <summary>
+    /// Safely logs an error without throwing exceptions. Falls back to console if logger fails.
+    /// </summary>
+    private void SafeLogError(Exception ex, string message, params object[] args)
+    {
+        try
+        {
+            Logger.LogError(ex, message, args);
+        }
+        catch
+        {
+            // If logging fails, write to console as fallback
+            var formattedMessage = string.Format(message.Replace("{", "{{").Replace("}", "}}"), args);
+            Console.WriteLine($"Error logging failed - {formattedMessage}: {ex.Message}");
         }
     }
 }

@@ -60,14 +60,32 @@ try
         {
             builder.Host.UseSerilog((context, services, configuration) =>
             {
-                configuration
-                    .ReadFrom.Configuration(context.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .Enrich.WithMachineName()
-                    .Enrich.WithThreadId()
-                    // Always ensure console logging is enabled as fallback
-                    .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}");
+                try
+                {
+                    configuration
+                        .ReadFrom.Configuration(context.Configuration)
+                        .ReadFrom.Services(services)
+                        .Enrich.FromLogContext()
+                        .Enrich.WithMachineName()
+                        .Enrich.WithThreadId()
+                        // Always ensure console logging is enabled as fallback
+                        .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}");
+                }
+                catch (Exception fileEx)
+                {
+                    // If file sink configuration fails (e.g., cannot create log directory),
+                    // fall back to console-only logging to prevent application startup failure
+                    Console.WriteLine($"WARNING: Serilog file sink configuration failed: {fileEx.Message}");
+                    Console.WriteLine("Falling back to console-only logging.");
+                    
+                    configuration
+                        .MinimumLevel.Information()
+                        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
+                        .Enrich.FromLogContext()
+                        .Enrich.WithMachineName()
+                        .Enrich.WithThreadId()
+                        .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}");
+                }
             });
             
             Log.Information("Serilog configuration completed successfully");
