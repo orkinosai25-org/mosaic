@@ -285,10 +285,8 @@ public class UserService : IUserService
                 var passwordValid = await _userManager.CheckPasswordAsync(identityUser, password);
                 _logger.LogInformation("Identity password verification result for {Username}: {IsValid}", username, passwordValid);
                 
-                if (passwordValid)
-                {
-                    return true;
-                }
+                // Return the result immediately - don't fall back to legacy for Identity users
+                return passwordValid;
             }
             else
             {
@@ -394,6 +392,13 @@ public class UserService : IUserService
 
     private bool VerifyHashedPassword(string hashedPassword, string password)
     {
+        // Handle null or empty password hash gracefully
+        if (string.IsNullOrEmpty(hashedPassword))
+        {
+            _logger.LogWarning("VerifyHashedPassword called with null or empty password hash");
+            return false;
+        }
+        
         return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
     }
 }
