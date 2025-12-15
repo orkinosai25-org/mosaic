@@ -40,10 +40,20 @@ public class UserServiceTests
         _contextMock = new Mock<ApplicationDbContext>(options);
         _loggerMock = new Mock<ILogger<UserService>>();
         
-        // Create UserManager mock - UserManager requires an IUserStore
+        // Create UserManager mock - UserManager requires an IUserStore and several other dependencies
+        // We pass null for the optional dependencies as they're not needed in our tests
         var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
         _userManagerMock = new Mock<UserManager<ApplicationUser>>(
-            userStoreMock.Object, null, null, null, null, null, null, null, null);
+            userStoreMock.Object, 
+            null /* IOptions<IdentityOptions> */,
+            null /* IPasswordHasher<ApplicationUser> */,
+            null /* IEnumerable<IUserValidator<ApplicationUser>> */,
+            null /* IEnumerable<IPasswordValidator<ApplicationUser>> */,
+            null /* ILookupNormalizer */,
+            null /* IdentityErrorDescriber */,
+            null /* IServiceProvider */,
+            null /* ILogger<UserManager<ApplicationUser>> */
+        );
 
         _userService = new UserService(
             _userRepositoryMock.Object,
