@@ -300,6 +300,46 @@ Future versions may include:
 3. **Check log level**: Ensure the minimum level allows the messages you expect to see
 4. **Review startup logs**: Check console output for Serilog initialization errors
 
+**Note on Azure App Service Deployments**: If file logging fails (e.g., due to permissions or missing directories), the application automatically falls back to console-only logging. This ensures the application continues to run even if file logging is unavailable. In production environments (Azure), it's recommended to use console logging and rely on Azure's built-in log streaming and Application Insights for log collection.
+
+### Automatic Fallback to Console Logging
+
+The application is configured with a robust fallback mechanism:
+
+1. **Startup**: Attempts to create `App_Data/Logs` directory if it doesn't exist
+2. **File Sink Initialization**: If file logging fails, automatically switches to console-only logging
+3. **Runtime Errors**: Logger errors are caught and logged to console to prevent disrupting application functionality
+4. **Production Configuration**: Production environment (`appsettings.Production.json`) uses console-only logging by default
+
+This design ensures that **logging issues never prevent users from using the application**. The login page and other critical functions will continue to work even if file logging is unavailable.
+
+### Production Logging Recommendations
+
+For production deployments (especially on Azure App Service):
+
+1. **Use console-only logging**: The default production configuration writes to console only
+2. **Enable Azure App Service Logs**: Navigate to Azure Portal > App Service > App Service logs > Enable Application Logging
+3. **Use Azure Log Stream**: View real-time logs via Azure Portal or Azure CLI
+4. **Consider Application Insights**: For advanced logging, monitoring, and analytics
+5. **Avoid file-based logging**: File systems in Azure App Service may have permission restrictions
+
+Example production configuration (already configured in `appsettings.Production.json`):
+
+```json
+{
+  "Serilog": {
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "outputTemplate": "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"
+        }
+      }
+    ]
+  }
+}
+```
+
 ### Log Files Too Large
 
 1. Reduce `retainedFileCountLimit` to keep fewer days
