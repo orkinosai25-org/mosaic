@@ -98,7 +98,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 db.Database.EnsureCreated();
 
                 // Seed test data if needed
-                SeedTestData(db, userManager, roleManager).Wait();
+                // Use GetAwaiter().GetResult() for sync context to avoid deadlocks
+                SeedTestData(db, userManager, roleManager).GetAwaiter().GetResult();
             }
         });
     }
