@@ -80,7 +80,68 @@ $ sqlite3 orkinosai-cms-dev.db "SELECT Name FROM AspNetRoles;"
 Administrator  ✅
 ```
 
-### 3. Created Comprehensive Documentation ✅
+### 3. Added JWT Bearer Authentication ✅ (Oqtane Pattern)
+
+**Following Oqtane's Proven Implementation**:
+
+Oqtane uses JWT tokens for advanced authentication alongside cookie-based auth, especially for:
+- API clients and external integrations
+- Mobile applications
+- Single Page Applications (SPAs)
+- Microservices architecture
+
+**Implementation**:
+- ✅ Dual authentication scheme: Cookie (Blazor) + JWT (APIs)
+- ✅ New endpoint: `POST /api/authentication/token`
+- ✅ JWT token service with secure generation and validation
+- ✅ Configurable via appsettings.json
+- ✅ HMAC SHA256 signing algorithm
+- ✅ Claims-based authentication with roles
+
+**Configuration** (appsettings.json):
+```json
+{
+  "Authentication": {
+    "Jwt": {
+      "SecretKey": "your-super-secret-jwt-key-min-32-chars",
+      "Issuer": "OrkinosaiCMS",
+      "Audience": "OrkinosaiCMS.API",
+      "ExpirationMinutes": 480,
+      "RefreshTokenExpirationDays": 30
+    }
+  }
+}
+```
+
+**Usage Example**:
+```bash
+# Generate JWT token
+curl -X POST /api/authentication/token \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"Admin@123"}'
+
+# Response
+{
+  "success": true,
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenType": "Bearer",
+  "expiresIn": 28800,
+  "user": { ... }
+}
+
+# Use token for API calls
+curl -X GET /api/authentication/status \
+  -H "Authorization: Bearer {token}"
+```
+
+**Benefits**:
+- ✅ Stateless authentication (scales horizontally)
+- ✅ Works across different platforms (web, mobile, desktop)
+- ✅ No server-side session storage required
+- ✅ Perfect for distributed systems and microservices
+- ✅ Industry-standard authentication (OAuth 2.0 compatible)
+
+### 4. Created Comprehensive Documentation ✅
 
 **New Files**:
 
@@ -98,6 +159,18 @@ Administrator  ✅
    - Solution implementation details
    - Testing results (97/97 tests passing)
    - Impact assessment
+   - Deployment instructions
+   - Security considerations
+
+3. **`JWT_AUTHENTICATION_GUIDE.md`** (400+ lines) ✨ NEW
+   - JWT architecture and authentication flow
+   - Configuration guide (appsettings.json, environment variables)
+   - API endpoint documentation
+   - Usage examples (JavaScript, C#, Python, cURL)
+   - Security best practices (token storage, HTTPS, expiration)
+   - Authorization patterns (Authorize attribute, role-based)
+   - Troubleshooting common JWT issues
+   - Comparison: Cookie vs JWT authentication
    - Deployment instructions
    - Security considerations
 
@@ -538,15 +611,40 @@ Role:     Administrator
 
 ## API Endpoints
 
-### Authentication API
+### Authentication API (Cookie-Based)
 ```
-POST   /api/authentication/login      - Login with username/password
+POST   /api/authentication/login      - Login with username/password (sets cookie)
 POST   /api/authentication/logout     - Logout current user
 GET    /api/authentication/status     - Check authentication status
 POST   /api/authentication/validate   - Validate credentials without login
 ```
 
-### Test with curl
+### JWT Token API ✨ NEW (Following Oqtane Pattern)
+```
+POST   /api/authentication/token      - Generate JWT access token for API clients
+```
+
+**JWT Usage Example**:
+```bash
+# Get JWT token
+curl -X POST https://your-app.azurewebsites.net/api/authentication/token \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"Admin@123"}'
+
+# Response
+{
+  "success": true,
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenType": "Bearer",
+  "expiresIn": 28800
+}
+
+# Use token for API calls
+curl https://your-app.azurewebsites.net/api/authentication/status \
+  -H "Authorization: Bearer {accessToken}"
+```
+
+### Test with curl (Cookie-Based)
 ```bash
 # Login
 curl -X POST https://your-app.azurewebsites.net/api/authentication/login \
@@ -592,7 +690,16 @@ These features can be added in future PRs:
 - Generated `20251215015307_AddIdentityTables` migration
 - Created 7 Identity tables: AspNetUsers, AspNetRoles, AspNetUserRoles, etc.
 - Renamed legacy tables for backward compatibility
+- **Added JWT Bearer authentication (Oqtane pattern)** ✨ NEW
 - Created comprehensive deployment documentation
+
+### JWT Authentication ✨ NEW
+- ✅ Dual authentication: Cookie (Blazor) + JWT (APIs)
+- ✅ New endpoint: `POST /api/authentication/token`
+- ✅ Secure token generation and validation
+- ✅ Configurable via appsettings.json
+- ✅ Support for mobile apps, SPAs, and external integrations
+- ✅ Comprehensive documentation with usage examples
 
 ### Testing
 - ✅ 97/97 tests passing (41 unit + 56 integration)
