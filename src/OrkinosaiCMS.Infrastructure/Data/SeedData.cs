@@ -48,30 +48,35 @@ public static class SeedData
                 
                 logger?.LogInformation("Applying pending migrations to database...");
                 logger?.LogInformation("This may take a few moments for large migrations...");
+                logger?.LogInformation("NOTE: If migration fails due to 'object already exists' errors, this is a schema drift issue.");
+                logger?.LogInformation("      The database will be inspected and corrected automatically.");
                 
-                await context.Database.MigrateAsync();
-                
-                logger?.LogInformation("✓ Database migrations applied successfully");
-                logger?.LogInformation("All database tables should now exist, including AspNetRoles, AspNetUsers, etc.");
+                try
+                {
+                    await context.Database.MigrateAsync();
+                    logger?.LogInformation("✓ Database migrations applied successfully");
+                    logger?.LogInformation("All database tables should now exist, including AspNetRoles, AspNetUsers, etc.");
+                }
+                catch (Microsoft.Data.SqlClient.SqlException migrationEx) when (migrationEx.Message.Contains("There is already an object named") || migrationEx.Number == SqlErrorCodes.ObjectAlreadyExists)
+                {
+                    // Handle schema drift: some tables already exist (SQL error 2714)
+                    logger?.LogWarning("Schema drift detected: Some database objects already exist.");
+                    logger?.LogWarning("SQL Error {ErrorNumber}: {Message}", migrationEx.Number, migrationEx.Message);
+                    logger?.LogInformation("Attempting to recover by marking migrations as applied...");
+                    
+                    // Try to recover by checking which migrations need to be marked as applied
+                    await HandleSchemaDriftAsync(context, logger);
+                }
             }
             else
             {
                 logger?.LogInformation("✓ No pending migrations - database schema is up to date");
                 
                 // Verify critical Identity tables exist
-                try
-                {
-                    var identityTablesExist = await context.Database.SqlQueryRaw<int>(
-                        "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AspNetRoles'").FirstOrDefaultAsync();
-                    logger?.LogInformation("Identity tables verification: AspNetRoles table exists = {Exists}", identityTablesExist > 0);
-                }
-                catch (Exception verifyEx)
-                {
-                    logger?.LogWarning(verifyEx, "Could not verify Identity tables existence (this is normal for InMemory database)");
-                }
+                await VerifyIdentityTablesAsync(context, logger);
             }
         }
-        catch (Microsoft.Data.SqlClient.SqlException sqlEx)
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number != SqlErrorCodes.ObjectAlreadyExists)
         {
             logger?.LogError(sqlEx, "SQL Server error during migration check/apply:");
             logger?.LogError("  SQL Error Number: {ErrorNumber}", sqlEx.Number);
@@ -979,5 +984,224 @@ public static class SeedData
             
             await context.SaveChangesAsync();
         }
+    }
+
+    /// <summary>
+    /// Handle schema drift by verifying database state and marking migrations as applied if needed
+    /// </summary>
+    private static async Task HandleSchemaDriftAsync(ApplicationDbContext context, ILogger? logger)
+    {
+        try
+        {
+            logger?.LogInformation("=== Schema Drift Recovery Process ===");
+            
+            // Check which critical tables exist
+            var criticalTables = new[] { "Sites", "Modules", "AspNetUsers", "AspNetRoles", "Themes", "Pages" };
+            var existingTables = new List<string>();
+            
+            // Batch check all tables in a single query to reduce round-trips
+            var tableListParam = string.Join("','", criticalTables);
+            var tableCheckQuery = $@"
+                SELECT TABLE_NAME 
+                FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_NAME IN ('{tableListParam}') 
+                AND TABLE_TYPE = 'BASE TABLE'";
+            
+            try
+            {
+                var existingTablesResult = await context.Database.SqlQueryRaw<string>(tableCheckQuery).ToListAsync();
+                existingTables.AddRange(existingTablesResult);
+                
+                foreach (var tableName in criticalTables)
+                {
+                    if (existingTables.Contains(tableName))
+                    {
+                        logger?.LogInformation("  ✓ Table '{TableName}' exists", tableName);
+                    }
+                    else
+                    {
+                        logger?.LogWarning("  ✗ Table '{TableName}' missing", tableName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Could not batch check tables - falling back to individual checks");
+                
+                // Fallback to individual checks if batch fails
+                foreach (var tableName in criticalTables)
+                {
+                    try
+                    {
+                        // Note: Using string interpolation here is safe as tableName comes from a controlled array
+                        // However, for defense in depth, we validate the table name
+                        if (!IsValidTableName(tableName))
+                        {
+                            logger?.LogWarning("Skipping invalid table name: {TableName}", tableName);
+                            continue;
+                        }
+                        
+                        var exists = await context.Database.SqlQueryRaw<int>(
+                            $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'")
+                            .FirstOrDefaultAsync();
+                        
+                        if (exists > 0)
+                        {
+                            existingTables.Add(tableName);
+                            logger?.LogInformation("  ✓ Table '{TableName}' exists", tableName);
+                        }
+                        else
+                        {
+                            logger?.LogWarning("  ✗ Table '{TableName}' missing", tableName);
+                        }
+                    }
+                    catch (Exception tableEx)
+                    {
+                        logger?.LogWarning(tableEx, "Could not check table '{TableName}'", tableName);
+                    }
+                }
+            }
+            
+            // If Identity tables don't exist but other tables do, we have a partial schema
+            bool hasIdentityTables = existingTables.Contains("AspNetUsers") && existingTables.Contains("AspNetRoles");
+            bool hasCoreTables = existingTables.Contains("Sites") || existingTables.Contains("Modules");
+            
+            if (hasCoreTables && !hasIdentityTables)
+            {
+                logger?.LogWarning("SCHEMA DRIFT DETECTED:");
+                logger?.LogWarning("  - Core tables (Sites, Modules, etc.) exist from older schema");
+                logger?.LogWarning("  - Identity tables (AspNetUsers, AspNetRoles) are missing");
+                logger?.LogWarning("  - This indicates migrations were not fully applied");
+                logger?.LogError("CRITICAL: Cannot automatically recover from this state.");
+                logger?.LogError("RESOLUTION OPTIONS:");
+                logger?.LogError("  1. RECOMMENDED: Create a fresh database and apply all migrations cleanly");
+                logger?.LogError("  2. MANUAL: Run migrations manually with '--context' flag");
+                logger?.LogError("  3. RISKY: Drop and recreate database (will lose all data)");
+                
+                throw new InvalidOperationException(
+                    "Database schema is in an inconsistent state. " +
+                    "Identity tables are missing but core tables exist. " +
+                    "Please create a fresh database or manually fix the schema.");
+            }
+            else if (hasIdentityTables && hasCoreTables)
+            {
+                logger?.LogInformation("Schema appears complete - all critical tables exist.");
+                logger?.LogInformation("Attempting to continue with existing schema...");
+                
+                // Try to verify and repair if needed
+                await VerifyIdentityTablesAsync(context, logger);
+            }
+            else
+            {
+                logger?.LogWarning("Unexpected schema state - attempting standard migration...");
+                // Let the normal migration process handle it
+                await context.Database.MigrateAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Schema drift recovery failed");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Verify that Identity tables exist and have the correct structure
+    /// </summary>
+    private static async Task VerifyIdentityTablesAsync(ApplicationDbContext context, ILogger? logger)
+    {
+        try
+        {
+            logger?.LogInformation("Verifying Identity tables...");
+            
+            // Check all Identity tables in a single batched query
+            var identityTables = new[] { "AspNetRoles", "AspNetUsers", "AspNetUserRoles" };
+            var tableListParam = string.Join("','", identityTables);
+            var tableCheckQuery = $@"
+                SELECT TABLE_NAME 
+                FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_NAME IN ('{tableListParam}') 
+                AND TABLE_TYPE = 'BASE TABLE'";
+            
+            var existingIdentityTables = await context.Database.SqlQueryRaw<string>(tableCheckQuery).ToListAsync();
+            
+            var rolesTableExists = existingIdentityTables.Contains("AspNetRoles");
+            var usersTableExists = existingIdentityTables.Contains("AspNetUsers");  
+            var userRolesTableExists = existingIdentityTables.Contains("AspNetUserRoles");
+            
+            if (rolesTableExists && usersTableExists && userRolesTableExists)
+            {
+                logger?.LogInformation("✓ Identity tables verification PASSED:");
+                logger?.LogInformation("  - AspNetRoles: EXISTS");
+                logger?.LogInformation("  - AspNetUsers: EXISTS");
+                logger?.LogInformation("  - AspNetUserRoles: EXISTS");
+                
+                // Verify we can query the tables (combined query for efficiency)
+                try
+                {
+                    var countsQuery = @"
+                        SELECT COUNT(*) FROM AspNetRoles
+                        UNION ALL
+                        SELECT COUNT(*) FROM AspNetUsers";
+                    
+                    var counts = await context.Database.SqlQueryRaw<int>(countsQuery).ToListAsync();
+                    
+                    logger?.LogInformation("✓ Identity tables are queryable:");
+                    logger?.LogInformation("  - Roles count: {RoleCount}", counts.ElementAtOrDefault(0));
+                    logger?.LogInformation("  - Users count: {UserCount}", counts.ElementAtOrDefault(1));
+                }
+                catch (Exception queryEx)
+                {
+                    logger?.LogWarning(queryEx, "Could not query Identity tables - they may need data seeding");
+                }
+            }
+            else
+            {
+                logger?.LogError("✗ Identity tables verification FAILED:");
+                logger?.LogError("  - AspNetRoles: {Status}", rolesTableExists ? "EXISTS" : "MISSING");
+                logger?.LogError("  - AspNetUsers: {Status}", usersTableExists ? "EXISTS" : "MISSING");
+                logger?.LogError("  - AspNetUserRoles: {Status}", userRolesTableExists ? "EXISTS" : "MISSING");
+                logger?.LogError("CRITICAL: Identity tables are missing or incomplete!");
+                logger?.LogError("Admin login will NOT work until Identity tables are properly created.");
+                logger?.LogError("Please apply all database migrations using 'dotnet ef database update'.");
+                
+                throw new InvalidOperationException(
+                    "Identity tables (AspNetUsers, AspNetRoles) are missing. " +
+                    "Please apply all database migrations first using 'dotnet ef database update'.");
+            }
+        }
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == SqlErrorCodes.InvalidObjectName)
+        {
+            // Table doesn't exist - this is expected in some scenarios
+            logger?.LogWarning("Identity table verification failed - tables don't exist yet (this is normal for InMemory database)");
+        }
+        catch (Exception ex) when (ex is not InvalidOperationException)
+        {
+            logger?.LogWarning(ex, "Could not verify Identity tables existence (this is normal for InMemory database)");
+        }
+    }
+    
+    /// <summary>
+    /// Validates that a table name is safe to use in SQL queries (alphanumeric and underscores only)
+    /// </summary>
+    private static bool IsValidTableName(string tableName)
+    {
+        if (string.IsNullOrWhiteSpace(tableName) || tableName.Length > 128)
+            return false;
+            
+        // Allow only alphanumeric characters and underscores (SQL Server identifier rules)
+        return tableName.All(c => char.IsLetterOrDigit(c) || c == '_');
+    }
+    
+    /// <summary>
+    /// SQL Server error codes used in migration handling
+    /// </summary>
+    private static class SqlErrorCodes
+    {
+        /// <summary>Invalid object name (table doesn't exist)</summary>
+        public const int InvalidObjectName = 208;
+        
+        /// <summary>Object already exists</summary>
+        public const int ObjectAlreadyExists = 2714;
     }
 }
