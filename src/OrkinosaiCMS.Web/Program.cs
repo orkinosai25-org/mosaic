@@ -497,8 +497,7 @@ try
                 
                 // For Testing environment, allow app to continue (health checks, etc.)
                 // For Production/Development with real database, this is a CRITICAL error
-                if (builder.Environment.EnvironmentName == "Testing" || 
-                    databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true)
+                if (IsTestingEnvironment(builder.Environment.EnvironmentName, databaseProvider))
                 {
                     logger.LogCritical("The application will continue to start (testing environment), but database is not fully initialized.");
                 }
@@ -614,8 +613,7 @@ try
             
             // For Testing environment, allow app to continue
             // For Production/Development with real database, abort startup
-            if (builder.Environment.EnvironmentName == "Testing" || 
-                databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true)
+            if (IsTestingEnvironment(builder.Environment.EnvironmentName, databaseProvider))
             {
                 logger.LogWarning("Application will continue (testing environment) but database may not be properly initialized.");
             }
@@ -762,6 +760,13 @@ finally
         // If Log.CloseAndFlush fails, log to console and continue shutdown
         Console.WriteLine($"Warning: Failed to flush logs during shutdown: {ex.Message}");
     }
+}
+
+// Helper method to determine if we're in a test environment (allows InMemory database fallback)
+static bool IsTestingEnvironment(string environmentName, string? databaseProvider)
+{
+    return environmentName == "Testing" || 
+           databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true;
 }
 
 // Helper method to configure no-cache headers for index.html

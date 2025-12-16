@@ -50,8 +50,9 @@ public class DatabaseMigrationService
             if (databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true)
             {
                 _logger.LogInformation("InMemory database provider detected - skipping migration (will use EnsureCreated)");
+                _logger.LogInformation("InMemory databases do not support EF Core migrations - schema is created using EnsureCreated instead");
                 result.Success = false; // Signal to use EnsureCreated fallback
-                result.ErrorMessage = "Relational-specific methods can only be used when the context is using a relational database provider.";
+                result.ErrorMessage = "InMemory database provider does not support migrations";
                 return result;
             }
 
