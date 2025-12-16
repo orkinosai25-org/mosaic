@@ -355,7 +355,28 @@ Update `appsettings.json` to enable multi-tenant mode:
 
 #### 4. Apply Database Migrations
 
-**Option A: Using Helper Script (Recommended)**
+OrkinosaiCMS includes an **enhanced migration recovery system** adapted from [Oqtane CMS](https://github.com/oqtane/oqtane.framework) that automatically handles schema drift and migration errors.
+
+**Automatic Migration (Recommended)**
+
+Migrations are applied automatically when the application starts. Simply run:
+
+```bash
+cd src/OrkinosaiCMS.Web
+dotnet run
+```
+
+The migration service will:
+- ✅ Detect and create database if it doesn't exist
+- ✅ Apply all pending migrations
+- ✅ Automatically recover from "object already exists" errors
+- ✅ Detect schema drift and mark applied migrations
+- ✅ Verify critical tables exist
+- ✅ Log detailed diagnostics
+
+**Manual Migration (Advanced)**
+
+**Option A: Using Helper Script**
 
 ```bash
 # Linux/Mac
@@ -365,7 +386,7 @@ Update `appsettings.json` to enable multi-tenant mode:
 .\scripts\apply-migrations.ps1 update
 ```
 
-**Option B: Manual EF Core Commands**
+**Option B: EF Core Commands**
 
 ```bash
 # Install EF Core tools (first time only)
@@ -376,10 +397,25 @@ cd src/OrkinosaiCMS.Infrastructure
 ASPNETCORE_ENVIRONMENT=Production dotnet ef database update --startup-project ../OrkinosaiCMS.Web
 ```
 
-**Troubleshooting:**
-If you encounter migration errors (e.g., "object already exists"), see:
-- [Database Migration Troubleshooting Guide](./docs/DATABASE_MIGRATION_TROUBLESHOOTING.md)
-- [Migration Verification Guide](./docs/MIGRATION_VERIFICATION_GUIDE.md)
+**Migration Recovery & Troubleshooting:**
+
+The system automatically handles common migration errors:
+- **SQL Error 2714** ("object already exists") - Auto-recovery via schema drift detection
+- **SQL Error 208** ("table not found") - Creates missing tables
+- **Schema Drift** - Intelligently marks applied migrations in history
+- **Missing Identity Tables** - Applies Identity migration automatically
+
+For detailed information, see:
+- 📖 [Database Migration Recovery Guide](./docs/DATABASE_MIGRATION_RECOVERY.md) - **NEW!** Comprehensive guide with Oqtane patterns
+- 📖 [Database Migration Troubleshooting](./docs/DATABASE_MIGRATION_TROUBLESHOOTING.md) - Solutions for specific errors
+- 📖 [Migration Verification Guide](./docs/MIGRATION_VERIFICATION_GUIDE.md) - Verify and test migrations
+
+**Testing Migration Recovery:**
+
+```bash
+# Run migration recovery tests
+./scripts/test-migration-recovery.sh
+```
 
 #### 5. Run the Application
 
@@ -403,6 +439,7 @@ Navigate to `https://localhost:5001`
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Understand the system design and architecture
 - **[Setup Guide](docs/SETUP.md)** - Detailed setup and configuration instructions
 - **[Database Guide](docs/DATABASE.md)** - Database architecture and data access patterns
+- **[Database Migration Recovery](docs/DATABASE_MIGRATION_RECOVERY.md)** - **NEW!** Enhanced migration system with automatic schema drift recovery
 - **[Database Migration Troubleshooting](docs/DATABASE_MIGRATION_TROUBLESHOOTING.md)** - Solutions for migration errors and schema drift
 - **[Migration Verification Guide](docs/MIGRATION_VERIFICATION_GUIDE.md)** - Verify and test database migrations
 - **[Extensibility Guide](docs/EXTENSIBILITY.md)** - Creating custom modules, themes, and extensions
