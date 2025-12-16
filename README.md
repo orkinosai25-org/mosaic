@@ -355,14 +355,31 @@ Update `appsettings.json` to enable multi-tenant mode:
 
 #### 4. Apply Database Migrations
 
+**Option A: Using Helper Script (Recommended)**
+
+```bash
+# Linux/Mac
+./scripts/apply-migrations.sh update
+
+# Windows (PowerShell)
+.\scripts\apply-migrations.ps1 update
+```
+
+**Option B: Manual EF Core Commands**
+
 ```bash
 # Install EF Core tools (first time only)
 dotnet tool install --global dotnet-ef --version 10.0.0
 
 # Apply migrations
 cd src/OrkinosaiCMS.Infrastructure
-dotnet ef database update --startup-project ../OrkinosaiCMS.Web
+ASPNETCORE_ENVIRONMENT=Production dotnet ef database update --startup-project ../OrkinosaiCMS.Web
 ```
+
+**Troubleshooting:**
+If you encounter migration errors (e.g., "object already exists"), see:
+- [Database Migration Troubleshooting Guide](./docs/DATABASE_MIGRATION_TROUBLESHOOTING.md)
+- [Migration Verification Guide](./docs/MIGRATION_VERIFICATION_GUIDE.md)
 
 #### 5. Run the Application
 
@@ -386,6 +403,8 @@ Navigate to `https://localhost:5001`
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Understand the system design and architecture
 - **[Setup Guide](docs/SETUP.md)** - Detailed setup and configuration instructions
 - **[Database Guide](docs/DATABASE.md)** - Database architecture and data access patterns
+- **[Database Migration Troubleshooting](docs/DATABASE_MIGRATION_TROUBLESHOOTING.md)** - Solutions for migration errors and schema drift
+- **[Migration Verification Guide](docs/MIGRATION_VERIFICATION_GUIDE.md)** - Verify and test database migrations
 - **[Extensibility Guide](docs/EXTENSIBILITY.md)** - Creating custom modules, themes, and extensions
 - **[Logging Guide](docs/LOGGING.md)** - Serilog logging configuration, troubleshooting, and best practices
 
