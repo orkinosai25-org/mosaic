@@ -140,6 +140,70 @@ Set in Azure Portal → Configuration → Application settings:
 
 ⚠️ **Warning:** Auto-migrations can be risky in production. Always test migrations in staging first.
 
+### Error: "There is already an object named 'Modules' in the database" (Schema Drift)
+
+**Full Error:**
+```
+Database migration failed: Schema drift recovery failed: There is already an object named 'Modules' in the database.
+```
+
+**Cause:** Database schema is out of sync with migrations. This typically occurs when:
+- Migrations were applied manually or partially
+- Database was created with old schema
+- Concurrent migrations from multiple instances
+- Previous migration failed mid-execution
+
+**Solution:**
+
+**Option 1 - Reset migration history (Safe - Recommended):**
+
+This marks existing tables as migrated without recreating them.
+
+```bash
+# Connect to your Azure SQL database and run:
+# This tells EF Core that migrations have already been applied
+
+-- Check current migration state
+SELECT * FROM __EFMigrationsHistory ORDER BY MigrationId;
+
+-- If schema drift detected, manually add missing migration entries
+-- Get list of migrations from your project
+-- Then insert them into __EFMigrationsHistory table
+
+-- Example (replace with your actual migration IDs):
+INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion)
+VALUES ('20241215224415_SyncPendingModelChanges', '10.0.0');
+```
+
+**Option 2 - Fresh database (Development/Staging only):**
+
+⚠️ **WARNING: This deletes all data!**
+
+```bash
+# Drop and recreate database (ONLY for dev/staging)
+dotnet ef database drop --startup-project src/OrkinosaiCMS.Web
+dotnet ef database update --startup-project src/OrkinosaiCMS.Web
+```
+
+**Option 3 - Manual schema sync:**
+
+If specific tables conflict, rename or drop them manually:
+
+```sql
+-- Rename conflicting table (preserves data)
+EXEC sp_rename 'Modules', 'Modules_Backup';
+
+-- Then retry migration
+-- If successful, you can drop the backup:
+-- DROP TABLE Modules_Backup;
+```
+
+**Prevention:**
+- Always test migrations in staging environment first
+- Use single-instance deployment during migrations
+- Enable `Database__AutoApplyMigrations=false` in production
+- Apply migrations manually via deployment pipeline
+
 ### Error: "The antiforgery token could not be decrypted"
 
 **Cause:** Data Protection keys are not persisted or changed between restarts.
