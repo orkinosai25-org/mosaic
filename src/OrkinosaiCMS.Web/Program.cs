@@ -470,6 +470,9 @@ try
             logger.LogInformation("Starting database initialization...");
             logger.LogInformation("Database Provider: {Provider}", databaseProvider);
             
+            // Attempt to initialize database and apply migrations
+            // This will throw an exception if migrations fail for SQL Server/SQLite
+            // but will succeed with fallback for InMemory (testing)
             await SeedData.InitializeAsync(services);
             
             // Validate database state before attempting to seed Identity users
@@ -491,12 +494,27 @@ try
                 logger.LogCritical("");
                 logger.LogCritical("ADMIN LOGIN WILL NOT WORK until database migrations are applied.");
                 logger.LogCritical("");
-                logger.LogCritical("The application will continue to start, but you MUST apply migrations");
-                logger.LogCritical("before admin login will function correctly.");
-                logger.LogCritical("");
                 
-                // Continue startup but with clear warning that admin won't work
-                // This allows the app to start and serve the health check endpoint
+                // For Testing environment, allow app to continue (health checks, etc.)
+                // For Production/Development with real database, this is a CRITICAL error
+                if (builder.Environment.EnvironmentName == "Testing" || 
+                    databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true)
+                {
+                    logger.LogCritical("The application will continue to start (testing environment), but database is not fully initialized.");
+                }
+                else
+                {
+                    logger.LogCritical("CRITICAL: Database validation failed in {Environment} environment with {Provider} provider.", 
+                        builder.Environment.EnvironmentName, databaseProvider);
+                    logger.LogCritical("This indicates migrations were not applied successfully.");
+                    logger.LogCritical("Application startup will be ABORTED to prevent runtime errors.");
+                    logger.LogCritical("");
+                    throw new InvalidOperationException(
+                        "Database validation failed: " + validationResult.ErrorMessage + ". " +
+                        "AspNetUsers table and other Identity tables are missing. " +
+                        "See DEPLOYMENT_VERIFICATION_GUIDE.md for troubleshooting. " +
+                        "Action required: " + validationResult.ActionRequired);
+                }
             }
             else
             {
@@ -544,6 +562,10 @@ try
                 logger.LogCritical("This means database migrations have NOT been applied.");
                 logger.LogCritical("Admin login WILL NOT WORK until you apply migrations.");
                 logger.LogCritical("");
+                logger.LogCritical("Root Cause: SQL Error 208 - Invalid object name 'AspNetUsers'");
+                logger.LogCritical("This exact error matches the issue in the bug report:");
+                logger.LogCritical("'SQL error during login for username: admin - Error: 208, Message: Invalid object name AspNetUsers'");
+                logger.LogCritical("");
                 logger.LogCritical("REQUIRED ACTION:");
                 logger.LogCritical("  1. Run: dotnet ef database update --startup-project src/OrkinosaiCMS.Web");
                 logger.LogCritical("     OR");
@@ -552,12 +574,27 @@ try
                 logger.LogCritical("See DEPLOYMENT_VERIFICATION_GUIDE.md for detailed instructions.");
                 logger.LogCritical("====================================================");
                 logger.LogCritical("");
+                
+                // Rethrow to prevent app from starting in broken state
+                throw;
             }
             else
             {
-                logger.LogWarning("Application will continue but database may not be properly initialized. Admin login may fail.");
-                logger.LogWarning("TROUBLESHOOTING: Check that SQL Server is running, firewall allows connections, and credentials are correct.");
+                logger.LogError("Unhandled SQL error during database initialization.");
+                logger.LogError("TROUBLESHOOTING: Check that SQL Server is running, firewall allows connections, and credentials are correct.");
+                // Rethrow to prevent app from starting in broken state
+                throw;
             }
+        }
+        catch (InvalidOperationException invEx) when (invEx.Message.Contains("migration failed") || invEx.Message.Contains("validation failed"))
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogCritical(invEx, "Database migration or validation failed - application cannot start");
+            logger.LogCritical("This prevents the application from starting in a broken state where admin login would fail.");
+            logger.LogCritical("See error details above for specific remediation steps.");
+            
+            // Rethrow to prevent app from starting
+            throw;
         }
         catch (Exception ex)
         {
@@ -575,7 +612,19 @@ try
                 depth++;
             }
             
-            logger.LogWarning("Application will continue but database may not be properly initialized.");
+            // For Testing environment, allow app to continue
+            // For Production/Development with real database, abort startup
+            if (builder.Environment.EnvironmentName == "Testing" || 
+                databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                logger.LogWarning("Application will continue (testing environment) but database may not be properly initialized.");
+            }
+            else
+            {
+                logger.LogCritical("Database initialization failed in {Environment} environment - aborting startup", 
+                    builder.Environment.EnvironmentName);
+                throw;
+            }
         }
     }
 
