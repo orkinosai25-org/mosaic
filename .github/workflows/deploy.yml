@@ -53,6 +53,26 @@ jobs:
     - name: Publish .NET application
       run: dotnet publish src/OrkinosaiCMS.Web/OrkinosaiCMS.Web.csproj --configuration Release --no-build --output ./publish
     
+    # Verify critical deployment files
+    - name: Verify deployment artifacts
+      run: |
+        echo "Verifying critical deployment files..."
+        if [ ! -f ./publish/web.config ]; then
+          echo "ERROR: web.config is missing! This will cause HTTP 500.30 on Azure."
+          exit 1
+        fi
+        if [ ! -d ./publish/logs ]; then
+          echo "WARNING: logs directory is missing. Creating it..."
+          mkdir -p ./publish/logs
+        fi
+        echo "✓ web.config exists"
+        echo "✓ logs directory exists"
+        echo ""
+        echo "Checking web.config content..."
+        grep "stdoutLogEnabled" ./publish/web.config || echo "WARNING: stdoutLogEnabled not found in web.config"
+        echo ""
+        echo "Deployment artifacts verified successfully!"
+    
     # Integrate Frontend into Backend wwwroot
     - name: Copy frontend build to wwwroot
       run: |
@@ -93,6 +113,41 @@ jobs:
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_MOSAIC }}
         package: .
     
+    - name: Wait for deployment to settle
+      run: sleep 30
+    
+    - name: Verify deployment health
+      run: |
+        echo "Verifying deployment..."
+        HEALTH_URL="${{ steps.deploy-to-webapp.outputs.webapp-url }}/api/health"
+        echo "Checking health endpoint: $HEALTH_URL"
+        
+        # Try up to 3 times with 10 second delays
+        for i in 1 2 3; do
+          echo "Attempt $i/3..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo "000")
+          echo "Response code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✓ Health check passed!"
+            curl -s "$HEALTH_URL" || true
+            break
+          elif [ "$i" = "3" ]; then
+            echo "⚠️ WARNING: Health check failed after 3 attempts"
+            echo "This might indicate a deployment issue. Check Azure logs."
+            echo ""
+            echo "Troubleshooting steps:"
+            echo "1. Check Azure Portal → App Service → Log Stream"
+            echo "2. View stdout logs in Kudu: https://${{ env.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net"
+            echo "3. Verify environment variables are set in Configuration"
+            echo "4. See TROUBLESHOOTING_HTTP_500_30.md for detailed guidance"
+            # Don't fail the deployment, just warn
+          else
+            echo "Health check not ready yet, waiting..."
+            sleep 10
+          fi
+        done
+    
     - name: Deployment summary
       run: |
         echo "### 🎉 MOSAIC SaaS Deployment Successful!" >> $GITHUB_STEP_SUMMARY
@@ -111,9 +166,18 @@ jobs:
         echo "  - Content management pages" >> $GITHUB_STEP_SUMMARY
         echo "- **API Endpoints:** ${{ steps.deploy-to-webapp.outputs.webapp-url }}/api/*" >> $GITHUB_STEP_SUMMARY
         echo "  - Backend services for portal integration" >> $GITHUB_STEP_SUMMARY
+        echo "- **Health Check:** ${{ steps.deploy-to-webapp.outputs.webapp-url }}/api/health" >> $GITHUB_STEP_SUMMARY
+        echo "  - Verify deployment status" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "#### ✅ Multi-Tenant SaaS Pattern" >> $GITHUB_STEP_SUMMARY
         echo "- Portal serves as public landing page at root" >> $GITHUB_STEP_SUMMARY
         echo "- CMS admin accessible only after registration/authentication" >> $GITHUB_STEP_SUMMARY
         echo "- Ready for payment integration (Stripe)" >> $GITHUB_STEP_SUMMARY
         echo "- Scalable Azure Web App infrastructure" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "#### 🔍 Troubleshooting" >> $GITHUB_STEP_SUMMARY
+        echo "If you encounter HTTP 500.30 errors:" >> $GITHUB_STEP_SUMMARY
+        echo "1. Check **Log Stream** in Azure Portal" >> $GITHUB_STEP_SUMMARY
+        echo "2. View stdout logs in **Kudu Console**: https://${{ env.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+        echo "3. Verify **Configuration** → Connection strings and app settings" >> $GITHUB_STEP_SUMMARY
+        echo "4. See **TROUBLESHOOTING_HTTP_500_30.md** for detailed guidance" >> $GITHUB_STEP_SUMMARY
