@@ -26,6 +26,10 @@ public static class SeedData
 
         logger?.LogInformation("=== Starting Database Initialization ===");
         
+        // Check if auto-apply migrations is enabled (defaults to true for backwards compatibility)
+        var autoApplyMigrations = configuration.GetValue<bool?>("Database:AutoApplyMigrations") ?? true;
+        logger?.LogInformation("Auto-apply migrations: {AutoApplyMigrations}", autoApplyMigrations);
+        
         // Use enhanced migration service adapted from Oqtane for robust migration handling
         var migrationService = new Services.DatabaseMigrationService(
             context,
@@ -72,8 +76,17 @@ public static class SeedData
                 logger?.LogCritical("  2. Insufficient database permissions for user");
                 logger?.LogCritical("  3. Database server not running or unreachable");
                 logger?.LogCritical("  4. Migration conflicts or schema drift");
+                if (!autoApplyMigrations)
+                {
+                    logger?.LogCritical("  5. Auto-apply migrations is DISABLED (Database:AutoApplyMigrations = false)");
+                }
                 logger?.LogCritical("");
                 logger?.LogCritical("REQUIRED ACTION:");
+                if (!autoApplyMigrations)
+                {
+                    logger?.LogCritical("  NOTE: Auto-apply migrations is DISABLED. You must apply migrations manually.");
+                    logger?.LogCritical("");
+                }
                 logger?.LogCritical("  1. Verify database connection string in appsettings.json or environment variables");
                 logger?.LogCritical("  2. Ensure database server is running and accessible");
                 logger?.LogCritical("  3. Check database user has sufficient permissions (CREATE TABLE, ALTER, etc.)");
@@ -85,6 +98,12 @@ public static class SeedData
                 logger?.LogCritical("  OR");
                 logger?.LogCritical("  bash scripts/apply-migrations.sh update");
                 logger?.LogCritical("");
+                if (!autoApplyMigrations)
+                {
+                    logger?.LogCritical("To enable auto-apply migrations, set Database__AutoApplyMigrations=true");
+                    logger?.LogCritical("in appsettings.json or via environment variable.");
+                    logger?.LogCritical("");
+                }
                 logger?.LogCritical("See DEPLOYMENT_VERIFICATION_GUIDE.md for detailed troubleshooting.");
                 logger?.LogCritical("===========================================");
                 logger?.LogCritical("");
