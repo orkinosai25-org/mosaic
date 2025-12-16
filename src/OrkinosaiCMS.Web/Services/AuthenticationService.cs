@@ -136,7 +136,7 @@ public class AuthenticationService : IAuthenticationService
                 UserId = applicationUser.Id,
                 Username = applicationUser.UserName ?? username,
                 Email = applicationUser.Email ?? string.Empty,
-                DisplayName = applicationUser.DisplayName,
+                DisplayName = applicationUser.DisplayName ?? string.Empty,
                 Role = primaryRole
             };
 
