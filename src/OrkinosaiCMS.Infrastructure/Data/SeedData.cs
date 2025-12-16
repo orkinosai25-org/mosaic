@@ -57,11 +57,11 @@ public static class SeedData
                     logger?.LogInformation("✓ Database migrations applied successfully");
                     logger?.LogInformation("All database tables should now exist, including AspNetRoles, AspNetUsers, etc.");
                 }
-                catch (Microsoft.Data.SqlClient.SqlException migrationEx) when (migrationEx.Message.Contains("There is already an object named"))
+                catch (Microsoft.Data.SqlClient.SqlException migrationEx) when (migrationEx.Message.Contains("There is already an object named") || migrationEx.Number == SqlErrorCodes.ObjectAlreadyExists)
                 {
-                    // Handle schema drift: some tables already exist
+                    // Handle schema drift: some tables already exist (SQL error 2714)
                     logger?.LogWarning("Schema drift detected: Some database objects already exist.");
-                    logger?.LogWarning("SQL Error: {Message}", migrationEx.Message);
+                    logger?.LogWarning("SQL Error {ErrorNumber}: {Message}", migrationEx.Number, migrationEx.Message);
                     logger?.LogInformation("Attempting to recover by marking migrations as applied...");
                     
                     // Try to recover by checking which migrations need to be marked as applied
@@ -76,7 +76,7 @@ public static class SeedData
                 await VerifyIdentityTablesAsync(context, logger);
             }
         }
-        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number != 2714) // 2714 = object already exists
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number != SqlErrorCodes.ObjectAlreadyExists)
         {
             logger?.LogError(sqlEx, "SQL Server error during migration check/apply:");
             logger?.LogError("  SQL Error Number: {ErrorNumber}", sqlEx.Number);
@@ -999,17 +999,23 @@ public static class SeedData
             var criticalTables = new[] { "Sites", "Modules", "AspNetUsers", "AspNetRoles", "Themes", "Pages" };
             var existingTables = new List<string>();
             
-            foreach (var tableName in criticalTables)
+            // Batch check all tables in a single query to reduce round-trips
+            var tableListParam = string.Join("','", criticalTables);
+            var tableCheckQuery = $@"
+                SELECT TABLE_NAME 
+                FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_NAME IN ('{tableListParam}') 
+                AND TABLE_TYPE = 'BASE TABLE'";
+            
+            try
             {
-                try
+                var existingTablesResult = await context.Database.SqlQueryRaw<string>(tableCheckQuery).ToListAsync();
+                existingTables.AddRange(existingTablesResult);
+                
+                foreach (var tableName in criticalTables)
                 {
-                    var exists = await context.Database.SqlQueryRaw<int>(
-                        $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'")
-                        .FirstOrDefaultAsync();
-                    
-                    if (exists > 0)
+                    if (existingTables.Contains(tableName))
                     {
-                        existingTables.Add(tableName);
                         logger?.LogInformation("  ✓ Table '{TableName}' exists", tableName);
                     }
                     else
@@ -1017,9 +1023,42 @@ public static class SeedData
                         logger?.LogWarning("  ✗ Table '{TableName}' missing", tableName);
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Could not batch check tables - falling back to individual checks");
+                
+                // Fallback to individual checks if batch fails
+                foreach (var tableName in criticalTables)
                 {
-                    logger?.LogWarning(ex, "Could not check table '{TableName}'", tableName);
+                    try
+                    {
+                        // Note: Using string interpolation here is safe as tableName comes from a controlled array
+                        // However, for defense in depth, we validate the table name
+                        if (!IsValidTableName(tableName))
+                        {
+                            logger?.LogWarning("Skipping invalid table name: {TableName}", tableName);
+                            continue;
+                        }
+                        
+                        var exists = await context.Database.SqlQueryRaw<int>(
+                            $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'")
+                            .FirstOrDefaultAsync();
+                        
+                        if (exists > 0)
+                        {
+                            existingTables.Add(tableName);
+                            logger?.LogInformation("  ✓ Table '{TableName}' exists", tableName);
+                        }
+                        else
+                        {
+                            logger?.LogWarning("  ✗ Table '{TableName}' missing", tableName);
+                        }
+                    }
+                    catch (Exception tableEx)
+                    {
+                        logger?.LogWarning(tableEx, "Could not check table '{TableName}'", tableName);
+                    }
                 }
             }
             
@@ -1075,39 +1114,41 @@ public static class SeedData
         {
             logger?.LogInformation("Verifying Identity tables...");
             
-            // Check AspNetRoles
-            var rolesTableExists = await context.Database.SqlQueryRaw<int>(
-                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AspNetRoles'")
-                .FirstOrDefaultAsync();
+            // Check all Identity tables in a single batched query
+            var identityTables = new[] { "AspNetRoles", "AspNetUsers", "AspNetUserRoles" };
+            var tableListParam = string.Join("','", identityTables);
+            var tableCheckQuery = $@"
+                SELECT TABLE_NAME 
+                FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_NAME IN ('{tableListParam}') 
+                AND TABLE_TYPE = 'BASE TABLE'";
             
-            // Check AspNetUsers  
-            var usersTableExists = await context.Database.SqlQueryRaw<int>(
-                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AspNetUsers'")
-                .FirstOrDefaultAsync();
+            var existingIdentityTables = await context.Database.SqlQueryRaw<string>(tableCheckQuery).ToListAsync();
             
-            // Check AspNetUserRoles
-            var userRolesTableExists = await context.Database.SqlQueryRaw<int>(
-                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AspNetUserRoles'")
-                .FirstOrDefaultAsync();
+            var rolesTableExists = existingIdentityTables.Contains("AspNetRoles");
+            var usersTableExists = existingIdentityTables.Contains("AspNetUsers");  
+            var userRolesTableExists = existingIdentityTables.Contains("AspNetUserRoles");
             
-            if (rolesTableExists > 0 && usersTableExists > 0 && userRolesTableExists > 0)
+            if (rolesTableExists && usersTableExists && userRolesTableExists)
             {
                 logger?.LogInformation("✓ Identity tables verification PASSED:");
                 logger?.LogInformation("  - AspNetRoles: EXISTS");
                 logger?.LogInformation("  - AspNetUsers: EXISTS");
                 logger?.LogInformation("  - AspNetUserRoles: EXISTS");
                 
-                // Verify we can query the tables
+                // Verify we can query the tables (combined query for efficiency)
                 try
                 {
-                    var roleCount = await context.Database.SqlQueryRaw<int>(
-                        "SELECT COUNT(*) FROM AspNetRoles").FirstOrDefaultAsync();
-                    var userCount = await context.Database.SqlQueryRaw<int>(
-                        "SELECT COUNT(*) FROM AspNetUsers").FirstOrDefaultAsync();
+                    var countsQuery = @"
+                        SELECT COUNT(*) FROM AspNetRoles
+                        UNION ALL
+                        SELECT COUNT(*) FROM AspNetUsers";
+                    
+                    var counts = await context.Database.SqlQueryRaw<int>(countsQuery).ToListAsync();
                     
                     logger?.LogInformation("✓ Identity tables are queryable:");
-                    logger?.LogInformation("  - Roles count: {RoleCount}", roleCount);
-                    logger?.LogInformation("  - Users count: {UserCount}", userCount);
+                    logger?.LogInformation("  - Roles count: {RoleCount}", counts.ElementAtOrDefault(0));
+                    logger?.LogInformation("  - Users count: {UserCount}", counts.ElementAtOrDefault(1));
                 }
                 catch (Exception queryEx)
                 {
@@ -1117,9 +1158,9 @@ public static class SeedData
             else
             {
                 logger?.LogError("✗ Identity tables verification FAILED:");
-                logger?.LogError("  - AspNetRoles: {Status}", rolesTableExists > 0 ? "EXISTS" : "MISSING");
-                logger?.LogError("  - AspNetUsers: {Status}", usersTableExists > 0 ? "EXISTS" : "MISSING");
-                logger?.LogError("  - AspNetUserRoles: {Status}", userRolesTableExists > 0 ? "EXISTS" : "MISSING");
+                logger?.LogError("  - AspNetRoles: {Status}", rolesTableExists ? "EXISTS" : "MISSING");
+                logger?.LogError("  - AspNetUsers: {Status}", usersTableExists ? "EXISTS" : "MISSING");
+                logger?.LogError("  - AspNetUserRoles: {Status}", userRolesTableExists ? "EXISTS" : "MISSING");
                 logger?.LogError("CRITICAL: Identity tables are missing or incomplete!");
                 logger?.LogError("Admin login will NOT work until Identity tables are properly created.");
                 logger?.LogError("Please apply all database migrations using 'dotnet ef database update'.");
@@ -1129,7 +1170,7 @@ public static class SeedData
                     "Please apply all database migrations first using 'dotnet ef database update'.");
             }
         }
-        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == 208)
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == SqlErrorCodes.InvalidObjectName)
         {
             // Table doesn't exist - this is expected in some scenarios
             logger?.LogWarning("Identity table verification failed - tables don't exist yet (this is normal for InMemory database)");
@@ -1138,5 +1179,29 @@ public static class SeedData
         {
             logger?.LogWarning(ex, "Could not verify Identity tables existence (this is normal for InMemory database)");
         }
+    }
+    
+    /// <summary>
+    /// Validates that a table name is safe to use in SQL queries (alphanumeric and underscores only)
+    /// </summary>
+    private static bool IsValidTableName(string tableName)
+    {
+        if (string.IsNullOrWhiteSpace(tableName) || tableName.Length > 128)
+            return false;
+            
+        // Allow only alphanumeric characters and underscores (SQL Server identifier rules)
+        return tableName.All(c => char.IsLetterOrDigit(c) || c == '_');
+    }
+    
+    /// <summary>
+    /// SQL Server error codes used in migration handling
+    /// </summary>
+    private static class SqlErrorCodes
+    {
+        /// <summary>Invalid object name (table doesn't exist)</summary>
+        public const int InvalidObjectName = 208;
+        
+        /// <summary>Object already exists</summary>
+        public const int ObjectAlreadyExists = 2714;
     }
 }
