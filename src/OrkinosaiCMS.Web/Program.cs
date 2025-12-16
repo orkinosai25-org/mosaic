@@ -472,12 +472,41 @@ try
             
             await SeedData.InitializeAsync(services);
             
-            // Seed Identity users using UserManager (Oqtane approach)
-            logger.LogInformation("Seeding Identity users...");
-            var identitySeeder = services.GetRequiredService<IdentityUserSeeder>();
-            await identitySeeder.SeedAsync();
+            // Validate database state before attempting to seed Identity users
+            // This provides clear error messages if AspNetUsers table is missing
+            logger.LogInformation("Validating database state...");
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            var validator = new OrkinosaiCMS.Infrastructure.Services.StartupDatabaseValidator(
+                context, 
+                services.GetRequiredService<ILogger<OrkinosaiCMS.Infrastructure.Services.StartupDatabaseValidator>>());
             
-            logger.LogInformation("Database initialization completed successfully");
+            var validationResult = await validator.ValidateDatabaseAsync();
+            
+            if (!validationResult.IsValid)
+            {
+                logger.LogCritical("=== DATABASE VALIDATION FAILED ===");
+                logger.LogCritical("Error: {Error}", validationResult.ErrorMessage);
+                logger.LogCritical("Action Required: {Action}", validationResult.ActionRequired);
+                logger.LogCritical("========================================");
+                logger.LogCritical("");
+                logger.LogCritical("ADMIN LOGIN WILL NOT WORK until database migrations are applied.");
+                logger.LogCritical("");
+                logger.LogCritical("The application will continue to start, but you MUST apply migrations");
+                logger.LogCritical("before admin login will function correctly.");
+                logger.LogCritical("");
+                
+                // Continue startup but with clear warning that admin won't work
+                // This allows the app to start and serve the health check endpoint
+            }
+            else
+            {
+                // Only seed Identity users if validation passed
+                logger.LogInformation("Seeding Identity users...");
+                var identitySeeder = services.GetRequiredService<IdentityUserSeeder>();
+                await identitySeeder.SeedAsync();
+                
+                logger.LogInformation("Database initialization completed successfully");
+            }
         }
         catch (Microsoft.Data.SqlClient.SqlException sqlEx)
         {
@@ -505,8 +534,30 @@ try
             }
             
             logger.LogError("SQL Error Message: {Message}", sqlEx.Message);
-            logger.LogWarning("Application will continue but database may not be properly initialized. Admin login may fail.");
-            logger.LogWarning("TROUBLESHOOTING: Check that SQL Server is running, firewall allows connections, and credentials are correct.");
+            
+            // Special handling for missing AspNetUsers table (error 208)
+            if (sqlEx.Number == 208 && sqlEx.Message.Contains("AspNetUsers"))
+            {
+                logger.LogCritical("");
+                logger.LogCritical("=== CRITICAL: AspNetUsers table does not exist ===");
+                logger.LogCritical("");
+                logger.LogCritical("This means database migrations have NOT been applied.");
+                logger.LogCritical("Admin login WILL NOT WORK until you apply migrations.");
+                logger.LogCritical("");
+                logger.LogCritical("REQUIRED ACTION:");
+                logger.LogCritical("  1. Run: dotnet ef database update --startup-project src/OrkinosaiCMS.Web");
+                logger.LogCritical("     OR");
+                logger.LogCritical("  2. Run: bash scripts/apply-migrations.sh update");
+                logger.LogCritical("");
+                logger.LogCritical("See DEPLOYMENT_VERIFICATION_GUIDE.md for detailed instructions.");
+                logger.LogCritical("====================================================");
+                logger.LogCritical("");
+            }
+            else
+            {
+                logger.LogWarning("Application will continue but database may not be properly initialized. Admin login may fail.");
+                logger.LogWarning("TROUBLESHOOTING: Check that SQL Server is running, firewall allows connections, and credentials are correct.");
+            }
         }
         catch (Exception ex)
         {

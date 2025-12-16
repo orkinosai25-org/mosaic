@@ -1,5 +1,58 @@
 # Deployment Verification Guide - OrkinosaiCMS
 
+## ⚠️ CRITICAL: Common Deployment Issues
+
+### Issue 1: "Invalid object name 'AspNetUsers'" ❌
+
+**Error in logs:**
+```
+Microsoft.Data.SqlClient.SqlException: Invalid object name 'AspNetUsers'.
+```
+
+**Cause:** Database migrations have NOT been applied to your database.
+
+**Solution:**
+```bash
+# Navigate to Infrastructure project
+cd src/OrkinosaiCMS.Infrastructure
+
+# Apply all pending migrations
+dotnet ef database update --startup-project ../OrkinosaiCMS.Web
+
+# Verify AspNetUsers table exists
+# Run this SQL query in your database:
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
+WHERE TABLE_NAME IN ('AspNetUsers', 'AspNetRoles', 'AspNetUserRoles')
+```
+
+### Issue 2: "The antiforgery token could not be decrypted" ❌
+
+**Error in logs:**
+```
+Microsoft.AspNetCore.Antiforgery.AntiforgeryValidationException: The antiforgery token could not be decrypted.
+System.Security.Cryptography.CryptographicException: The key {xxx} was not found in the key ring.
+```
+
+**Cause:** Data Protection keys changed or were cleared between app restarts.
+
+**Solution:**
+```bash
+# Option 1: Clear browser cookies (client-side fix)
+# - Clear all cookies for your domain
+# - Hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
+
+# Option 2: Ensure Data Protection keys persist (server-side fix)
+# Verify the keys directory exists and has files:
+ls -la src/OrkinosaiCMS.Web/App_Data/DataProtection-Keys/
+
+# If empty or missing, the application will create new keys on next start
+# Users will need to clear their cookies after restart
+```
+
+**For Azure App Service:** Data Protection keys are stored in `/home/site/wwwroot/App_Data/DataProtection-Keys/` which persists across restarts and is shared across scale-out instances.
+
+---
+
 ## Quick Health Check
 
 Run this command to verify your deployment is healthy:
@@ -18,6 +71,8 @@ dotnet run --project src/OrkinosaiCMS.Web -- --verify-database
 ## Step-by-Step Verification
 
 ### 1. Database Migrations ✅
+
+**IMPORTANT:** This step MUST be completed before admin login will work!
 
 **Verify migrations are applied:**
 
@@ -45,6 +100,8 @@ ORDER BY TABLE_NAME;
 - AspNetRoles
 - AspNetUserRoles
 - AspNetUsers
+
+**If migrations fail with "object already exists" error:** See "Troubleshooting Commands" section below.
 
 ### 2. Admin User Creation ✅
 
