@@ -26,6 +26,10 @@ public static class SeedData
 
         logger?.LogInformation("=== Starting Database Initialization ===");
         
+        // Check if auto-apply migrations is enabled (defaults to true for backwards compatibility)
+        var autoApplyMigrations = configuration.GetValue<bool?>("Database:AutoApplyMigrations") ?? true;
+        logger?.LogInformation("Auto-apply migrations: {AutoApplyMigrations}", autoApplyMigrations);
+        
         // Use enhanced migration service adapted from Oqtane for robust migration handling
         var migrationService = new Services.DatabaseMigrationService(
             context,
@@ -59,9 +63,55 @@ public static class SeedData
             }
             else
             {
-                logger?.LogCritical("Database migration failed and fallback not available for provider: {Provider}", databaseProvider);
+                logger?.LogCritical("");
+                logger?.LogCritical("=== CRITICAL: Database Migration Failed ===");
+                logger?.LogCritical("");
+                logger?.LogCritical("Error: {Error}", migrationResult.ErrorMessage);
+                logger?.LogCritical("");
+                logger?.LogCritical("This means the AspNetUsers table and other Identity tables are MISSING.");
+                logger?.LogCritical("Admin login WILL NOT WORK until migrations are applied successfully.");
+                logger?.LogCritical("");
+                logger?.LogCritical("Common Causes:");
+                logger?.LogCritical("  1. Database connection issues (network, firewall, credentials)");
+                logger?.LogCritical("  2. Insufficient database permissions for user");
+                logger?.LogCritical("  3. Database server not running or unreachable");
+                logger?.LogCritical("  4. Migration conflicts or schema drift");
+                if (!autoApplyMigrations)
+                {
+                    logger?.LogCritical("  5. Auto-apply migrations is DISABLED (Database:AutoApplyMigrations = false)");
+                }
+                logger?.LogCritical("");
+                logger?.LogCritical("REQUIRED ACTION:");
+                if (!autoApplyMigrations)
+                {
+                    logger?.LogCritical("  NOTE: Auto-apply migrations is DISABLED. You must apply migrations manually.");
+                    logger?.LogCritical("");
+                }
+                logger?.LogCritical("  1. Verify database connection string in appsettings.json or environment variables");
+                logger?.LogCritical("  2. Ensure database server is running and accessible");
+                logger?.LogCritical("  3. Check database user has sufficient permissions (CREATE TABLE, ALTER, etc.)");
+                logger?.LogCritical("  4. Review the error details above for specific issues");
+                logger?.LogCritical("  5. Once issues are resolved, restart the application");
+                logger?.LogCritical("");
+                logger?.LogCritical("For manual migration application:");
+                logger?.LogCritical("  dotnet ef database update --startup-project src/OrkinosaiCMS.Web");
+                logger?.LogCritical("  OR");
+                logger?.LogCritical("  bash scripts/apply-migrations.sh update");
+                logger?.LogCritical("");
+                if (!autoApplyMigrations)
+                {
+                    logger?.LogCritical("To enable auto-apply migrations, set Database__AutoApplyMigrations=true");
+                    logger?.LogCritical("in appsettings.json or via environment variable.");
+                    logger?.LogCritical("");
+                }
+                logger?.LogCritical("See DEPLOYMENT_VERIFICATION_GUIDE.md for detailed troubleshooting.");
+                logger?.LogCritical("===========================================");
+                logger?.LogCritical("");
+                
                 throw new InvalidOperationException(
-                    $"Database migration failed: {migrationResult.ErrorMessage}", 
+                    $"Database migration failed: {migrationResult.ErrorMessage}. " +
+                    $"AspNetUsers table and other Identity tables are missing. Admin login will not work. " +
+                    $"See logs above for detailed troubleshooting steps.", 
                     migrationResult.Exception);
             }
         }

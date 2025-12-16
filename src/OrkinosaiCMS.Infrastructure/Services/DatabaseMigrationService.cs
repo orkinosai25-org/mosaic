@@ -41,6 +41,21 @@ public class DatabaseMigrationService
         {
             _logger.LogInformation("=== Starting Database Migration Process ===");
 
+            // Check if auto-apply migrations is enabled (defaults to true for backwards compatibility)
+            var autoApplyMigrations = _configuration.GetValue<bool?>("Database:AutoApplyMigrations") ?? true;
+            
+            // Special handling for InMemory database provider
+            // InMemory doesn't support migrations, so skip migration logic
+            var databaseProvider = _configuration.GetValue<string>("DatabaseProvider");
+            if (databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                _logger.LogInformation("InMemory database provider detected - skipping migration (will use EnsureCreated)");
+                _logger.LogInformation("InMemory databases do not support EF Core migrations - schema is created using EnsureCreated instead");
+                result.Success = false; // Signal to use EnsureCreated fallback
+                result.ErrorMessage = "InMemory database provider does not support migrations";
+                return result;
+            }
+
             // Step 1: Check if database exists
             var canConnect = await CanConnectToDatabaseAsync();
             if (!canConnect)
@@ -74,8 +89,30 @@ public class DatabaseMigrationService
                     _logger.LogInformation("  - {Migration}", migration);
                 }
 
-                // Step 4: Apply migrations with retry logic
+                _logger.LogWarning("CRITICAL: Migrations are pending and must be applied for the application to function correctly.");
+                _logger.LogWarning("AspNetUsers table and other essential tables will be missing until migrations are applied.");
+
+                if (!autoApplyMigrations)
+                {
+                    _logger.LogError("Auto-apply migrations is DISABLED (Database:AutoApplyMigrations = false)");
+                    _logger.LogError("You must apply migrations manually before the application can start.");
+                    _logger.LogError("Run: dotnet ef database update --startup-project src/OrkinosaiCMS.Web");
+                    _logger.LogError("  OR: bash scripts/apply-migrations.sh update");
+                    
+                    result.Success = false;
+                    result.ErrorMessage = "Migrations are pending but auto-apply is disabled. Apply migrations manually.";
+                    return result;
+                }
+
+                // Step 4: Apply migrations with retry logic (only if auto-apply is enabled)
+                _logger.LogInformation("Auto-apply migrations is ENABLED - applying {Count} pending migrations...", pendingList.Count);
                 result = await ApplyMigrationsWithRecoveryAsync(pendingList);
+                
+                if (!result.Success)
+                {
+                    _logger.LogError("CRITICAL: Migration application FAILED. Database is in incomplete state.");
+                    _logger.LogError("Admin login will NOT work without AspNetUsers table from AddIdentityTables migration.");
+                }
             }
             else
             {
