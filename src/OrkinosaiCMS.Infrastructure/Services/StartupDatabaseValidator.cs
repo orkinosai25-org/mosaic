@@ -100,26 +100,19 @@ public class StartupDatabaseValidator
 
             result.IsValid = false;
             result.ErrorMessage = "Identity tables (AspNetUsers, AspNetRoles) do not exist. Admin login will not work.";
-            result.ActionRequired = @"
-REQUIRED ACTION: Apply database migrations to create Identity tables
-
-Run one of these commands:
-
-1. Using dotnet ef tool:
-   cd src/OrkinosaiCMS.Infrastructure
-   dotnet ef database update --startup-project ../OrkinosaiCMS.Web
-
-2. Using migration script (recommended):
-   bash scripts/apply-migrations.sh update
-
-3. Manual SQL (if migration tools not available):
-   - Generate SQL script: dotnet ef migrations script -o migrations.sql --startup-project ../OrkinosaiCMS.Web
-   - Apply to database using SQL Server Management Studio or sqlcmd
-
-After applying migrations, restart the application.
-
-For detailed instructions, see: DEPLOYMENT_VERIFICATION_GUIDE.md
-";
+            result.ActionRequired = 
+                "REQUIRED ACTION: Apply database migrations to create Identity tables\n\n" +
+                "Run one of these commands:\n\n" +
+                "1. Using dotnet ef tool:\n" +
+                "   cd src/OrkinosaiCMS.Infrastructure\n" +
+                "   dotnet ef database update --startup-project ../OrkinosaiCMS.Web\n\n" +
+                "2. Using migration script (recommended):\n" +
+                "   bash scripts/apply-migrations.sh update\n\n" +
+                "3. Manual SQL (if migration tools not available):\n" +
+                "   - Generate SQL script: dotnet ef migrations script -o migrations.sql --startup-project ../OrkinosaiCMS.Web\n" +
+                "   - Apply to database using SQL Server Management Studio or sqlcmd\n\n" +
+                "After applying migrations, restart the application.\n\n" +
+                "For detailed instructions, see: DEPLOYMENT_VERIFICATION_GUIDE.md";
 
             return result;
         }
