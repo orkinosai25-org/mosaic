@@ -183,7 +183,7 @@ public class DatabaseMigrationService
             _logger.LogInformation("Found {Count} existing tables in database", existingTables.Count);
 
             // Determine which migrations are already partially or fully applied
-            var appliedMigrations = await DetermineMigrationsAppliedAsync(existingTables, pendingMigrations);
+            var appliedMigrations = DetermineMigrationsApplied(existingTables, pendingMigrations);
 
             if (appliedMigrations.Any())
             {
@@ -234,7 +234,7 @@ public class DatabaseMigrationService
     /// <summary>
     /// Determine which pending migrations have already been applied based on existing tables
     /// </summary>
-    private async Task<List<string>> DetermineMigrationsAppliedAsync(
+    private List<string> DetermineMigrationsApplied(
         List<string> existingTables,
         List<string> pendingMigrations)
     {
@@ -278,7 +278,7 @@ public class DatabaseMigrationService
             }
         }
 
-        return await Task.FromResult(appliedMigrations);
+        return appliedMigrations;
     }
 
     /// <summary>
@@ -342,6 +342,7 @@ public class DatabaseMigrationService
 
     /// <summary>
     /// Get list of all tables in the database
+    /// Uses safe, non-parameterized query (no user input)
     /// </summary>
     private async Task<List<string>> GetExistingTablesAsync()
     {
@@ -349,13 +350,16 @@ public class DatabaseMigrationService
 
         try
         {
+            // This query contains no dynamic content and accepts no user input
+            // Using FromSqlRaw is safe here as the query is completely static
             var sql = @"
                 SELECT TABLE_NAME 
                 FROM INFORMATION_SCHEMA.TABLES 
                 WHERE TABLE_TYPE = 'BASE TABLE' 
-                AND TABLE_NAME NOT LIKE '%EFMigrations%'
+                AND TABLE_NAME NOT LIKE '__EFMigrationsHistory'
                 ORDER BY TABLE_NAME";
 
+            // Note: EF Core's SqlQueryRaw is safe when no string interpolation or concatenation is used
             var result = await _context.Database.SqlQueryRaw<string>(sql).ToListAsync();
             tables.AddRange(result);
         }
@@ -374,18 +378,38 @@ public class DatabaseMigrationService
     {
         try
         {
+            // Validate table name to prevent SQL injection
+            if (!IsValidTableName(tableName))
+            {
+                _logger.LogWarning("Invalid table name rejected: {TableName}", tableName);
+                return false;
+            }
+
             var sql = @"
                 SELECT COUNT(*) 
                 FROM INFORMATION_SCHEMA.TABLES 
-                WHERE TABLE_NAME = @TableName";
+                WHERE TABLE_NAME = {0}";
 
-            var count = await _context.Database.SqlQueryRaw<int>(sql).FirstOrDefaultAsync();
+            var count = await _context.Database.SqlQueryRaw<int>(sql, tableName).FirstOrDefaultAsync();
             return count > 0;
         }
         catch
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// Validates that a table name is safe to use in SQL queries (alphanumeric and underscores only)
+    /// Prevents SQL injection by restricting to valid SQL Server identifier characters
+    /// </summary>
+    private bool IsValidTableName(string tableName)
+    {
+        if (string.IsNullOrWhiteSpace(tableName) || tableName.Length > 128)
+            return false;
+            
+        // Allow only alphanumeric characters and underscores (SQL Server identifier rules)
+        return tableName.All(c => char.IsLetterOrDigit(c) || c == '_');
     }
 
     /// <summary>
