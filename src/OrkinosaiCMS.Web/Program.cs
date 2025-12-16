@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -397,6 +398,10 @@ try
     builder.Services.AddScoped<ISubscriptionService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.SubscriptionService>();
     builder.Services.AddScoped<IStripeService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.StripeService>();
 
+    // Add Health Checks for deployment verification
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<ApplicationDbContext>("database");
+
     if (builder.Environment.EnvironmentName != "Testing")
     {
         Log.Information("Service registration completed");
@@ -581,6 +586,7 @@ try
     }
 
     // Endpoint mappings
+    app.MapHealthChecks("/api/health");  // Health check endpoint for deployment verification
     app.MapControllers();  // API controllers for portal integration
     
     // Map Blazor components to specific routes only (admin and cms paths)
