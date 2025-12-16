@@ -14,6 +14,7 @@ public static class SeedData
 {
     /// <summary>
     /// Initialize database with seed data
+    /// Uses enhanced DatabaseMigrationService adapted from Oqtane patterns
     /// </summary>
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
@@ -23,109 +24,50 @@ public static class SeedData
         var loggerFactory = scope.ServiceProvider.GetService<ILoggerFactory>();
         var logger = loggerFactory?.CreateLogger("OrkinosaiCMS.SeedData");
 
-        // Apply pending migrations to ensure all database tables exist (including Identity tables)
-        // This is critical for production deployments where migrations need to be applied
-        // Note: EnsureCreated() does NOT apply migrations and would skip Identity tables
         logger?.LogInformation("=== Starting Database Initialization ===");
-        logger?.LogInformation("Checking for pending database migrations...");
         
-        try
+        // Use enhanced migration service adapted from Oqtane for robust migration handling
+        var migrationService = new Services.DatabaseMigrationService(
+            context,
+            loggerFactory?.CreateLogger<Services.DatabaseMigrationService>() 
+                ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<Services.DatabaseMigrationService>.Instance,
+            configuration);
+
+        var migrationResult = await migrationService.MigrateDatabaseAsync();
+        
+        if (!migrationResult.Success)
         {
-            // Check if database exists
-            var canConnect = await context.Database.CanConnectAsync();
-            logger?.LogInformation("Database connection status: {Status}", canConnect ? "Connected" : "Cannot connect");
+            logger?.LogError("Database migration failed: {Error}", migrationResult.ErrorMessage);
             
-            var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-            var pendingMigrationsList = pendingMigrations.ToList();
-            
-            if (pendingMigrationsList.Any())
+            // Fallback to EnsureCreated for testing scenarios only (InMemory database)
+            var databaseProvider = configuration.GetValue<string>("DatabaseProvider");
+            if (databaseProvider?.Equals("InMemory", StringComparison.OrdinalIgnoreCase) == true)
             {
-                logger?.LogWarning("Found {Count} pending migrations that need to be applied:", pendingMigrationsList.Count);
-                foreach (var migration in pendingMigrationsList)
-                {
-                    logger?.LogWarning("  - {Migration}", migration);
-                }
-                
-                logger?.LogInformation("Applying pending migrations to database...");
-                logger?.LogInformation("This may take a few moments for large migrations...");
-                logger?.LogInformation("NOTE: If migration fails due to 'object already exists' errors, this is a schema drift issue.");
-                logger?.LogInformation("      The database will be inspected and corrected automatically.");
-                
+                logger?.LogWarning("Using InMemory database - attempting EnsureCreatedAsync fallback");
                 try
                 {
-                    await context.Database.MigrateAsync();
-                    logger?.LogInformation("✓ Database migrations applied successfully");
-                    logger?.LogInformation("All database tables should now exist, including AspNetRoles, AspNetUsers, etc.");
+                    await context.Database.EnsureCreatedAsync();
+                    logger?.LogWarning("✓ Database created using EnsureCreatedAsync (InMemory only)");
                 }
-                catch (Microsoft.Data.SqlClient.SqlException migrationEx) when (migrationEx.Message.Contains("There is already an object named") || migrationEx.Number == SqlErrorCodes.ObjectAlreadyExists)
+                catch (Exception ensureEx)
                 {
-                    // Handle schema drift: some tables already exist (SQL error 2714)
-                    logger?.LogWarning("Schema drift detected: Some database objects already exist.");
-                    logger?.LogWarning("SQL Error {ErrorNumber}: {Message}", migrationEx.Number, migrationEx.Message);
-                    logger?.LogInformation("Attempting to recover by marking migrations as applied...");
-                    
-                    // Try to recover by checking which migrations need to be marked as applied
-                    await HandleSchemaDriftAsync(context, logger);
+                    logger?.LogCritical(ensureEx, "CRITICAL: Failed to initialize InMemory database");
+                    throw new InvalidOperationException(
+                        "Database initialization failed. Please check logs for details.", 
+                        ensureEx);
                 }
             }
             else
             {
-                logger?.LogInformation("✓ No pending migrations - database schema is up to date");
-                
-                // Verify critical Identity tables exist
-                await VerifyIdentityTablesAsync(context, logger);
+                logger?.LogCritical("Database migration failed and fallback not available for provider: {Provider}", databaseProvider);
+                throw new InvalidOperationException(
+                    $"Database migration failed: {migrationResult.ErrorMessage}", 
+                    migrationResult.Exception);
             }
         }
-        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number != SqlErrorCodes.ObjectAlreadyExists)
+        else
         {
-            logger?.LogError(sqlEx, "SQL Server error during migration check/apply:");
-            logger?.LogError("  SQL Error Number: {ErrorNumber}", sqlEx.Number);
-            logger?.LogError("  SQL Server: {Server}", sqlEx.Server);
-            logger?.LogError("  SQL State: {State}", sqlEx.State);
-            logger?.LogError("  Message: {Message}", sqlEx.Message);
-            
-            // Fallback to EnsureCreated for testing scenarios only
-            logger?.LogWarning("Attempting fallback to EnsureCreatedAsync (for InMemory/testing databases only)...");
-            try
-            {
-                await context.Database.EnsureCreatedAsync();
-                logger?.LogWarning("✓ Database created using EnsureCreatedAsync");
-                logger?.LogWarning("WARNING: Migrations were NOT applied. This should only be used for InMemory databases in testing.");
-            }
-            catch (Exception ensureEx)
-            {
-                logger?.LogCritical(ensureEx, "CRITICAL: Failed to initialize database using both MigrateAsync and EnsureCreatedAsync");
-                logger?.LogCritical("Please check:");
-                logger?.LogCritical("  1. SQL Server is running and accessible");
-                logger?.LogCritical("  2. Connection string is correct");
-                logger?.LogCritical("  3. Database user has permissions to create/modify database");
-                logger?.LogCritical("  4. Firewall allows database connections");
-                throw new InvalidOperationException(
-                    "Database initialization failed. Please check logs for details and verify database connectivity.", 
-                    ensureEx);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Unexpected error during migration check/apply: {Type}", ex.GetType().FullName);
-            
-            // Fallback to EnsureCreated if migrations fail (e.g., in InMemory database for tests)
-            // NOTE: EnsureCreated does NOT apply migrations and may create inconsistent database state
-            // This should only be used for InMemory databases in testing scenarios
-            logger?.LogWarning("Attempting fallback to EnsureCreatedAsync (for InMemory/testing databases only)...");
-            try
-            {
-                await context.Database.EnsureCreatedAsync();
-                logger?.LogWarning("✓ Database created using EnsureCreatedAsync");
-                logger?.LogWarning("WARNING: Migrations were NOT applied. This should only be used for InMemory databases in testing.");
-            }
-            catch (Exception ensureEx)
-            {
-                logger?.LogCritical(ensureEx, "CRITICAL: Failed to initialize database using both MigrateAsync and EnsureCreatedAsync");
-                throw new InvalidOperationException(
-                    "Database initialization failed. Please check logs for details.", 
-                    ensureEx);
-            }
+            logger?.LogInformation("✓ Database migration completed: {Message}", migrationResult.Message);
         }
 
         // Check if data already exists (now safe to query tables after migration)
