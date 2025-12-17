@@ -93,7 +93,7 @@ Expected response (if configured correctly):
 ```json
 {
   "status": "Healthy",
-  "timestamp": "2024-12-17T..."
+  "timestamp": "2025-12-17T..."
 }
 ```
 
@@ -244,7 +244,7 @@ If you encounter issues:
 
 ---
 
-**Last Updated:** December 17, 2024  
+**Last Updated:** December 17, 2025  
 **App Service Name:** mosaic-saas  
 **Azure SQL Server:** orkinosai.database.windows.net  
 **Database Name:** mosaic-saas

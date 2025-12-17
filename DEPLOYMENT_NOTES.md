@@ -146,5 +146,6 @@ Both projects have been verified to build successfully with the new configuratio
 
 ---
 
-**Last Updated**: December 11, 2024  
-**Status**: Implemented and Verified
+**Status**: DEPRECATED - See [AZURE_CONNECTION_STRING_SETUP.md](./AZURE_CONNECTION_STRING_SETUP.md)  
+**Last Updated**: December 17, 2025  
+**Superseded By**: AZURE_CONNECTION_STRING_SETUP.md
