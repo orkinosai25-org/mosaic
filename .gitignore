@@ -455,5 +455,9 @@ src/OrkinosaiCMS.Web/wwwroot/assets/
 src/OrkinosaiCMS.Web/App_Data/Logs/*.log
 src/OrkinosaiCMS.Web/App_Data/Logs/*.txt
 
+# ASP.NET Core Module stdout logs (web.config)
+src/OrkinosaiCMS.Web/logs/*.log
+src/OrkinosaiCMS.Web/logs/*.txt
+
 # Data Protection keys (contain sensitive cryptographic keys)
 **/App_Data/DataProtection-Keys/*.xml

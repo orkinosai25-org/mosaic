@@ -34,4 +34,10 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
+  <!-- Create logs directory structure in publish output for stdout logging -->
+  <Target Name="CreateLogsDirectory" AfterTargets="Publish">
+    <MakeDir Directories="$(PublishDir)logs" />
+    <WriteLinesToFile File="$(PublishDir)logs\.gitkeep" Lines="# Placeholder for stdout logs" Overwrite="true" />
+  </Target>
+
 </Project>
