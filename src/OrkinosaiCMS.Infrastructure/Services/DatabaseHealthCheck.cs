@@ -14,6 +14,12 @@ public class DatabaseHealthCheck : IHealthCheck
     private readonly ApplicationDbContext _context;
     private readonly ILogger<DatabaseHealthCheck> _logger;
 
+    // SQL Server error codes
+    private const int SQL_ERROR_INVALID_OBJECT_NAME = 208;  // Table doesn't exist
+    
+    // SQLite error codes
+    private const int SQLITE_ERROR = 1;  // Generic SQLite error (often indicates table doesn't exist)
+
     public DatabaseHealthCheck(
         ApplicationDbContext context,
         ILogger<DatabaseHealthCheck> logger)
@@ -108,14 +114,34 @@ public class DatabaseHealthCheck : IHealthCheck
             _logger.LogDebug("Identity tables validation: AspNetUsers exists with {Count} users", userCount);
             return true;
         }
-        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == 208)
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == SQL_ERROR_INVALID_OBJECT_NAME)
         {
-            // SQL error 208 = Invalid object name (table doesn't exist)
-            _logger.LogWarning("Identity tables validation failed: AspNetUsers table does not exist (SQL Error 208)");
+            // SQL Server: SQL error 208 = Invalid object name (table doesn't exist)
+            _logger.LogWarning("Identity tables validation failed: AspNetUsers table does not exist (SQL Server Error {ErrorNumber})", 
+                SQL_ERROR_INVALID_OBJECT_NAME);
+            return false;
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx) 
+            when (dbEx.InnerException is Microsoft.Data.Sqlite.SqliteException sqliteEx 
+                  && sqliteEx.SqliteErrorCode == SQLITE_ERROR)
+        {
+            // SQLite: Error code 1 (SQLITE_ERROR) with "no such table" message
+            _logger.LogWarning("Identity tables validation failed: AspNetUsers table does not exist (SQLite Error {ErrorCode})", 
+                SQLITE_ERROR);
             return false;
         }
         catch (Exception ex)
         {
+            // Generic exception handling for other database providers or unexpected errors
+            // Check if the error message indicates a missing table
+            if (ex.Message.Contains("AspNetUsers", StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains("no such table", StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains("does not exist", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Identity tables validation failed: AspNetUsers table likely does not exist");
+                return false;
+            }
+            
             _logger.LogWarning(ex, "Identity tables validation failed with unexpected error: {Message}", ex.Message);
             return false;
         }
@@ -130,13 +156,33 @@ public class DatabaseHealthCheck : IHealthCheck
             _logger.LogDebug("Core tables validation: Sites exists with {Count} sites", siteCount);
             return true;
         }
-        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == 208)
+        catch (Microsoft.Data.SqlClient.SqlException sqlEx) when (sqlEx.Number == SQL_ERROR_INVALID_OBJECT_NAME)
         {
-            _logger.LogWarning("Core tables validation failed: Sites table does not exist (SQL Error 208)");
+            // SQL Server: Invalid object name (table doesn't exist)
+            _logger.LogWarning("Core tables validation failed: Sites table does not exist (SQL Server Error {ErrorNumber})", 
+                SQL_ERROR_INVALID_OBJECT_NAME);
+            return false;
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx) 
+            when (dbEx.InnerException is Microsoft.Data.Sqlite.SqliteException sqliteEx 
+                  && sqliteEx.SqliteErrorCode == SQLITE_ERROR)
+        {
+            // SQLite: Error code 1 (SQLITE_ERROR) with "no such table" message
+            _logger.LogWarning("Core tables validation failed: Sites table does not exist (SQLite Error {ErrorCode})", 
+                SQLITE_ERROR);
             return false;
         }
         catch (Exception ex)
         {
+            // Generic exception handling for other database providers
+            if (ex.Message.Contains("Sites", StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains("no such table", StringComparison.OrdinalIgnoreCase) ||
+                ex.Message.Contains("does not exist", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Core tables validation failed: Sites table likely does not exist");
+                return false;
+            }
+            
             _logger.LogWarning(ex, "Core tables validation failed with unexpected error: {Message}", ex.Message);
             return false;
         }
