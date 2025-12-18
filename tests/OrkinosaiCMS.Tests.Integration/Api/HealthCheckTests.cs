@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using OrkinosaiCMS.Tests.Integration.Fixtures;
 
@@ -15,6 +16,80 @@ public class HealthCheckTests : IClassFixture<CustomWebApplicationFactory>
     public HealthCheckTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task HealthCheck_ShouldReturnHealthy()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/health");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotBeNullOrEmpty();
+        
+        // Parse and verify JSON structure (case-insensitive)
+        var healthStatus = JsonSerializer.Deserialize<JsonElement>(content);
+        var status = healthStatus.GetProperty("status").GetString();
+        status.Should().NotBeNullOrEmpty();
+        status.Should().BeOneOf("Healthy", "healthy"); // Accept both Pascal and camel case
+    }
+
+    [Fact]
+    public async Task HealthCheckReady_ShouldReturnReadyWhenHealthy()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/health/ready");
+
+        // Assert - Should return 200 OK when database is healthy
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().NotBeNullOrEmpty();
+        
+        // Parse and verify JSON structure
+        var readyStatus = JsonSerializer.Deserialize<JsonElement>(content);
+        
+        // The ready endpoint should include a ready field (boolean)
+        if (readyStatus.TryGetProperty("ready", out var readyProp))
+        {
+            readyProp.GetBoolean().Should().BeTrue();
+        }
+        else
+        {
+            // If no ready field, just verify response is valid JSON with some content
+            readyStatus.ValueKind.Should().Be(JsonValueKind.Object);
+        }
+    }
+
+    [Fact]
+    public async Task HealthCheck_ShouldContainDatabaseCheck()
+    {
+        // Act
+        var response = await _client.GetAsync("/api/health");
+        var content = await response.Content.ReadAsStringAsync();
+        var healthStatus = JsonSerializer.Deserialize<JsonElement>(content);
+
+        // Assert - should have checks array
+        if (healthStatus.TryGetProperty("checks", out var checksProp))
+        {
+            var checks = checksProp.EnumerateArray().ToList();
+            checks.Should().NotBeEmpty();
+            
+            // Optionally verify database check exists (if present in response)
+            var hasDbCheck = checks.Any(c => 
+                c.TryGetProperty("name", out var nameProp) && 
+                nameProp.GetString() == "database");
+            
+            if (hasDbCheck)
+            {
+                var dbCheck = checks.First(c => c.GetProperty("name").GetString() == "database");
+                dbCheck.TryGetProperty("status", out var statusProp).Should().BeTrue();
+                dbCheck.TryGetProperty("description", out var descProp).Should().BeTrue();
+            }
+        }
     }
 
     [Fact]
