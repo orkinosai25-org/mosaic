@@ -1,27 +1,39 @@
 # SQL Server Connection String Configuration - Deployment Notes
 
+⚠️ **IMPORTANT: This document is DEPRECATED. Please see [AZURE_CONNECTION_STRING_SETUP.md](./AZURE_CONNECTION_STRING_SETUP.md) for current instructions.**
+
 ## Overview
 
-Both the CMS (OrkinosaiCMS.Web) and Mosaic (MosaicCMS) web projects now have the SQL Server connection string configured in their respective `appsettings.json` files:
+**CRITICAL SECURITY NOTICE:** Production database credentials must NEVER be committed to source control.
 
+The CMS (OrkinosaiCMS.Web) project uses placeholder connection strings in `appsettings.Production.json`. Actual production credentials MUST be configured via Azure App Service Configuration.
+
+**Connection String Format:**
 ```
 Server=tcp:orkinosai.database.windows.net,1433;
 Initial Catalog=mosaic-saas;
-Persist Security Info=False;
-User ID=sqladmin;
-Password=Sarica-Ali-DedeI1974;
-MultipleActiveResultSets=False;
+User ID=<your-service-account>;
+Password=<your-secure-password>;
 Encrypt=True;
 TrustServerCertificate=False;
-Connection Timeout=30
+Connection Timeout=30;
+MultipleActiveResultSets=False;
+Persist Security Info=False;
 ```
 
-## Connection String Locations
+**➡️ For complete setup instructions, see [AZURE_CONNECTION_STRING_SETUP.md](./AZURE_CONNECTION_STRING_SETUP.md)**
 
-- **OrkinosaiCMS.Web**: `/src/OrkinosaiCMS.Web/appsettings.json` (line 48)
-- **MosaicCMS**: `/src/MosaicCMS/appsettings.json` (line 10)
+## Connection String Configuration
 
-Both applications will now use the same Azure SQL Database (`mosaic-saas`) for development and suite integration.
+**Production Environment:**
+- Connection strings MUST be configured in Azure Portal under Configuration > Connection strings
+- **Name:** `DefaultConnection`
+- **Type:** `SQLServer`
+- See [AZURE_CONNECTION_STRING_SETUP.md](./AZURE_CONNECTION_STRING_SETUP.md) for step-by-step instructions
+
+**Development Environment:**
+- Use `appsettings.Development.json` or User Secrets
+- Never commit real credentials to source control
 
 ## Environment Overrides and Deployment Considerations
 
@@ -38,10 +50,12 @@ For production deployments, you should override the connection string using one 
 Navigate to Azure Portal → Your App Service → Configuration → Connection Strings:
 
 - **Name**: `DefaultConnection`
-- **Value**: `Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;Persist Security Info=False;User ID=<PRODUCTION_SERVICE_ACCOUNT>;Password=<PRODUCTION_PASSWORD>;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30`
+- **Value**: `Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;User ID=<your-service-account>;Password=<your-secure-password>;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;MultipleActiveResultSets=False;Persist Security Info=False;`
 - **Type**: `SQLServer`
 
-**Security Best Practice**: Use a dedicated service account (e.g., `mosaic_app_user`) with minimal required permissions instead of the `sqladmin` administrative account. Grant only the necessary database permissions (e.g., `db_datareader`, `db_datawriter`, `db_ddladmin` if migrations are needed).
+**Security Best Practice**: Use a dedicated service account (e.g., `mosaic_app_user`) with minimal required permissions. Grant only the necessary database permissions (e.g., `db_datareader`, `db_datawriter`, `db_ddladmin` if migrations are needed).
+
+**➡️ For detailed instructions, see [AZURE_CONNECTION_STRING_SETUP.md](./AZURE_CONNECTION_STRING_SETUP.md)**
 
 Click **Save** and **Restart** the app.
 
@@ -56,7 +70,7 @@ For the most secure production deployments:
 az keyvault secret set \
   --vault-name mosaic-keyvault \
   --name DefaultConnection \
-  --value "Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;Persist Security Info=False;User ID=<PRODUCTION_SERVICE_ACCOUNT>;Password=<PRODUCTION_PASSWORD>;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
+  --value "Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;User ID=<your-service-account>;Password=<your-secure-password>;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;MultipleActiveResultSets=False;Persist Security Info=False;"
 ```
 
 **Security Best Practice**: Use a dedicated service account with least privilege access. Create a SQL user specifically for the application with only the required permissions rather than using the `sqladmin` administrative account.
@@ -97,11 +111,9 @@ For local development with user secrets:
 ```bash
 # Navigate to project directory
 cd src/OrkinosaiCMS.Web
-# or
-cd src/MosaicCMS
 
-# Set connection string via user secrets
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;Persist Security Info=False;User ID=sqladmin;Password=<DEV_PASSWORD>;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
+# Set connection string via user secrets (for local development)
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;User ID=<dev-account>;Password=<dev-password>;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30"
 
 # Verify
 dotnet user-secrets list
@@ -117,10 +129,12 @@ After deployment, verify that the applications connect successfully to the Azure
 
 ## Additional Resources
 
+- **➡️ CURRENT GUIDE: [AZURE_CONNECTION_STRING_SETUP.md](./AZURE_CONNECTION_STRING_SETUP.md)** - Step-by-step Azure setup
 - **Comprehensive Configuration Guide**: `/docs/appsettings.md`
 - **Azure Deployment Guide**: `/docs/AZURE_DEPLOYMENT.md`
 - **Database Setup Guide**: `/docs/DATABASE.md`
 - **Security Best Practices**: `/docs/appsettings.md#-security-best-practices`
+- **Troubleshooting**: [TROUBLESHOOTING_HTTP_500_30.md](./TROUBLESHOOTING_HTTP_500_30.md)
 
 ## Build Verification
 
@@ -132,5 +146,6 @@ Both projects have been verified to build successfully with the new configuratio
 
 ---
 
-**Last Updated**: December 11, 2024  
-**Status**: Implemented and Verified
+**Status**: DEPRECATED - See [AZURE_CONNECTION_STRING_SETUP.md](./AZURE_CONNECTION_STRING_SETUP.md)  
+**Last Updated**: December 17, 2025  
+**Superseded By**: AZURE_CONNECTION_STRING_SETUP.md
