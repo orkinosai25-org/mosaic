@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
@@ -399,8 +400,12 @@ try
     builder.Services.AddScoped<IStripeService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.StripeService>();
 
     // Add Health Checks for deployment verification
+    // Uses custom DatabaseHealthCheck to validate database state including migrations
     builder.Services.AddHealthChecks()
-        .AddDbContextCheck<ApplicationDbContext>("database");
+        .AddCheck<OrkinosaiCMS.Infrastructure.Services.DatabaseHealthCheck>(
+            "database",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: new[] { "db", "ready" });
 
     if (builder.Environment.EnvironmentName != "Testing")
     {
@@ -492,27 +497,50 @@ try
                 logger.LogCritical("Action Required: {Action}", validationResult.ActionRequired);
                 logger.LogCritical("========================================");
                 logger.LogCritical("");
-                logger.LogCritical("ADMIN LOGIN WILL NOT WORK until database migrations are applied.");
+                logger.LogCritical("❌ CRITICAL: Application CANNOT START - Database is not ready");
+                logger.LogCritical("❌ The 'green allow button' (Sign In button on /admin/login) WILL NOT WORK");
+                logger.LogCritical("❌ Admin login is impossible without a properly initialized database");
+                logger.LogCritical("");
+                logger.LogCritical("🔍 Health Check Status: UNHEALTHY");
+                logger.LogCritical("   Check status at: GET /api/health");
                 logger.LogCritical("");
                 
                 // For Testing environment, allow app to continue (health checks, etc.)
                 // For Production/Development with real database, this is a CRITICAL error
                 if (IsTestingEnvironment(builder.Environment.EnvironmentName, databaseProvider))
                 {
-                    logger.LogCritical("The application will continue to start (testing environment), but database is not fully initialized.");
+                    logger.LogCritical("⚠️  The application will continue to start (testing environment), but database is not fully initialized.");
+                    logger.LogCritical("   This is ONLY acceptable in Testing environment with InMemory database.");
                 }
                 else
                 {
-                    logger.LogCritical("CRITICAL: Database validation failed in {Environment} environment with {Provider} provider.", 
+                    logger.LogCritical("🛑 STARTUP BLOCKED: Database validation failed in {Environment} environment with {Provider} provider.", 
                         builder.Environment.EnvironmentName, databaseProvider);
-                    logger.LogCritical("This indicates migrations were not applied successfully.");
-                    logger.LogCritical("Application startup will be ABORTED to prevent runtime errors.");
+                    logger.LogCritical("   This indicates migrations were not applied successfully.");
+                    logger.LogCritical("   Application startup will be ABORTED to prevent runtime errors.");
+                    logger.LogCritical("");
+                    logger.LogCritical("✅ REQUIRED ACTIONS TO FIX:");
+                    logger.LogCritical("   1. Apply database migrations:");
+                    logger.LogCritical("      cd src/OrkinosaiCMS.Infrastructure");
+                    logger.LogCritical("      dotnet ef database update --startup-project ../OrkinosaiCMS.Web");
+                    logger.LogCritical("");
+                    logger.LogCritical("   2. Verify AspNetUsers table exists in your database");
+                    logger.LogCritical("");
+                    logger.LogCritical("   3. Restart the application");
+                    logger.LogCritical("");
+                    logger.LogCritical("📖 For detailed troubleshooting, see: DEPLOYMENT_VERIFICATION_GUIDE.md");
+                    logger.LogCritical("========================================");
                     logger.LogCritical("");
                     throw new InvalidOperationException(
-                        "Database validation failed: " + validationResult.ErrorMessage + ". " +
-                        "AspNetUsers table and other Identity tables are missing. " +
-                        "See DEPLOYMENT_VERIFICATION_GUIDE.md for troubleshooting. " +
-                        "Action required: " + validationResult.ActionRequired);
+                        "🛑 DATABASE VALIDATION FAILED - Application startup blocked.\n\n" +
+                        "Error: " + validationResult.ErrorMessage + "\n\n" +
+                        "The 'green allow button' (Sign In button) cannot function without AspNetUsers table and other Identity tables.\n\n" +
+                        "REQUIRED ACTION: Apply database migrations using:\n" +
+                        "  cd src/OrkinosaiCMS.Infrastructure\n" +
+                        "  dotnet ef database update --startup-project ../OrkinosaiCMS.Web\n\n" +
+                        "Then restart the application.\n\n" +
+                        "See DEPLOYMENT_VERIFICATION_GUIDE.md for detailed instructions.\n\n" +
+                        "Additional context: " + validationResult.ActionRequired);
                 }
             }
             else
@@ -684,7 +712,66 @@ try
     }
 
     // Endpoint mappings
-    app.MapHealthChecks("/api/health");  // Health check endpoint for deployment verification
+    // Enhanced health check endpoint with detailed database validation status
+    app.MapHealthChecks("/api/health", new HealthCheckOptions
+    {
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+            
+            var result = new
+            {
+                status = report.Status.ToString(),
+                timestamp = DateTime.UtcNow,
+                duration = report.TotalDuration,
+                checks = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    data = e.Value.Data,
+                    exception = e.Value.Exception?.Message
+                })
+            };
+            
+            await context.Response.WriteAsJsonAsync(result);
+        }
+    });
+    
+    // Readiness check endpoint - only reports "Healthy" if database is fully initialized
+    // Used by orchestrators (Kubernetes, Azure App Service) to determine if app is ready to accept traffic
+    // This ensures the "green allow button" (Sign In) will work before traffic is routed to the app
+    app.MapHealthChecks("/api/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+            
+            // Set HTTP status based on health check result
+            context.Response.StatusCode = report.Status == HealthStatus.Healthy ? 200 : 503;
+            
+            var result = new
+            {
+                status = report.Status.ToString(),
+                ready = report.Status == HealthStatus.Healthy,
+                message = report.Status == HealthStatus.Healthy 
+                    ? "Application is ready to accept traffic. Database is initialized and admin login will work."
+                    : "Application is NOT ready. Database migrations have not been applied. Admin login will fail.",
+                timestamp = DateTime.UtcNow,
+                checks = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    data = e.Value.Data
+                })
+            };
+            
+            await context.Response.WriteAsJsonAsync(result);
+        }
+    });
+    
     app.MapControllers();  // API controllers for portal integration
     
     // Map Blazor components to specific routes only (admin and cms paths)
