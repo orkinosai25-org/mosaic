@@ -697,32 +697,33 @@ try
             // - 4221: Login timeout expired
             // - -2: Timeout expired
             var transientErrorCodes = new[] { 40197, 40501, 40613, 49918, 49919, 49920, 4060, 4221, -2 };
+            var errorMessageLower = sqlEx.Message.ToLowerInvariant();
+            var transientMessagePatterns = new[] { "not currently available", "retry the connection", "timeout" };
             var isTransientError = transientErrorCodes.Contains(sqlEx.Number) ||
-                                   sqlEx.Message.Contains("not currently available", StringComparison.OrdinalIgnoreCase) ||
-                                   sqlEx.Message.Contains("retry the connection", StringComparison.OrdinalIgnoreCase) ||
-                                   sqlEx.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase);
+                                   transientMessagePatterns.Any(pattern => errorMessageLower.Contains(pattern));
             
             if (isTransientError)
             {
-                logger.LogWarning("");
-                logger.LogWarning("=== TRANSIENT DATABASE ERROR DETECTED ===");
-                logger.LogWarning("");
-                logger.LogWarning("The database is temporarily unavailable (Error {ErrorNumber})", sqlEx.Number);
-                logger.LogWarning("This is a transient error and the application will continue to start.");
-                logger.LogWarning("Database operations will be retried automatically when the database becomes available.");
-                logger.LogWarning("");
-                logger.LogWarning("Health Check Status: UNHEALTHY (until database is available)");
-                logger.LogWarning("Check status at: GET /api/health");
-                logger.LogWarning("");
-                logger.LogWarning("If this error persists, check:");
-                logger.LogWarning("  1. Azure SQL Database is running and not paused");
-                logger.LogWarning("  2. Firewall rules allow connections from this IP");
-                logger.LogWarning("  3. Database server is not under heavy load");
-                logger.LogWarning("  4. Connection string credentials are correct");
-                logger.LogWarning("");
-                logger.LogWarning("Application will start in degraded mode. Database operations will fail until connection is restored.");
-                logger.LogWarning("===========================================");
-                logger.LogWarning("");
+                var warningMessage = $@"
+=== TRANSIENT DATABASE ERROR DETECTED ===
+
+The database is temporarily unavailable (Error {sqlEx.Number})
+This is a transient error and the application will continue to start.
+Database operations will be retried automatically when the database becomes available.
+
+Health Check Status: UNHEALTHY (until database is available)
+Check status at: GET /api/health
+
+If this error persists, check:
+  1. Azure SQL Database is running and not paused
+  2. Firewall rules allow connections from this IP
+  3. Database server is not under heavy load
+  4. Connection string credentials are correct
+
+Application will start in degraded mode. Database operations will fail until connection is restored.
+===========================================";
+                
+                logger.LogWarning(warningMessage);
                 
                 // Allow app to continue - health check will report unhealthy status
                 // This prevents HTTP 500.30 startup failure for transient database issues
