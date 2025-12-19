@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
@@ -355,39 +356,50 @@ try
                 throw new InvalidOperationException(errorMsg);
             }
             
-            // Ensure connection pooling is properly configured
-            // Add pooling parameters if not already present in the connection string
+            // Connection pool and timeout configuration constants
+            const int DefaultMaxPoolSize = 100;
+            const int DefaultMinPoolSize = 5;
+            const int DefaultCommandTimeoutSeconds = 30;
+            
+            // Ensure connection pooling is properly configured using SqlConnectionStringBuilder
             // This prevents connection pool exhaustion that causes HTTP 503 errors
-            if (!connectionString.Contains("Max Pool Size", StringComparison.OrdinalIgnoreCase))
+            var builder_connString = new SqlConnectionStringBuilder(connectionString);
+            
+            // Set pooling parameters if not already configured
+            if (builder_connString.MaxPoolSize == 100) // Default value means not explicitly set
             {
-                connectionString += ";Max Pool Size=100";
+                builder_connString.MaxPoolSize = DefaultMaxPoolSize;
             }
-            if (!connectionString.Contains("Min Pool Size", StringComparison.OrdinalIgnoreCase))
+            if (builder_connString.MinPoolSize == 0) // Default value means not explicitly set
             {
-                connectionString += ";Min Pool Size=5";
+                builder_connString.MinPoolSize = DefaultMinPoolSize;
             }
-            if (!connectionString.Contains("Pooling", StringComparison.OrdinalIgnoreCase))
+            if (!builder_connString.Pooling) // Explicitly enable pooling if not set
             {
-                connectionString += ";Pooling=true";
+                builder_connString.Pooling = true;
             }
             // Set command timeout to prevent long-running queries from holding connections
-            if (!connectionString.Contains("Command Timeout", StringComparison.OrdinalIgnoreCase))
+            if (builder_connString.ConnectTimeout == 15) // Default value means not explicitly set
             {
-                connectionString += ";Command Timeout=30";
+                builder_connString.ConnectTimeout = DefaultCommandTimeoutSeconds;
             }
             
+            // Get the final connection string
+            connectionString = builder_connString.ConnectionString;
+            
             // Sanitize connection string for logging (hide password)
-            // Support multiple password formats: Password=, pwd=, Pwd=
-            var sanitizedConnString = System.Text.RegularExpressions.Regex.Replace(
-                connectionString, 
-                @"(Password|Pwd|pwd)\s*=\s*[^;]*", 
-                "$1=***",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var sanitizedBuilder = new SqlConnectionStringBuilder(connectionString)
+            {
+                Password = "***"
+            };
+            var sanitizedConnString = sanitizedBuilder.ConnectionString;
             
             if (builder.Environment.EnvironmentName != "Testing")
             {
                 Log.Information("Using SQL Server database provider");
                 Log.Information("Connection string (sanitized): {ConnectionString}", sanitizedConnString);
+                Log.Information("Connection pool settings: MaxPoolSize={MaxPoolSize}, MinPoolSize={MinPoolSize}, Pooling={Pooling}", 
+                    builder_connString.MaxPoolSize, builder_connString.MinPoolSize, builder_connString.Pooling);
             }
             
             options.UseSqlServer(connectionString, sqlOptions =>
@@ -397,8 +409,8 @@ try
                     maxRetryDelay: TimeSpan.FromSeconds(30),
                     errorNumbersToAdd: null);
                 sqlOptions.MigrationsAssembly("OrkinosaiCMS.Infrastructure");
-                // Set command timeout at EF Core level as well
-                sqlOptions.CommandTimeout(30);
+                // Set command timeout at EF Core level to match connection timeout
+                sqlOptions.CommandTimeout(DefaultCommandTimeoutSeconds);
             });
         }
     });
