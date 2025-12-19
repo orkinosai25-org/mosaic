@@ -718,7 +718,7 @@ try
                 throw;
             }
         }
-        catch (InvalidOperationException invEx) when (invEx.Message.Contains("migration failed") || invEx.Message.Contains("validation failed"))
+        catch (InvalidOperationException invEx) when (invEx.Message.Contains("migration failed", StringComparison.OrdinalIgnoreCase) || invEx.Message.Contains("validation failed", StringComparison.OrdinalIgnoreCase))
         {
             var logger = services.GetRequiredService<ILogger<Program>>();
             logger.LogCritical(invEx, "Database migration or validation failed - application cannot start");
