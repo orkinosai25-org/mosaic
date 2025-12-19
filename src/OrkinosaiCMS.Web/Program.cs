@@ -386,12 +386,14 @@ try
                     "   - Replace 'YOUR_PASSWORD' with your SQL password\n\n" +
                     "3. OR set the environment variable:\n" +
                     "   ConnectionStrings__DefaultConnection=<your-actual-connection-string>\n\n" +
-                    "See AZURE_CONNECTION_STRING_SETUP.md for detailed setup instructions.";
+                    "See AZURE_CONNECTION_STRING_SETUP.md and HTTP_503_PLACEHOLDER_CONNECTION_STRING_FIX.md for detailed setup instructions.";
                 
                 if (builder.Environment.EnvironmentName != "Testing")
                 {
                     Log.Fatal(errorMsg);
                     Log.Fatal("Current connection string (with placeholders hidden): {ConnectionString}", 
+                        // Note: Regex performance is acceptable here as this is a startup-only code path
+                        // that only executes when placeholders are detected (should be rare after initial setup)
                         System.Text.RegularExpressions.Regex.Replace(connectionString, 
                             @"(Password|Pwd|pwd)\s*=\s*[^;]*", 
                             "$1=***",
