@@ -356,6 +356,52 @@ try
                 throw new InvalidOperationException(errorMsg);
             }
             
+            // Validate that the connection string doesn't contain placeholder values
+            // These placeholder values cause "No such host is known" errors (Error 11001)
+            // which manifest as HTTP 503 Service Unavailable errors
+            var placeholderPatterns = new[]
+            {
+                "YOUR_SERVER", "YOUR_DATABASE", "YOUR_USERNAME", "YOUR_PASSWORD",
+                "yourserver", "yourusername", "yourpassword", "YourDatabase"
+            };
+            
+            var foundPlaceholders = placeholderPatterns.Where(p => connectionString.Contains(p, StringComparison.OrdinalIgnoreCase)).ToList();
+            
+            if (foundPlaceholders.Any())
+            {
+                var errorMsg = $"CONFIGURATION ERROR: Connection string contains placeholder values: {string.Join(", ", foundPlaceholders)}\n\n" +
+                    "The connection string in appsettings.Production.json has not been configured with actual database credentials.\n\n" +
+                    "This causes HTTP 503 Service Unavailable errors with the following error:\n" +
+                    "  'A network-related or instance-specific error occurred while establishing a connection to SQL Server.\n" +
+                    "   The server was not found or was not accessible. (provider: TCP Provider, error: 0 - No such host is known.)'\n\n" +
+                    "REQUIRED ACTIONS:\n" +
+                    "1. Configure the connection string in Azure App Service:\n" +
+                    "   - Go to Azure Portal > Your App Service > Configuration > Connection strings\n" +
+                    "   - Add or update 'DefaultConnection' with your actual SQL Server connection string\n" +
+                    "   - Click Save and restart the app\n\n" +
+                    "2. OR update appsettings.Production.json with actual values:\n" +
+                    "   - Replace 'YOUR_SERVER' with your SQL Server hostname (e.g., 'myserver.database.windows.net')\n" +
+                    "   - Replace 'YOUR_DATABASE' with your database name\n" +
+                    "   - Replace 'YOUR_USERNAME' with your SQL username\n" +
+                    "   - Replace 'YOUR_PASSWORD' with your SQL password\n\n" +
+                    "3. OR set the environment variable:\n" +
+                    "   ConnectionStrings__DefaultConnection=<your-actual-connection-string>\n\n" +
+                    "See AZURE_CONNECTION_STRING_SETUP.md and HTTP_503_PLACEHOLDER_CONNECTION_STRING_FIX.md for detailed setup instructions.";
+                
+                if (builder.Environment.EnvironmentName != "Testing")
+                {
+                    Log.Fatal(errorMsg);
+                    Log.Fatal("Current connection string (with placeholders hidden): {ConnectionString}", 
+                        // Note: Regex performance is acceptable here as this is a startup-only code path
+                        // that only executes when placeholders are detected (should be rare after initial setup)
+                        System.Text.RegularExpressions.Regex.Replace(connectionString, 
+                            @"(Password|Pwd|pwd)\s*=\s*[^;]*", 
+                            "$1=***",
+                            System.Text.RegularExpressions.RegexOptions.IgnoreCase));
+                }
+                throw new InvalidOperationException(errorMsg);
+            }
+            
             // Connection pool and timeout configuration constants
             const int DefaultMaxPoolSize = 100;
             const int DefaultMinPoolSize = 5;
