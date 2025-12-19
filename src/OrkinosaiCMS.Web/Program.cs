@@ -355,6 +355,27 @@ try
                 throw new InvalidOperationException(errorMsg);
             }
             
+            // Ensure connection pooling is properly configured
+            // Add pooling parameters if not already present in the connection string
+            // This prevents connection pool exhaustion that causes HTTP 503 errors
+            if (!connectionString.Contains("Max Pool Size", StringComparison.OrdinalIgnoreCase))
+            {
+                connectionString += ";Max Pool Size=100";
+            }
+            if (!connectionString.Contains("Min Pool Size", StringComparison.OrdinalIgnoreCase))
+            {
+                connectionString += ";Min Pool Size=5";
+            }
+            if (!connectionString.Contains("Pooling", StringComparison.OrdinalIgnoreCase))
+            {
+                connectionString += ";Pooling=true";
+            }
+            // Set command timeout to prevent long-running queries from holding connections
+            if (!connectionString.Contains("Command Timeout", StringComparison.OrdinalIgnoreCase))
+            {
+                connectionString += ";Command Timeout=30";
+            }
+            
             // Sanitize connection string for logging (hide password)
             // Support multiple password formats: Password=, pwd=, Pwd=
             var sanitizedConnString = System.Text.RegularExpressions.Regex.Replace(
@@ -376,6 +397,8 @@ try
                     maxRetryDelay: TimeSpan.FromSeconds(30),
                     errorNumbersToAdd: null);
                 sqlOptions.MigrationsAssembly("OrkinosaiCMS.Infrastructure");
+                // Set command timeout at EF Core level as well
+                sqlOptions.CommandTimeout(30);
             });
         }
     });
