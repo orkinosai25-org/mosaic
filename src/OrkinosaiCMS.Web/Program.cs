@@ -362,6 +362,11 @@ try
             const int DefaultConnectTimeoutSeconds = 30;
             const int DefaultCommandTimeoutSeconds = 30;
             
+            // SqlConnectionStringBuilder default values (used for detecting unconfigured settings)
+            const int SqlConnectionStringBuilderDefaultMaxPoolSize = 100;
+            const int SqlConnectionStringBuilderDefaultMinPoolSize = 0;
+            const int SqlConnectionStringBuilderDefaultConnectTimeout = 15;
+            
             // Ensure connection pooling is properly configured using SqlConnectionStringBuilder
             // This prevents connection pool exhaustion that causes HTTP 503 errors
             var connStringBuilder = new SqlConnectionStringBuilder(connectionString);
@@ -370,16 +375,20 @@ try
             // SqlConnectionStringBuilder defaults: MaxPoolSize=100, MinPoolSize=0, ConnectTimeout=15
             // We only override if values are at their defaults, respecting explicit configuration
             var maxPoolSizeFromConfig = connStringBuilder.MaxPoolSize;
-            if (maxPoolSizeFromConfig == 100) // If at default, ensure it's explicitly set
+            if (maxPoolSizeFromConfig == SqlConnectionStringBuilderDefaultMaxPoolSize)
             {
+                // MaxPoolSize is at default (100), which is already a good value for production
+                // We explicitly set it to ensure it's documented in the connection string
+                // and to make it clear that pooling is configured
                 connStringBuilder.MaxPoolSize = DefaultMaxPoolSize;
             }
             // Note: If someone configures MaxPoolSize < 100, we respect that choice
-            // but log a warning as it might cause connection pool issues under load
+            // but it might cause connection pool exhaustion issues under load
             
             var minPoolSizeFromConfig = connStringBuilder.MinPoolSize;
-            if (minPoolSizeFromConfig == 0) // Default is 0, set recommended baseline
+            if (minPoolSizeFromConfig == SqlConnectionStringBuilderDefaultMinPoolSize)
             {
+                // Default is 0, set recommended baseline for better performance
                 connStringBuilder.MinPoolSize = DefaultMinPoolSize;
             }
             
@@ -388,7 +397,7 @@ try
             
             // Set connect timeout for connection establishment if at default
             var connectTimeoutFromConfig = connStringBuilder.ConnectTimeout;
-            if (connectTimeoutFromConfig == 15) // Default is 15 seconds
+            if (connectTimeoutFromConfig == SqlConnectionStringBuilderDefaultConnectTimeout)
             {
                 connStringBuilder.ConnectTimeout = DefaultConnectTimeoutSeconds;
             }
