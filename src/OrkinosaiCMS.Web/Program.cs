@@ -359,33 +359,47 @@ try
             // Connection pool and timeout configuration constants
             const int DefaultMaxPoolSize = 100;
             const int DefaultMinPoolSize = 5;
+            const int DefaultConnectTimeoutSeconds = 30;
             const int DefaultCommandTimeoutSeconds = 30;
             
             // Ensure connection pooling is properly configured using SqlConnectionStringBuilder
             // This prevents connection pool exhaustion that causes HTTP 503 errors
-            var builder_connString = new SqlConnectionStringBuilder(connectionString);
+            var connStringBuilder = new SqlConnectionStringBuilder(connectionString);
             
-            // Set pooling parameters if not already configured
-            if (builder_connString.MaxPoolSize == 100) // Default value means not explicitly set
+            // Set pooling parameters - always apply defaults to ensure proper configuration
+            // Note: We always set these to prevent pool exhaustion issues, but allow override if explicitly configured
+            // The default MaxPoolSize in SqlConnectionStringBuilder is 100, which we want to ensure is set
+            // We check if it's still at default and ensure it's explicitly set
+            var maxPoolSizeFromConfig = connStringBuilder.MaxPoolSize;
+            if (maxPoolSizeFromConfig <= 100) // If at or below default, set our recommended value
             {
-                builder_connString.MaxPoolSize = DefaultMaxPoolSize;
+                connStringBuilder.MaxPoolSize = DefaultMaxPoolSize;
             }
-            if (builder_connString.MinPoolSize == 0) // Default value means not explicitly set
+            
+            var minPoolSizeFromConfig = connStringBuilder.MinPoolSize;
+            if (minPoolSizeFromConfig == 0) // Default is 0, set recommended baseline
             {
-                builder_connString.MinPoolSize = DefaultMinPoolSize;
+                connStringBuilder.MinPoolSize = DefaultMinPoolSize;
             }
-            if (!builder_connString.Pooling) // Explicitly enable pooling if not set
+            
+            // Explicitly enable pooling
+            connStringBuilder.Pooling = true;
+            
+            // Set connect timeout for connection establishment
+            var connectTimeoutFromConfig = connStringBuilder.ConnectTimeout;
+            if (connectTimeoutFromConfig == 15) // Default is 15 seconds
             {
-                builder_connString.Pooling = true;
+                connStringBuilder.ConnectTimeout = DefaultConnectTimeoutSeconds;
             }
-            // Set command timeout to prevent long-running queries from holding connections
-            if (builder_connString.ConnectTimeout == 15) // Default value means not explicitly set
-            {
-                builder_connString.ConnectTimeout = DefaultCommandTimeoutSeconds;
-            }
+            
+            // Store pool settings for logging before reassigning connection string
+            var finalMaxPoolSize = connStringBuilder.MaxPoolSize;
+            var finalMinPoolSize = connStringBuilder.MinPoolSize;
+            var finalPooling = connStringBuilder.Pooling;
+            var finalConnectTimeout = connStringBuilder.ConnectTimeout;
             
             // Get the final connection string
-            connectionString = builder_connString.ConnectionString;
+            connectionString = connStringBuilder.ConnectionString;
             
             // Sanitize connection string for logging (hide password)
             var sanitizedBuilder = new SqlConnectionStringBuilder(connectionString)
@@ -398,8 +412,8 @@ try
             {
                 Log.Information("Using SQL Server database provider");
                 Log.Information("Connection string (sanitized): {ConnectionString}", sanitizedConnString);
-                Log.Information("Connection pool settings: MaxPoolSize={MaxPoolSize}, MinPoolSize={MinPoolSize}, Pooling={Pooling}", 
-                    builder_connString.MaxPoolSize, builder_connString.MinPoolSize, builder_connString.Pooling);
+                Log.Information("Connection pool settings: MaxPoolSize={MaxPoolSize}, MinPoolSize={MinPoolSize}, Pooling={Pooling}, ConnectTimeout={ConnectTimeout}s", 
+                    finalMaxPoolSize, finalMinPoolSize, finalPooling, finalConnectTimeout);
             }
             
             options.UseSqlServer(connectionString, sqlOptions =>
