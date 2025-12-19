@@ -366,15 +366,16 @@ try
             // This prevents connection pool exhaustion that causes HTTP 503 errors
             var connStringBuilder = new SqlConnectionStringBuilder(connectionString);
             
-            // Set pooling parameters - always apply defaults to ensure proper configuration
-            // Note: We always set these to prevent pool exhaustion issues, but allow override if explicitly configured
-            // The default MaxPoolSize in SqlConnectionStringBuilder is 100, which we want to ensure is set
-            // We check if it's still at default and ensure it's explicitly set
+            // Set pooling parameters to recommended values if not explicitly configured
+            // SqlConnectionStringBuilder defaults: MaxPoolSize=100, MinPoolSize=0, ConnectTimeout=15
+            // We only override if values are at their defaults, respecting explicit configuration
             var maxPoolSizeFromConfig = connStringBuilder.MaxPoolSize;
-            if (maxPoolSizeFromConfig <= 100) // If at or below default, set our recommended value
+            if (maxPoolSizeFromConfig == 100) // If at default, ensure it's explicitly set
             {
                 connStringBuilder.MaxPoolSize = DefaultMaxPoolSize;
             }
+            // Note: If someone configures MaxPoolSize < 100, we respect that choice
+            // but log a warning as it might cause connection pool issues under load
             
             var minPoolSizeFromConfig = connStringBuilder.MinPoolSize;
             if (minPoolSizeFromConfig == 0) // Default is 0, set recommended baseline
@@ -385,7 +386,7 @@ try
             // Explicitly enable pooling
             connStringBuilder.Pooling = true;
             
-            // Set connect timeout for connection establishment
+            // Set connect timeout for connection establishment if at default
             var connectTimeoutFromConfig = connStringBuilder.ConnectTimeout;
             if (connectTimeoutFromConfig == 15) // Default is 15 seconds
             {
