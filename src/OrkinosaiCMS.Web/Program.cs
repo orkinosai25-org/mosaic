@@ -685,6 +685,50 @@ try
             
             logger.LogError("SQL Error Message: {Message}", sqlEx.Message);
             
+            // Check for transient errors that should allow startup to continue
+            // Common Azure SQL transient error codes:
+            // - 40197: Service has encountered an error processing your request
+            // - 40501: The service is currently busy
+            // - 40613: Database unavailable
+            // - 49918: Cannot process request. Not enough resources to process request
+            // - 49919: Cannot process create or update request. Too many create or update operations in progress
+            // - 49920: Cannot process request. Too many operations in progress
+            // - 4060: Cannot open database (database may be starting up)
+            // - 4221: Login timeout expired
+            // - -2: Timeout expired
+            var transientErrorCodes = new[] { 40197, 40501, 40613, 49918, 49919, 49920, 4060, 4221, -2 };
+            var isTransientError = transientErrorCodes.Contains(sqlEx.Number) ||
+                                   sqlEx.Message.Contains("not currently available", StringComparison.OrdinalIgnoreCase) ||
+                                   sqlEx.Message.Contains("retry the connection", StringComparison.OrdinalIgnoreCase) ||
+                                   sqlEx.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase);
+            
+            if (isTransientError)
+            {
+                logger.LogWarning("");
+                logger.LogWarning("=== TRANSIENT DATABASE ERROR DETECTED ===");
+                logger.LogWarning("");
+                logger.LogWarning("The database is temporarily unavailable (Error {ErrorNumber})", sqlEx.Number);
+                logger.LogWarning("This is a transient error and the application will continue to start.");
+                logger.LogWarning("Database operations will be retried automatically when the database becomes available.");
+                logger.LogWarning("");
+                logger.LogWarning("Health Check Status: UNHEALTHY (until database is available)");
+                logger.LogWarning("Check status at: GET /api/health");
+                logger.LogWarning("");
+                logger.LogWarning("If this error persists, check:");
+                logger.LogWarning("  1. Azure SQL Database is running and not paused");
+                logger.LogWarning("  2. Firewall rules allow connections from this IP");
+                logger.LogWarning("  3. Database server is not under heavy load");
+                logger.LogWarning("  4. Connection string credentials are correct");
+                logger.LogWarning("");
+                logger.LogWarning("Application will start in degraded mode. Database operations will fail until connection is restored.");
+                logger.LogWarning("===========================================");
+                logger.LogWarning("");
+                
+                // Allow app to continue - health check will report unhealthy status
+                // This prevents HTTP 500.30 startup failure for transient database issues
+                return;
+            }
+            
             // Special handling for missing AspNetUsers table (error 208)
             if (sqlEx.Number == 208 && sqlEx.Message.Contains("AspNetUsers"))
             {
