@@ -65,7 +65,7 @@ You need to update the `AZURE_CREDENTIALS` secret in your GitHub repository with
 2. **Add role assignment**:
    - Click **Access control (IAM)** in the left sidebar
    - Click **+ Add** → **Add role assignment**
-   - Role: Select **Contributor** (or **Web Plan Contributor** for more restricted access to just the web app)
+   - Role: Select **Contributor** (or **Website Contributor** for web app-specific access)
    - Members: Search for your service principal by name
    - Click **Review + assign**
 
@@ -162,7 +162,7 @@ Create a JSON object with the following structure (replace the placeholders with
 ## Security Best Practices
 
 1. **Rotate secrets regularly**: Update client secrets every 6-12 months
-2. **Use minimal permissions**: Grant only the permissions needed (Web Plan Contributor is better than Contributor for web apps)
+2. **Use minimal permissions**: Grant only the permissions needed (Website Contributor is better than Contributor for web app-only access)
 3. **Never commit secrets**: Keep credentials only in GitHub Secrets, never in code
 4. **Monitor usage**: Review Azure Activity logs for unusual service principal activity
 5. **Document expiration dates**: Set calendar reminders before secrets expire
