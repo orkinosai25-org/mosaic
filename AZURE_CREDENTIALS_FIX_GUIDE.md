@@ -155,10 +155,11 @@ Create a JSON object with the following structure (replace the placeholders with
 ### Issue: JSON format errors
 
 **Solutions**:
-- Validate your JSON using [jsonlint.com](https://jsonlint.com)
+- Validate your JSON locally using your code editor (VS Code, etc.) or the `jq` command
 - Ensure all strings are in double quotes
 - No trailing commas in the JSON object
 - The JSON must be on a single line or properly formatted
+- **Security Note**: Never paste credentials into online validation tools
 
 ## Security Best Practices
 
@@ -217,5 +218,4 @@ If you're still having issues after following this guide:
 
 ---
 
-*Last updated: 2025-12-20*
 *Related workflow: `.github/workflows/fetch-diagnose-app-errors.yml`*
