@@ -59,13 +59,13 @@ You need to update the `AZURE_CREDENTIALS` secret in your GitHub repository with
 
 1. **Navigate to your Resource Group**:
    - Search for "Resource groups" in the Azure Portal
-   - Find your resource group: `mosaic-rg`
+   - Find your resource group (e.g., `mosaic-rg` for this project)
    - Click on it
 
 2. **Add role assignment**:
    - Click **Access control (IAM)** in the left sidebar
    - Click **+ Add** → **Add role assignment**
-   - Role: Select **Contributor** (or **Website Contributor** for more restricted access)
+   - Role: Select **Contributor** (or **Web Plan Contributor** for more restricted access to just the web app)
    - Members: Search for your service principal by name
    - Click **Review + assign**
 
@@ -101,7 +101,7 @@ Create a JSON object with the following structure (replace the placeholders with
 
 ### Step 6: Update GitHub Secret
 
-1. **Go to your GitHub repository**: [https://github.com/orkinosai25-org/mosaic](https://github.com/orkinosai25-org/mosaic)
+1. **Go to your GitHub repository**: `https://github.com/YOUR_ORG/YOUR_REPO` (for this project: [orkinosai25-org/mosaic](https://github.com/orkinosai25-org/mosaic))
 
 2. **Navigate to Settings**:
    - Click **Settings** tab
@@ -162,7 +162,7 @@ Create a JSON object with the following structure (replace the placeholders with
 ## Security Best Practices
 
 1. **Rotate secrets regularly**: Update client secrets every 6-12 months
-2. **Use minimal permissions**: Grant only the permissions needed (Website Contributor is better than Contributor)
+2. **Use minimal permissions**: Grant only the permissions needed (Web Plan Contributor is better than Contributor for web apps)
 3. **Never commit secrets**: Keep credentials only in GitHub Secrets, never in code
 4. **Monitor usage**: Review Azure Activity logs for unusual service principal activity
 5. **Document expiration dates**: Set calendar reminders before secrets expire
@@ -193,7 +193,7 @@ Create a JSON object with the following structure (replace the placeholders with
 Once the credentials are updated:
 
 1. The diagnostic workflow will be able to log in to Azure
-2. It will fetch logs from your `mosaic-saas` web app
+2. It will fetch logs from your Azure web app (e.g., `mosaic-saas` for this project)
 3. It will analyze logs for common errors (500.30, database connection, auth issues, etc.)
 4. It will create a comprehensive diagnostic report
 5. You can download artifacts with all logs and analysis
