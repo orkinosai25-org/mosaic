@@ -10,16 +10,27 @@ This guide provides a quick reference for using the Azure log diagnostics workfl
 2. Select **"Fetch and Diagnose App Errors"**
 3. Click **"Run workflow"** (green button)
 4. (Optional) Set time range (default: 60 minutes)
-5. Click **"Run workflow"** to start
+5. (Optional) Set app name (default: mosaic-saas)
+6. (Optional) Set resource group name (default: orkinosai_group)
+7. Click **"Run workflow"** to start
 
 ### From Command Line
 
 ```bash
-# Using GitHub CLI
+# Using GitHub CLI (with defaults)
 gh workflow run "Fetch and Diagnose App Errors"
 
 # With custom time range (120 minutes)
 gh workflow run "Fetch and Diagnose App Errors" -f time_range=120
+
+# With custom resource group
+gh workflow run "Fetch and Diagnose App Errors" -f resource_group=my-resource-group
+
+# With multiple parameters
+gh workflow run "Fetch and Diagnose App Errors" \
+  -f time_range=120 \
+  -f app_name=mosaic-saas \
+  -f resource_group=orkinosai_group
 ```
 
 ## 📥 Download Logs
@@ -55,20 +66,33 @@ Inside the artifact:
 
 If the workflow fails to run, you need to set up Azure credentials:
 
-1. **Create Service Principal** (in Azure CLI):
+1. **Find your resource group name** (in Azure CLI):
    ```bash
+   # List all resource groups to find yours
+   az group list --query "[].{Name:name, Location:location}" -o table
+   ```
+
+2. **Create Service Principal** (in Azure CLI):
+   ```bash
+   # Replace {your-sub-id} with your subscription ID
+   # Replace {your-resource-group} with your actual resource group name (e.g., orkinosai_group)
    az ad sp create-for-rbac --name "mosaic-github-diagnostics" \
      --role contributor \
-     --scopes /subscriptions/{your-sub-id}/resourceGroups/mosaic-rg \
+     --scopes /subscriptions/{your-sub-id}/resourceGroups/{your-resource-group} \
      --sdk-auth
    ```
 
-2. **Add to GitHub Secrets**:
+3. **Add to GitHub Secrets**:
    - Go to Settings → Secrets and variables → Actions
    - Create secret named `AZURE_CREDENTIALS`
-   - Paste the JSON output from step 1
+   - Paste the JSON output from step 2
 
-3. **Done!** Run the workflow again
+4. **Update workflow defaults** (if needed):
+   - Edit `.github/workflows/fetch-diagnose-app-errors.yml`
+   - Update the `AZURE_RESOURCE_GROUP` value (line ~21) to match your resource group
+   - Commit and push the change
+
+5. **Done!** Run the workflow again
 
 ## 📖 Full Documentation
 
@@ -87,6 +111,11 @@ For complete documentation, see:
 
 ### "Azure Login Failed"
 → Check `AZURE_CREDENTIALS` secret exists and is valid
+
+### "Azure Resource Group Not Found"
+→ The resource group name doesn't match your Azure setup
+→ Re-run workflow with the correct resource group name, or
+→ Update the default in `.github/workflows/fetch-diagnose-app-errors.yml`
 
 ### "No logs collected"
 → Enable logging in Azure Portal → App Service → App Service logs
