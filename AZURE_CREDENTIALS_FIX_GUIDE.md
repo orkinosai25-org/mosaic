@@ -170,9 +170,9 @@ Create a JSON object with the following structure (replace the placeholders with
 ## Additional Resources
 
 - [Azure Login Action Documentation](https://github.com/Azure/login#configure-a-service-principal-with-a-secret)
-- [Azure Service Principal Documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)
+- [Azure Service Principal Documentation](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)
 - [GitHub Actions Secrets Documentation](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-- [Azure RBAC Documentation](https://docs.microsoft.com/en-us/azure/role-based-access-control/overview)
+- [Azure RBAC Documentation](https://learn.microsoft.com/en-us/azure/role-based-access-control/overview)
 
 ## Quick Reference Checklist
 
@@ -206,7 +206,7 @@ This will help you identify and fix any actual issues with your Azure Web App.
 If you're still having issues after following this guide:
 
 1. Check the workflow run logs for specific error messages
-2. Review [Azure troubleshooting documentation](https://docs.microsoft.com/en-us/azure/app-service/troubleshoot-authentication-authorization)
+2. Review [Azure troubleshooting documentation](https://learn.microsoft.com/en-us/azure/app-service/troubleshoot-authentication-authorization)
 3. Verify all four credential values are correct
 4. Try creating a completely new service principal from scratch
 5. Open an issue in this repository with:

@@ -396,7 +396,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Additional Resources:**" >> $GITHUB_STEP_SUMMARY
           echo "- [Azure Login Action](https://github.com/Azure/login#configure-a-service-principal-with-a-secret)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Azure Service Principal Setup](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Azure Service Principal Setup](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)" >> $GITHUB_STEP_SUMMARY
           exit 0
         fi
         
