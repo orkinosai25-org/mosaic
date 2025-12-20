@@ -453,6 +453,7 @@ Navigate to `https://localhost:5001`
 
 ### Migration & Deployment
 - **[Azure Deployment](docs/AZURE_DEPLOYMENT.md)** - Deploy to Azure Web Apps with Azure SQL
+- **[Azure Log Diagnostics](docs/AZURE_LOG_DIAGNOSTICS.md)** - Fetch and analyze Azure app logs for troubleshooting
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment procedures
 
 ## 🚀 Deployment
@@ -533,6 +534,7 @@ After deployment, verify the following:
   - SPA fallback middleware is configured in Program.cs
   - Static files middleware comes before the fallback
 - Check Azure Web App logs in Azure Portal for errors
+- **For deployment/runtime errors**: Use the [Fetch and Diagnose App Errors workflow](docs/AZURE_LOG_DIAGNOSTICS_QUICKSTART.md) to automatically collect and analyze logs
 
 ## 🏗️ Project Structure
 

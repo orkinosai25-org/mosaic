@@ -32,6 +32,7 @@ Welcome to the Mosaic Conversational CMS documentation. This directory contains 
 
 ### Deployment
 - [AZURE_DEPLOYMENT.md](./AZURE_DEPLOYMENT.md) - Azure deployment guide
+- [AZURE_LOG_DIAGNOSTICS.md](./AZURE_LOG_DIAGNOSTICS.md) - Azure log fetching and error diagnostics workflow
 - [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - Pre-deployment checklist
 
 ### GitHub Copilot Agents
@@ -64,6 +65,7 @@ If you're experiencing issues with Copilot agents (like failed workflow runs or 
 1. Review [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) before starting
 2. Follow [AZURE_DEPLOYMENT.md](./AZURE_DEPLOYMENT.md) for step-by-step deployment
 3. Ensure database is configured per [DATABASE.md](./DATABASE.md)
+4. If errors occur, use [AZURE_LOG_DIAGNOSTICS.md](./AZURE_LOG_DIAGNOSTICS.md) to diagnose issues
 
 ### Understanding the Architecture
 
@@ -72,6 +74,13 @@ If you're experiencing issues with Copilot agents (like failed workflow runs or 
 3. Check [EXTENSIBILITY.md](./EXTENSIBILITY.md) for customization options
 
 ## Recent Additions
+
+### 2025-12-20: Azure Log Diagnostics Workflow
+Added automated workflow and documentation for diagnosing Azure Web App errors:
+- GitHub Actions workflow to fetch and analyze Azure logs
+- Automated error pattern detection
+- Comprehensive diagnostic reports and artifacts
+- Integration with issue tracking and Copilot Agent
 
 ### 2025-11-29: GitHub Copilot Agent Documentation
 Added comprehensive documentation for troubleshooting and working with GitHub Copilot agents:
@@ -100,6 +109,7 @@ When adding new documentation:
 
 | Document | Status | Last Updated |
 |----------|--------|--------------|
+| AZURE_LOG_DIAGNOSTICS.md | ✅ Current | 2025-12-20 |
 | QUICK_FIX_GUIDE.md | ✅ Current | 2025-11-29 |
 | github-copilot-agent-guide.md | ✅ Current | 2025-11-29 |
 | copilot-agent-troubleshooting.md | ✅ Current | 2025-11-29 |

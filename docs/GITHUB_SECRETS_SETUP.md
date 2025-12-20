@@ -42,6 +42,7 @@ Click **New repository secret** and add each of the following:
 | Secret Name | Value Example | Description |
 |-------------|--------------|-------------|
 | `AZURE_WEBAPP_PUBLISH_PROFILE_MOSAIC` | (XML content) | Azure Web App publish profile |
+| `AZURE_CREDENTIALS` | (JSON content) | Azure service principal credentials for log access and diagnostics |
 
 #### Database
 
@@ -239,6 +240,77 @@ Then update `appsettings.Production.json`:
   }
 }
 ```
+
+## 🔧 Azure Service Principal for Log Diagnostics
+
+The **Fetch and Diagnose App Errors** workflow requires Azure credentials to fetch logs and diagnose issues. This uses a service principal with appropriate permissions.
+
+### Step 1: Create Service Principal
+
+```bash
+# Replace {subscription-id} with your Azure subscription ID
+az ad sp create-for-rbac --name "mosaic-github-diagnostics" \
+  --role contributor \
+  --scopes /subscriptions/{subscription-id}/resourceGroups/mosaic-rg \
+  --sdk-auth
+```
+
+This will output JSON like:
+
+```json
+{
+  "clientId": "12345678-1234-1234-1234-123456789012",
+  "clientSecret": "your-client-secret",
+  "subscriptionId": "87654321-4321-4321-4321-210987654321",
+  "tenantId": "abcdefgh-abcd-abcd-abcd-abcdefghijkl",
+  "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+  "resourceManagerEndpointUrl": "https://management.azure.com/",
+  "activeDirectoryGraphResourceId": "https://graph.windows.net/",
+  "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+  "galleryEndpointUrl": "https://gallery.azure.com/",
+  "managementEndpointUrl": "https://management.core.windows.net/"
+}
+```
+
+### Step 2: Add to GitHub Secrets
+
+1. Copy the entire JSON output from Step 1
+2. Go to GitHub repository → **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Name: `AZURE_CREDENTIALS`
+5. Value: Paste the entire JSON
+6. Click **Add secret**
+
+### Step 3: Verify Permissions
+
+The service principal needs these permissions:
+- **Reader** on the Resource Group (to view resources)
+- **Website Contributor** on the App Service (to access logs)
+- **Monitoring Reader** (to view activity logs)
+
+To add additional permissions:
+
+```bash
+# Add Monitoring Reader role
+az role assignment create \
+  --assignee <clientId-from-step-1> \
+  --role "Monitoring Reader" \
+  --scope /subscriptions/{subscription-id}/resourceGroups/mosaic-rg
+
+# Verify role assignments
+az role assignment list \
+  --assignee <clientId-from-step-1> \
+  --output table
+```
+
+### Step 4: Test the Workflow
+
+1. Go to **Actions** tab in GitHub
+2. Select **Fetch and Diagnose App Errors** workflow
+3. Click **Run workflow**
+4. Check that it can authenticate and fetch logs
+
+See [AZURE_LOG_DIAGNOSTICS.md](./AZURE_LOG_DIAGNOSTICS.md) for complete workflow documentation.
 
 ## 🚀 Vercel Deployment (Alternative Frontend Hosting)
 
