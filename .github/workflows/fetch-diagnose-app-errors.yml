@@ -415,17 +415,21 @@ jobs:
         fi
         
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "All logs have been collected and uploaded as workflow artifacts." >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Download artifacts**: [azure-app-logs-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📚 Documentation" >> $GITHUB_STEP_SUMMARY
         echo "- [Troubleshooting HTTP 500.30](./TROUBLESHOOTING_HTTP_500_30.md)" >> $GITHUB_STEP_SUMMARY
         echo "- [Deployment Notes](./DEPLOYMENT_NOTES.md)" >> $GITHUB_STEP_SUMMARY
         echo "- [Error Logging Guide](./ERROR_LOGGING_TROUBLESHOOTING.md)" >> $GITHUB_STEP_SUMMARY
+        
+        # Only show artifacts section if Azure login was successful
+        if [ "${{ steps.azure-login.outcome }}" = "success" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "All logs have been collected and uploaded as workflow artifacts." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Download artifacts**: [azure-app-logs-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+        fi
     
     - name: Azure Logout
-      if: steps.azure-login.outcome == 'success'
+      if: always() && steps.azure-login.outcome == 'success'
       run: |
         az logout
