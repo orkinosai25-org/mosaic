@@ -404,7 +404,7 @@ jobs:
         echo "- **Health**: ${{ steps.health-check.outputs.health_status }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
-        if [ "${{ steps.analyze-errors.outputs.errors_detected }}" == "true" ]; then
+        if [ "${{ steps.analyze-errors.outputs.errors_detected }}" = "true" ]; then
           echo "### ⚠️ Errors Detected" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Common error patterns were found in the logs. Please review the artifact for details." >> $GITHUB_STEP_SUMMARY
@@ -421,7 +421,7 @@ jobs:
         echo "- [Error Logging Guide](./ERROR_LOGGING_TROUBLESHOOTING.md)" >> $GITHUB_STEP_SUMMARY
         
         # Only show artifacts section if Azure login was successful
-        if [ "${{ steps.azure-login.outcome }}" == "success" ]; then
+        if [ "${{ steps.azure-login.outcome }}" = "success" ]; then
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "All logs have been collected and uploaded as workflow artifacts." >> $GITHUB_STEP_SUMMARY
