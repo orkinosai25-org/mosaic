@@ -118,6 +118,7 @@ jobs:
         APP_NAME="${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}"
         
         # Get container logs (if app runs in container)
+        # Note: --only-show-errors suppresses Azure CLI warnings, not application log content
         az webapp log show \
           --name "$APP_NAME" \
           --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -163,86 +164,92 @@ jobs:
       run: |
         echo "Analyzing logs for common errors..."
         
-        # Create analysis report
-        cat > logs/error-analysis.txt << 'EOF'
-        ========================================
-        MOSAIC Azure App Error Analysis Report
-        ========================================
-        Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-        Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        
-        App Details:
-        - Name: ${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}
-        - URL: ${{ steps.app-details.outputs.app_url }}
-        - State: ${{ steps.app-details.outputs.app_state }}
-        - Health Status: ${{ steps.health-check.outputs.health_status }}
-        
-        ========================================
-        Common Error Patterns Detected
-        ========================================
-        
-        EOF
+        # Create analysis report header
+        {
+          echo "========================================"
+          echo "MOSAIC Azure App Error Analysis Report"
+          echo "========================================"
+          echo "Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo "Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo ""
+          echo "App Details:"
+          echo "- Name: ${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}"
+          echo "- URL: ${{ steps.app-details.outputs.app_url }}"
+          echo "- State: ${{ steps.app-details.outputs.app_state }}"
+          echo "- Health Status: ${{ steps.health-check.outputs.health_status }}"
+          echo ""
+          echo "========================================"
+          echo "Common Error Patterns Detected"
+          echo "========================================"
+          echo ""
+        } > logs/error-analysis.txt
         
         # Search for common error patterns in all log files
         ERROR_FOUND=false
         
         # Check for HTTP 500.30 errors
-        if grep -r "500.30" logs/ 2>/dev/null | head -5; then
+        if grep -r "500.30" logs/ 2>/dev/null > /tmp/error_check.txt; then
           echo "" >> logs/error-analysis.txt
           echo "❌ HTTP 500.30 ERROR DETECTED" >> logs/error-analysis.txt
           echo "   - ASP.NET Core app failed to start" >> logs/error-analysis.txt
           echo "   - See TROUBLESHOOTING_HTTP_500_30.md for detailed guidance" >> logs/error-analysis.txt
           echo "   - Common causes: missing connection string, database issues, config errors" >> logs/error-analysis.txt
+          head -5 /tmp/error_check.txt >> logs/error-analysis.txt
           ERROR_FOUND=true
         fi
         
         # Check for database connection errors
-        if grep -ri "connection.*fail\|cannot connect\|timeout.*database\|SqlException" logs/ 2>/dev/null | head -5; then
+        if grep -ri "connection.*fail\|cannot connect\|timeout.*database\|SqlException" logs/ 2>/dev/null > /tmp/error_check.txt; then
           echo "" >> logs/error-analysis.txt
           echo "❌ DATABASE CONNECTION ERROR DETECTED" >> logs/error-analysis.txt
           echo "   - Check connection string in Azure Portal → Configuration" >> logs/error-analysis.txt
           echo "   - Verify database server is accessible" >> logs/error-analysis.txt
           echo "   - Ensure firewall rules allow Azure services" >> logs/error-analysis.txt
+          head -5 /tmp/error_check.txt >> logs/error-analysis.txt
           ERROR_FOUND=true
         fi
         
         # Check for authentication errors
-        if grep -ri "authentication.*fail\|unauthorized\|401\|403" logs/ 2>/dev/null | head -5; then
+        if grep -ri "authentication.*fail\|unauthorized\|401\|403" logs/ 2>/dev/null > /tmp/error_check.txt; then
           echo "" >> logs/error-analysis.txt
           echo "❌ AUTHENTICATION ERROR DETECTED" >> logs/error-analysis.txt
           echo "   - Check JWT configuration" >> logs/error-analysis.txt
           echo "   - Verify Identity configuration" >> logs/error-analysis.txt
           echo "   - Review AUTHENTICATION_README.md" >> logs/error-analysis.txt
+          head -5 /tmp/error_check.txt >> logs/error-analysis.txt
           ERROR_FOUND=true
         fi
         
         # Check for missing dependencies/files
-        if grep -ri "FileNotFoundException\|could not find file\|missing.*dll" logs/ 2>/dev/null | head -5; then
+        if grep -ri "FileNotFoundException\|could not find file\|missing.*dll" logs/ 2>/dev/null > /tmp/error_check.txt; then
           echo "" >> logs/error-analysis.txt
           echo "❌ MISSING FILES/DEPENDENCIES DETECTED" >> logs/error-analysis.txt
           echo "   - Verify deployment package is complete" >> logs/error-analysis.txt
           echo "   - Check web.config exists in deployment" >> logs/error-analysis.txt
           echo "   - Ensure all NuGet packages are included" >> logs/error-analysis.txt
+          head -5 /tmp/error_check.txt >> logs/error-analysis.txt
           ERROR_FOUND=true
         fi
         
         # Check for memory/resource issues
-        if grep -ri "OutOfMemoryException\|memory.*limit\|quota.*exceed" logs/ 2>/dev/null | head -5; then
+        if grep -ri "OutOfMemoryException\|memory.*limit\|quota.*exceed" logs/ 2>/dev/null > /tmp/error_check.txt; then
           echo "" >> logs/error-analysis.txt
           echo "❌ MEMORY/RESOURCE ERROR DETECTED" >> logs/error-analysis.txt
           echo "   - Consider scaling up App Service plan" >> logs/error-analysis.txt
           echo "   - Review memory usage patterns" >> logs/error-analysis.txt
           echo "   - Check for memory leaks" >> logs/error-analysis.txt
+          head -5 /tmp/error_check.txt >> logs/error-analysis.txt
           ERROR_FOUND=true
         fi
         
         # Check for configuration errors
-        if grep -ri "configuration.*error\|InvalidOperationException.*config\|missing.*setting" logs/ 2>/dev/null | head -5; then
+        if grep -ri "configuration.*error\|InvalidOperationException.*config\|missing.*setting" logs/ 2>/dev/null > /tmp/error_check.txt; then
           echo "" >> logs/error-analysis.txt
           echo "❌ CONFIGURATION ERROR DETECTED" >> logs/error-analysis.txt
           echo "   - Verify all required app settings in Azure Portal" >> logs/error-analysis.txt
           echo "   - Check .env.example for required variables" >> logs/error-analysis.txt
           echo "   - Review DEPLOYMENT_NOTES.md" >> logs/error-analysis.txt
+          head -5 /tmp/error_check.txt >> logs/error-analysis.txt
           ERROR_FOUND=true
         fi
         
@@ -280,67 +287,67 @@ jobs:
     
     - name: Create Diagnostic Summary
       run: |
-        cat > logs/DIAGNOSTIC_SUMMARY.md << 'EOF'
-        # Azure App Diagnostic Summary
-        
-        ## Workflow Information
-        - **Run ID**: ${{ github.run_id }}
-        - **Run URL**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        - **Triggered By**: ${{ github.actor }}
-        - **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-        
-        ## Application Information
-        - **App Name**: ${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}
-        - **Resource Group**: ${{ env.AZURE_RESOURCE_GROUP }}
-        - **App URL**: ${{ steps.app-details.outputs.app_url }}
-        - **App State**: ${{ steps.app-details.outputs.app_state }}
-        - **Health Status**: ${{ steps.health-check.outputs.health_status }}
-        
-        ## Log Collection Summary
-        - **Time Range**: Last ${{ github.event.inputs.time_range || '60' }} minutes
-        - **Logs Collected**: ${{ steps.fetch-logs.outputs.log_collection_complete }}
-        - **Errors Detected**: ${{ steps.analyze-errors.outputs.errors_detected }}
-        
-        ## Files in This Artifact
-        1. **error-analysis.txt** - Automated error pattern analysis
-        2. **recent-log-stream.txt** - Recent application logs (last 100 lines)
-        3. **DIAGNOSTIC_SUMMARY.md** - This file
-        4. **app-logs.zip** - Full log archive (if available)
-        5. **container-logs.txt** - Container/Docker logs (if available)
-        6. **activity-logs.json** - Azure activity logs (if available)
-        7. **app-settings.json** - Application settings (secrets masked)
-        8. **connection-strings.json** - Connection string names (values masked)
-        
-        ## Quick Actions
-        
-        ### If Health Check Failed
-        1. Check **error-analysis.txt** for detected issues
-        2. Review **recent-log-stream.txt** for error details
-        3. Verify database connection in Azure Portal
-        4. Check all environment variables are set correctly
-        
-        ### If No Errors Detected
-        1. Review logs manually for warnings or performance issues
-        2. Check application metrics in Azure Portal
-        3. Consider enabling more verbose logging
-        
-        ## Recommended Next Steps
-        1. Review the error analysis report
-        2. Consult relevant troubleshooting documentation:
-           - `TROUBLESHOOTING_HTTP_500_30.md`
-           - `DEPLOYMENT_NOTES.md`
-           - `ERROR_LOGGING_TROUBLESHOOTING.md`
-        3. Apply fixes based on identified issues
-        4. Re-run this workflow after fixes to verify resolution
-        
-        ## Additional Resources
-        - [Azure Portal - App Service Logs](https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade)
-        - [Kudu Console](https://${{ env.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net)
-        - [Azure Monitor](https://portal.azure.com/#blade/Microsoft_Azure_Monitoring/AzureMonitoringBrowseBlade)
-        
-        ---
-        *This diagnostic report was automatically generated by GitHub Actions*
-        EOF
+        {
+          echo "# Azure App Diagnostic Summary"
+          echo ""
+          echo "## Workflow Information"
+          echo "- **Run ID**: ${{ github.run_id }}"
+          echo "- **Run URL**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "- **Triggered By**: ${{ github.actor }}"
+          echo "- **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          echo ""
+          echo "## Application Information"
+          echo "- **App Name**: ${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}"
+          echo "- **Resource Group**: ${{ env.AZURE_RESOURCE_GROUP }}"
+          echo "- **App URL**: ${{ steps.app-details.outputs.app_url }}"
+          echo "- **App State**: ${{ steps.app-details.outputs.app_state }}"
+          echo "- **Health Status**: ${{ steps.health-check.outputs.health_status }}"
+          echo ""
+          echo "## Log Collection Summary"
+          echo "- **Time Range**: Last ${{ github.event.inputs.time_range || '60' }} minutes"
+          echo "- **Logs Collected**: ${{ steps.fetch-logs.outputs.log_collection_complete }}"
+          echo "- **Errors Detected**: ${{ steps.analyze-errors.outputs.errors_detected }}"
+          echo ""
+          echo "## Files in This Artifact"
+          echo "1. **error-analysis.txt** - Automated error pattern analysis"
+          echo "2. **recent-log-stream.txt** - Recent application logs (last 100 lines)"
+          echo "3. **DIAGNOSTIC_SUMMARY.md** - This file"
+          echo "4. **app-logs.zip** - Full log archive (if available)"
+          echo "5. **container-logs.txt** - Container/Docker logs (if available)"
+          echo "6. **activity-logs.json** - Azure activity logs (if available)"
+          echo "7. **app-settings.json** - Application settings (secrets masked)"
+          echo "8. **connection-strings.json** - Connection string names (values masked)"
+          echo ""
+          echo "## Quick Actions"
+          echo ""
+          echo "### If Health Check Failed"
+          echo "1. Check **error-analysis.txt** for detected issues"
+          echo "2. Review **recent-log-stream.txt** for error details"
+          echo "3. Verify database connection in Azure Portal"
+          echo "4. Check all environment variables are set correctly"
+          echo ""
+          echo "### If No Errors Detected"
+          echo "1. Review logs manually for warnings or performance issues"
+          echo "2. Check application metrics in Azure Portal"
+          echo "3. Consider enabling more verbose logging"
+          echo ""
+          echo "## Recommended Next Steps"
+          echo "1. Review the error analysis report"
+          echo "2. Consult relevant troubleshooting documentation:"
+          echo "   - \`TROUBLESHOOTING_HTTP_500_30.md\`"
+          echo "   - \`DEPLOYMENT_NOTES.md\`"
+          echo "   - \`ERROR_LOGGING_TROUBLESHOOTING.md\`"
+          echo "3. Apply fixes based on identified issues"
+          echo "4. Re-run this workflow after fixes to verify resolution"
+          echo ""
+          echo "## Additional Resources"
+          echo "- [Azure Portal - App Service Logs](https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade)"
+          echo "- [Kudu Console](https://${{ env.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net)"
+          echo "- [Azure Monitor](https://portal.azure.com/#blade/Microsoft_Azure_Monitoring/AzureMonitoringBrowseBlade)"
+          echo ""
+          echo "---"
+          echo "*This diagnostic report was automatically generated by GitHub Actions*"
+        } > logs/DIAGNOSTIC_SUMMARY.md
         
         # Display summary
         cat logs/DIAGNOSTIC_SUMMARY.md
