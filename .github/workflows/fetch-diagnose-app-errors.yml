@@ -386,7 +386,7 @@ jobs:
           echo "2. **Incorrect client secret** - ensure you're using the secret value, not the secret ID" >> $GITHUB_STEP_SUMMARY
           echo "3. **Expired service principal** credentials" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**📖 Complete Fix Guide:** [AZURE_CREDENTIALS_FIX_GUIDE.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/AZURE_CREDENTIALS_FIX_GUIDE.md)" >> $GITHUB_STEP_SUMMARY
+          echo "**📖 Complete Fix Guide:** [AZURE_CREDENTIALS_FIX_GUIDE.md](https://github.com/${{ github.repository }}/blob/main/AZURE_CREDENTIALS_FIX_GUIDE.md)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Quick Fix Steps:**" >> $GITHUB_STEP_SUMMARY
           echo "1. Go to Azure Portal → Azure Active Directory → App registrations" >> $GITHUB_STEP_SUMMARY
@@ -419,9 +419,9 @@ jobs:
         
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📚 Documentation" >> $GITHUB_STEP_SUMMARY
-        echo "- [Troubleshooting HTTP 500.30](./TROUBLESHOOTING_HTTP_500_30.md)" >> $GITHUB_STEP_SUMMARY
-        echo "- [Deployment Notes](./DEPLOYMENT_NOTES.md)" >> $GITHUB_STEP_SUMMARY
-        echo "- [Error Logging Guide](./ERROR_LOGGING_TROUBLESHOOTING.md)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Troubleshooting HTTP 500.30](https://github.com/${{ github.repository }}/blob/main/TROUBLESHOOTING_HTTP_500_30.md)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Deployment Notes](https://github.com/${{ github.repository }}/blob/main/DEPLOYMENT_NOTES.md)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Error Logging Guide](https://github.com/${{ github.repository }}/blob/main/ERROR_LOGGING_TROUBLESHOOTING.md)" >> $GITHUB_STEP_SUMMARY
         
         # Only show artifacts section if Azure login was successful
         if [ "${{ steps.azure-login.outcome }}" = "success" ]; then
