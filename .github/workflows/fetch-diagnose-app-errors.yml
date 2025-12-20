@@ -386,14 +386,17 @@ jobs:
           echo "2. **Incorrect client secret** - ensure you're using the secret value, not the secret ID" >> $GITHUB_STEP_SUMMARY
           echo "3. **Expired service principal** credentials" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**To fix this:**" >> $GITHUB_STEP_SUMMARY
+          echo "**📖 Complete Fix Guide:** [AZURE_CREDENTIALS_FIX_GUIDE.md](./AZURE_CREDENTIALS_FIX_GUIDE.md)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Quick Fix Steps:**" >> $GITHUB_STEP_SUMMARY
           echo "1. Go to Azure Portal → Azure Active Directory → App registrations" >> $GITHUB_STEP_SUMMARY
           echo "2. Find your service principal and create a new client secret" >> $GITHUB_STEP_SUMMARY
           echo "3. Update the \`AZURE_CREDENTIALS\` secret in GitHub with the new credentials" >> $GITHUB_STEP_SUMMARY
           echo "4. Ensure the secret JSON includes: \`clientId\`, \`clientSecret\`, \`subscriptionId\`, and \`tenantId\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Documentation:**" >> $GITHUB_STEP_SUMMARY
+          echo "**Additional Resources:**" >> $GITHUB_STEP_SUMMARY
           echo "- [Azure Login Action](https://github.com/Azure/login#configure-a-service-principal-with-a-secret)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Azure Service Principal Setup](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)" >> $GITHUB_STEP_SUMMARY
           exit 0
         fi
         

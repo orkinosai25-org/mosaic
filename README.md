@@ -454,6 +454,7 @@ Navigate to `https://localhost:5001`
 ### Migration & Deployment
 - **[Azure Deployment](docs/AZURE_DEPLOYMENT.md)** - Deploy to Azure Web Apps with Azure SQL
 - **[Azure Log Diagnostics](docs/AZURE_LOG_DIAGNOSTICS.md)** - Fetch and analyze Azure app logs for troubleshooting
+- **[Azure Credentials Fix Guide](AZURE_CREDENTIALS_FIX_GUIDE.md)** - **NEW!** Fix Azure login failures in diagnostic workflows
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment procedures
 
 ## 🚀 Deployment
@@ -535,6 +536,7 @@ After deployment, verify the following:
   - Static files middleware comes before the fallback
 - Check Azure Web App logs in Azure Portal for errors
 - **For deployment/runtime errors**: Use the [Fetch and Diagnose App Errors workflow](docs/AZURE_LOG_DIAGNOSTICS_QUICKSTART.md) to automatically collect and analyze logs
+- **If diagnostic workflow fails with Azure login error**: Follow the [Azure Credentials Fix Guide](AZURE_CREDENTIALS_FIX_GUIDE.md) to update your service principal credentials
 
 ## 🏗️ Project Structure
 
