@@ -386,7 +386,7 @@ jobs:
           echo "2. **Incorrect client secret** - ensure you're using the secret value, not the secret ID" >> $GITHUB_STEP_SUMMARY
           echo "3. **Expired service principal** credentials" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**📖 Complete Fix Guide:** [AZURE_CREDENTIALS_FIX_GUIDE.md](./AZURE_CREDENTIALS_FIX_GUIDE.md)" >> $GITHUB_STEP_SUMMARY
+          echo "**📖 Complete Fix Guide:** [AZURE_CREDENTIALS_FIX_GUIDE.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/AZURE_CREDENTIALS_FIX_GUIDE.md)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Quick Fix Steps:**" >> $GITHUB_STEP_SUMMARY
           echo "1. Go to Azure Portal → Azure Active Directory → App registrations" >> $GITHUB_STEP_SUMMARY

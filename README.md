@@ -454,7 +454,7 @@ Navigate to `https://localhost:5001`
 ### Migration & Deployment
 - **[Azure Deployment](docs/AZURE_DEPLOYMENT.md)** - Deploy to Azure Web Apps with Azure SQL
 - **[Azure Log Diagnostics](docs/AZURE_LOG_DIAGNOSTICS.md)** - Fetch and analyze Azure app logs for troubleshooting
-- **[Azure Credentials Fix Guide](AZURE_CREDENTIALS_FIX_GUIDE.md)** - **NEW!** Fix Azure login failures in diagnostic workflows
+- **[Azure Credentials Fix Guide](AZURE_CREDENTIALS_FIX_GUIDE.md)** - Troubleshoot Azure authentication issues in diagnostic workflows
 - **[Deployment Checklist](docs/DEPLOYMENT_CHECKLIST.md)** - Complete deployment procedures
 
 ## 🚀 Deployment
