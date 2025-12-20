@@ -453,7 +453,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**To find your resource group name:**" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo "az group list --query \"[].{Name:name, Location:location}\" -o table" >> $GITHUB_STEP_SUMMARY
+          echo "az group list --query '[].{Name:name, Location:location}' -o table" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
         else
           echo "### Application Status" >> $GITHUB_STEP_SUMMARY
