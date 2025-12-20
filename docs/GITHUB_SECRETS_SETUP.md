@@ -249,9 +249,11 @@ The **Fetch and Diagnose App Errors** workflow requires Azure credentials to fet
 
 ```bash
 # Replace {subscription-id} with your Azure subscription ID
+# Replace {your-resource-group} with your actual resource group name
+# Common names: orkinosai_group, mosaic-rg, or check with: az group list
 az ad sp create-for-rbac --name "mosaic-github-diagnostics" \
   --role contributor \
-  --scopes /subscriptions/{subscription-id}/resourceGroups/mosaic-rg \
+  --scopes /subscriptions/{subscription-id}/resourceGroups/{your-resource-group} \
   --sdk-auth
 ```
 
@@ -295,7 +297,7 @@ To add additional permissions:
 az role assignment create \
   --assignee <clientId-from-step-1> \
   --role "Monitoring Reader" \
-  --scope /subscriptions/{subscription-id}/resourceGroups/mosaic-rg
+  --scope /subscriptions/{subscription-id}/resourceGroups/{your-resource-group}
 
 # Verify role assignments
 az role assignment list \
