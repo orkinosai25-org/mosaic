@@ -30,12 +30,14 @@ jobs:
     
     - name: Azure Login
       id: azure-login
+      continue-on-error: true
       uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     
     - name: Get Azure Web App Details
       id: app-details
+      if: steps.azure-login.outcome == 'success'
       run: |
         echo "Fetching Azure Web App details..."
         APP_NAME="${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}"
@@ -57,6 +59,7 @@ jobs:
     
     - name: Check App Health
       id: health-check
+      if: steps.azure-login.outcome == 'success'
       continue-on-error: true
       run: |
         APP_URL="${{ steps.app-details.outputs.app_url }}"
@@ -80,6 +83,7 @@ jobs:
     
     - name: Fetch Application Logs
       id: fetch-logs
+      if: steps.azure-login.outcome == 'success'
       run: |
         echo "Fetching application logs..."
         APP_NAME="${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}"
@@ -113,6 +117,7 @@ jobs:
         echo "log_collection_complete=true" >> $GITHUB_OUTPUT
     
     - name: Fetch Docker/Container Logs
+      if: steps.azure-login.outcome == 'success'
       continue-on-error: true
       run: |
         echo "Fetching container logs..."
@@ -126,6 +131,7 @@ jobs:
           --only-show-errors 2>/dev/null > logs/container-logs.txt || echo "⚠️ Container logs not available"
     
     - name: Fetch Event Logs
+      if: steps.azure-login.outcome == 'success'
       continue-on-error: true
       run: |
         echo "Fetching Azure activity logs..."
@@ -143,6 +149,7 @@ jobs:
           --output json > logs/activity-logs.json 2>/dev/null || echo "⚠️ Activity logs not available"
     
     - name: Get App Service Configuration
+      if: steps.azure-login.outcome == 'success'
       continue-on-error: true
       run: |
         echo "Fetching app configuration..."
@@ -162,6 +169,7 @@ jobs:
     
     - name: Analyze Logs for Common Errors
       id: analyze-errors
+      if: steps.azure-login.outcome == 'success'
       run: |
         echo "Analyzing logs for common errors..."
         
@@ -287,6 +295,7 @@ jobs:
         fi
     
     - name: Create Diagnostic Summary
+      if: steps.azure-login.outcome == 'success'
       run: |
         {
           echo "# Azure App Diagnostic Summary"
@@ -355,7 +364,7 @@ jobs:
     
     - name: Upload Logs as Artifact
       uses: actions/upload-artifact@v4
-      if: always()
+      if: always() && steps.azure-login.outcome == 'success'
       with:
         name: azure-app-logs-${{ github.run_number }}
         path: logs/
@@ -366,6 +375,28 @@ jobs:
       run: |
         echo "## 🔍 Azure App Diagnostics Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Check if Azure login failed
+        if [ "${{ steps.azure-login.outcome }}" != "success" ]; then
+          echo "### ❌ Azure Login Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The workflow could not authenticate with Azure. This is usually caused by:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Invalid or expired Azure credentials** in the \`AZURE_CREDENTIALS\` secret" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Incorrect client secret** - ensure you're using the secret value, not the secret ID" >> $GITHUB_STEP_SUMMARY
+          echo "3. **Expired service principal** credentials" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**To fix this:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to Azure Portal → Azure Active Directory → App registrations" >> $GITHUB_STEP_SUMMARY
+          echo "2. Find your service principal and create a new client secret" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update the \`AZURE_CREDENTIALS\` secret in GitHub with the new credentials" >> $GITHUB_STEP_SUMMARY
+          echo "4. Ensure the secret JSON includes: \`clientId\`, \`clientSecret\`, \`subscriptionId\`, and \`tenantId\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Documentation:**" >> $GITHUB_STEP_SUMMARY
+          echo "- [Azure Login Action](https://github.com/Azure/login#configure-a-service-principal-with-a-secret)" >> $GITHUB_STEP_SUMMARY
+          exit 0
+        fi
+        
         echo "### Application Status" >> $GITHUB_STEP_SUMMARY
         echo "- **App**: ${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}" >> $GITHUB_STEP_SUMMARY
         echo "- **URL**: ${{ steps.app-details.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
