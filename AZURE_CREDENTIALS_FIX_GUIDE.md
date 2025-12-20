@@ -22,9 +22,10 @@ You need to update the `AZURE_CREDENTIALS` secret in your GitHub repository with
 
 1. **Open Azure Portal** and sign in to [https://portal.azure.com](https://portal.azure.com)
 
-2. **Navigate to Azure Active Directory**:
-   - Search for "Azure Active Directory" in the top search bar
+2. **Navigate to Azure Active Directory** (also known as Microsoft Entra ID):
+   - Search for "Azure Active Directory" or "Microsoft Entra ID" in the top search bar
    - Click on **Azure Active Directory** from the results
+   - Note: Microsoft is transitioning to the "Microsoft Entra ID" branding, but both names refer to the same service
 
 3. **Go to App Registrations**:
    - In the left sidebar, click **App registrations**
