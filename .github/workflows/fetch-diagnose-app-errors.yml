@@ -30,8 +30,8 @@ jobs:
     
     - name: Azure Login
       id: azure-login
-      continue-on-error: true
       uses: azure/login@v2
+      continue-on-error: true
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     
@@ -397,40 +397,42 @@ jobs:
           echo "**Additional Resources:**" >> $GITHUB_STEP_SUMMARY
           echo "- [Azure Login Action](https://github.com/Azure/login#configure-a-service-principal-with-a-secret)" >> $GITHUB_STEP_SUMMARY
           echo "- [Azure Service Principal Setup](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal)" >> $GITHUB_STEP_SUMMARY
-          exit 0
-        fi
-        
-        echo "### Application Status" >> $GITHUB_STEP_SUMMARY
-        echo "- **App**: ${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **URL**: ${{ steps.app-details.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **State**: ${{ steps.app-details.outputs.app_state }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Health**: ${{ steps.health-check.outputs.health_status }}" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        if [ "${{ steps.analyze-errors.outputs.errors_detected }}" = "true" ]; then
-          echo "### ⚠️ Errors Detected" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Common error patterns were found in the logs. Please review the artifact for details." >> $GITHUB_STEP_SUMMARY
         else
-          echo "### ✅ No Common Errors Detected" >> $GITHUB_STEP_SUMMARY
+          echo "### Application Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **App**: ${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: ${{ steps.app-details.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **State**: ${{ steps.app-details.outputs.app_state }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health**: ${{ steps.health-check.outputs.health_status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "No common error patterns found. Review logs manually for detailed analysis." >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📚 Documentation" >> $GITHUB_STEP_SUMMARY
-        echo "- [Troubleshooting HTTP 500.30](https://github.com/${{ github.repository }}/blob/main/TROUBLESHOOTING_HTTP_500_30.md)" >> $GITHUB_STEP_SUMMARY
-        echo "- [Deployment Notes](https://github.com/${{ github.repository }}/blob/main/DEPLOYMENT_NOTES.md)" >> $GITHUB_STEP_SUMMARY
-        echo "- [Error Logging Guide](https://github.com/${{ github.repository }}/blob/main/ERROR_LOGGING_TROUBLESHOOTING.md)" >> $GITHUB_STEP_SUMMARY
-        
-        # Only show artifacts section if Azure login was successful
-        if [ "${{ steps.azure-login.outcome }}" = "success" ]; then
+          
+          if [ "${{ steps.analyze-errors.outputs.errors_detected }}" = "true" ]; then
+            echo "### ⚠️ Errors Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Common error patterns were found in the logs. Please review the artifact for details." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ No Common Errors Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No common error patterns found. Review logs manually for detailed analysis." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📚 Documentation" >> $GITHUB_STEP_SUMMARY
+          echo "- [Troubleshooting HTTP 500.30](https://github.com/${{ github.repository }}/blob/main/TROUBLESHOOTING_HTTP_500_30.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Deployment Notes](https://github.com/${{ github.repository }}/blob/main/DEPLOYMENT_NOTES.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Error Logging Guide](https://github.com/${{ github.repository }}/blob/main/ERROR_LOGGING_TROUBLESHOOTING.md)" >> $GITHUB_STEP_SUMMARY
+          
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "All logs have been collected and uploaded as workflow artifacts." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Download artifacts**: [azure-app-logs-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
         fi
+    
+    - name: Fail Workflow if Azure Login Failed
+      if: always() && steps.azure-login.outcome != 'success'
+      run: |
+        echo "::error::Azure login failed. Cannot proceed with diagnostics."
+        exit 1
     
     - name: Azure Logout
       if: always() && steps.azure-login.outcome == 'success'
