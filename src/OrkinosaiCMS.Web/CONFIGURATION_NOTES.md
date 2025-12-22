@@ -92,9 +92,9 @@ That's all that's needed for the app to start successfully.
 
 ### References
 
-- Troubleshooting: See `TROUBLESHOOTING_HTTP_500_30.md`
-- Blob storage info (for MosaicCMS API only): See `docs/AZURE_BLOB_STORAGE.md`
-- Deployment guide: See `docs/DEPLOYMENT_ARCHITECTURE.md`
+- Troubleshooting: See `../../TROUBLESHOOTING_HTTP_500_30.md`
+- Blob storage info (for MosaicCMS API only): See `../../docs/AZURE_BLOB_STORAGE.md`
+- Deployment guide: See `../../docs/DEPLOYMENT_ARCHITECTURE.md`
 
 ---
 
