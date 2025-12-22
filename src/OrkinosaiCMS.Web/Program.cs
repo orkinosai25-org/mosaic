@@ -363,7 +363,7 @@ try
                     "Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=YourDatabase;\n" +
                     "User ID=yourusername;Password=yourpassword;Encrypt=True;Connection Timeout=30;\n" +
                     "Max Pool Size=100;Min Pool Size=5;Pooling=true\n\n" +
-                    "See TROUBLESHOOTING_HTTP_500_30.md for detailed setup instructions.";
+                    "See AZURE_CONNECTION_STRING_CONFIGURATION.md and TROUBLESHOOTING_HTTP_500_30.md for detailed setup instructions.";
                 
                 if (builder.Environment.EnvironmentName != "Testing")
                 {

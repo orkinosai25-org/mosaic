@@ -40,31 +40,37 @@ If you see **HTTP Error 500.30 - ASP.NET Core app failed to start**, the most co
 #### Method 2: Azure CLI
 
 ```bash
-# Set the connection string
+# Set the connection string (replace placeholders with your actual values)
 az webapp config connection-string set \
-  --name mosaic-saas \
-  --resource-group orkinosai_group \
+  --name YOUR_APP_NAME \
+  --resource-group YOUR_RESOURCE_GROUP \
   --connection-string-type SQLServer \
-  --settings DefaultConnection="Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;User ID=sqladmin;Password=YOUR_PASSWORD;Encrypt=True;Connection Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true"
+  --settings DefaultConnection="Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=yourdatabase;User ID=yourusername;Password=YOUR_PASSWORD;Encrypt=True;Connection Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true"
 
 # Restart the app
 az webapp restart \
-  --name mosaic-saas \
-  --resource-group orkinosai_group
+  --name YOUR_APP_NAME \
+  --resource-group YOUR_RESOURCE_GROUP
 ```
 
-**Important**: Replace `YOUR_PASSWORD` with your actual database password.
+**Important**: Replace placeholders with your actual values:
+- `YOUR_APP_NAME` - Your Azure App Service name (e.g., `mosaic-saas`)
+- `YOUR_RESOURCE_GROUP` - Your resource group name (e.g., `orkinosai_group`)
+- `yourserver` - Your Azure SQL server name
+- `yourdatabase` - Your database name
+- `yourusername` - Your SQL username
+- `YOUR_PASSWORD` - Your actual database password
 
 #### Method 3: Environment Variable (Local Testing)
 
 For local testing only (not recommended for production):
 
 ```bash
-# Windows PowerShell
-$env:ConnectionStrings__DefaultConnection="Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;User ID=sqladmin;Password=YOUR_PASSWORD;Encrypt=True;Connection Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true"
+# Windows PowerShell (replace placeholders with your actual values)
+$env:ConnectionStrings__DefaultConnection="Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=yourdatabase;User ID=yourusername;Password=YOUR_PASSWORD;Encrypt=True;Connection Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true"
 
-# Linux/macOS
-export ConnectionStrings__DefaultConnection="Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;User ID=sqladmin;Password=YOUR_PASSWORD;Encrypt=True;Connection Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true"
+# Linux/macOS (replace placeholders with your actual values)
+export ConnectionStrings__DefaultConnection="Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=yourdatabase;User ID=yourusername;Password=YOUR_PASSWORD;Encrypt=True;Connection Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true"
 ```
 
 ## Connection String Format
@@ -119,10 +125,12 @@ Pooling=true
 **Azure CLI:**
 ```bash
 az webapp config connection-string list \
-  --name mosaic-saas \
-  --resource-group orkinosai_group \
+  --name YOUR_APP_NAME \
+  --resource-group YOUR_RESOURCE_GROUP \
   --query "[?name=='DefaultConnection']"
 ```
+
+Replace `YOUR_APP_NAME` and `YOUR_RESOURCE_GROUP` with your actual values.
 
 ### 2. Check Application Logs
 
@@ -133,7 +141,7 @@ az webapp config connection-string list \
 **Expected output:**
 ```
 [2024-12-22 01:00:00.000 +00:00] [INF] Using SQL Server database provider
-[2024-12-22 01:00:00.001 +00:00] [INF] Connection string (sanitized): Server=tcp:orkinosai.database.windows.net,1433;...Password=***;...
+[2024-12-22 01:00:00.001 +00:00] [INF] Connection string (sanitized): Server=tcp:yourserver.database.windows.net,1433;...Password=***;...
 [2024-12-22 01:00:00.002 +00:00] [INF] Connection pool settings: MaxPoolSize=100, MinPoolSize=5, Pooling=True
 ```
 
@@ -146,8 +154,10 @@ az webapp config connection-string list \
 ### 3. Test Health Endpoint
 
 ```bash
-curl https://mosaic-saas.azurewebsites.net/api/health
+curl https://your-app.azurewebsites.net/api/health
 ```
+
+Replace `your-app` with your actual Azure App Service name.
 
 **Expected response (HTTP 200):**
 ```json
