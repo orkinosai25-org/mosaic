@@ -380,6 +380,15 @@ jobs:
           echo "3. Apply fixes based on identified issues"
           echo "4. Re-run this workflow after fixes to verify resolution"
           echo ""
+          echo "## How to Access These Logs"
+          echo ""
+          echo "These logs are part of a GitHub Actions workflow artifact. To access them:"
+          echo ""
+          echo "1. Go to the workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "2. Scroll to the bottom of the page to the \"Artifacts\" section"
+          echo "3. Click on \`azure-app-logs-${{ github.run_number }}\` to download this archive"
+          echo "4. Extract the ZIP file to view all diagnostic files"
+          echo ""
           echo "## Additional Resources"
           echo "- [Azure Portal - App Service Logs](https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade)"
           echo "- [Kudu Console](https://${{ env.AZURE_WEBAPP_NAME }}.scm.azurewebsites.net)"
@@ -484,7 +493,14 @@ jobs:
           echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "All logs have been collected and uploaded as workflow artifacts." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Download artifacts**: [azure-app-logs-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact Name**: \`azure-app-logs-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Download Instructions**:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Scroll to the bottom of this workflow run page" >> $GITHUB_STEP_SUMMARY
+          echo "2. Look for the \"Artifacts\" section" >> $GITHUB_STEP_SUMMARY
+          echo "3. Click on \`azure-app-logs-${{ github.run_number }}\` to download the logs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Or click here**: [View Workflow Run and Download Artifacts](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)" >> $GITHUB_STEP_SUMMARY
         fi
     
     - name: Fail Workflow if Azure Login Failed
