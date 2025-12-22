@@ -206,8 +206,9 @@ To diagnose a different deployment:
 You can trigger the workflow via GitHub API:
 ```bash
 curl -X POST \
-  -H "Authorization: token YOUR_GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
+  -H "Authorization: Bearer YOUR_GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
   https://api.github.com/repos/OWNER/REPO/actions/workflows/fetch-diagnose-app-errors.yml/dispatches \
   -d '{"ref":"main","inputs":{"time_range":"60"}}'
 ```

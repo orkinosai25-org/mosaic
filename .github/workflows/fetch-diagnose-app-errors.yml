@@ -190,8 +190,8 @@ jobs:
             KUDU_URL="https://${APP_NAME}.scm.azurewebsites.net"
             echo "Accessing kudu at: $KUDU_URL"
             
-            # List files in LogFiles/stdout directory
-            STDOUT_FILES=$(curl -s -u "$KUDU_USER:$KUDU_PASS" \
+            # List files in LogFiles/stdout directory with timeout
+            STDOUT_FILES=$(curl -s --max-time 30 -u "$KUDU_USER:$KUDU_PASS" \
               "$KUDU_URL/api/vfs/LogFiles/stdout/" 2>/dev/null || echo "")
             
             if [ -n "$STDOUT_FILES" ]; then
@@ -199,13 +199,14 @@ jobs:
               
               # Parse the JSON response to get the most recent log file
               # The files are typically named like: stdout_20231222_123456_12345.log
-              LATEST_LOG=$(echo "$STDOUT_FILES" | jq -r 'sort_by(.mtime) | reverse | .[0].name // empty' 2>/dev/null || echo "")
+              # Validate that mtime field exists before sorting
+              LATEST_LOG=$(echo "$STDOUT_FILES" | jq -r 'if type == "array" and length > 0 and .[0].mtime then (sort_by(.mtime) | reverse | .[0].name) else empty end' 2>/dev/null || echo "")
               
               if [ -n "$LATEST_LOG" ]; then
                 echo "✓ Latest stdout log file: $LATEST_LOG"
                 
-                # Download the latest stdout log
-                curl -s -u "$KUDU_USER:$KUDU_PASS" \
+                # Download the latest stdout log with timeout and file size limit (10MB max)
+                curl -s --max-time 60 --max-filesize 10485760 -u "$KUDU_USER:$KUDU_PASS" \
                   "$KUDU_URL/api/vfs/LogFiles/stdout/$LATEST_LOG" \
                   > logs/latest-stdout.log 2>/dev/null || echo "⚠️ Could not download stdout log"
                 
@@ -221,11 +222,15 @@ jobs:
                   echo "Time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> logs/startup-errors-extracted.txt
                   echo "" >> logs/startup-errors-extracted.txt
                   
+                  # Define error patterns for easier maintenance
+                  ERROR_500_30_PATTERN="500\.30\|failed to start"
+                  EXCEPTION_PATTERN="exception\|error\|fail"
+                  
                   # Look for critical error patterns
                   ERROR_FOUND=false
                   
-                  # Check for HTTP 500.30 errors
-                  if grep -i "500.30\|failed to start" logs/latest-stdout.log > /tmp/error_500_30.txt 2>/dev/null; then
+                  # Check for HTTP 500.30 errors - limit to first 100 matches for performance
+                  if tail -1000 logs/latest-stdout.log | grep -i -m 100 "$ERROR_500_30_PATTERN" > /tmp/error_500_30.txt 2>/dev/null; then
                     echo "❌ HTTP 500.30 ERROR DETECTED" >> logs/startup-errors-extracted.txt
                     echo "" >> logs/startup-errors-extracted.txt
                     cat /tmp/error_500_30.txt >> logs/startup-errors-extracted.txt
@@ -233,11 +238,11 @@ jobs:
                     ERROR_FOUND=true
                   fi
                   
-                  # Check for exceptions
-                  if grep -i "exception\|error\|fail" logs/latest-stdout.log | tail -20 > /tmp/error_exceptions.txt 2>/dev/null; then
+                  # Check for exceptions - search only recent entries and limit matches
+                  if tail -1000 logs/latest-stdout.log | grep -i -m 20 "$EXCEPTION_PATTERN" > /tmp/error_exceptions.txt 2>/dev/null; then
                     if [ -s /tmp/error_exceptions.txt ]; then
                       echo "=====================================" >> logs/startup-errors-extracted.txt
-                      echo "RECENT ERRORS/EXCEPTIONS (Last 20 lines):" >> logs/startup-errors-extracted.txt
+                      echo "RECENT ERRORS/EXCEPTIONS (Up to 20 matches):" >> logs/startup-errors-extracted.txt
                       echo "" >> logs/startup-errors-extracted.txt
                       cat /tmp/error_exceptions.txt >> logs/startup-errors-extracted.txt
                       echo "" >> logs/startup-errors-extracted.txt
