@@ -348,7 +348,20 @@ try
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
-                var errorMsg = "Connection string 'DefaultConnection' not found.";
+                var errorMsg = "CONFIGURATION ERROR: Connection string 'DefaultConnection' not found.\n\n" +
+                    "As of December 22, 2025, production database credentials are NOT stored in source control for security.\n\n" +
+                    "REQUIRED ACTION:\n" +
+                    "Production deployments MUST configure the connection string in Azure App Service:\n\n" +
+                    "1. Go to Azure Portal > App Services > mosaic-saas\n" +
+                    "2. Select Configuration > Connection strings\n" +
+                    "3. Add 'DefaultConnection' with Type 'SQLServer'\n" +
+                    "4. Enter your Azure SQL connection string:\n" +
+                    "   Server=tcp:orkinosai.database.windows.net,1433;Initial Catalog=mosaic-saas;...\n" +
+                    "5. Click Save and restart the app\n\n" +
+                    "See AZURE_APP_SERVICE_CONFIGURATION_REQUIRED.md for detailed setup instructions.\n\n" +
+                    "For local development, use ASPNETCORE_ENVIRONMENT=Development or set the environment variable:\n" +
+                    "ConnectionStrings__DefaultConnection=<your-connection-string>";
+                
                 if (builder.Environment.EnvironmentName != "Testing")
                 {
                     Log.Fatal(errorMsg);
