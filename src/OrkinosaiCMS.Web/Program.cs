@@ -348,23 +348,7 @@ try
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
-                var errorMsg = "CONFIGURATION ERROR: Connection string 'DefaultConnection' is not set.\n\n" +
-                    "HTTP Error 500.30 - ASP.NET Core app failed to start\n" +
-                    "Root Cause: Missing database connection string\n\n" +
-                    "REQUIRED ACTIONS:\n" +
-                    "1. Configure the connection string in Azure App Service:\n" +
-                    "   - Go to Azure Portal → Your App Service → Configuration → Connection strings\n" +
-                    "   - Add connection string named 'DefaultConnection' with Type 'SQLServer'\n" +
-                    "   - Paste your Azure SQL connection string\n" +
-                    "   - Click Save and restart the app\n\n" +
-                    "2. OR set the environment variable:\n" +
-                    "   ConnectionStrings__DefaultConnection=<your-connection-string>\n\n" +
-                    "Example connection string format:\n" +
-                    "Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=YourDatabase;\n" +
-                    "User ID=yourusername;Password=yourpassword;Encrypt=True;Connection Timeout=30;\n" +
-                    "Max Pool Size=100;Min Pool Size=5;Pooling=true\n\n" +
-                    "See AZURE_CONNECTION_STRING_CONFIGURATION.md and TROUBLESHOOTING_HTTP_500_30.md for detailed setup instructions.";
-                
+                var errorMsg = "Connection string 'DefaultConnection' not found.";
                 if (builder.Environment.EnvironmentName != "Testing")
                 {
                     Log.Fatal(errorMsg);
