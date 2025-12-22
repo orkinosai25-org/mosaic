@@ -348,43 +348,10 @@ try
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
-                var errorMsg = "CONFIGURATION ERROR: Connection string 'DefaultConnection' not found or is empty.\n\n" +
-                    "==============================================\n" +
-                    "HTTP 500.30 ERROR - APPLICATION CANNOT START\n" +
-                    "==============================================\n\n" +
-                    "The application requires a valid SQL Server connection string to start.\n\n" +
-                    "REQUIRED ACTIONS (Azure App Service):\n" +
-                    "--------------------------------------\n" +
-                    "1. Go to Azure Portal\n" +
-                    "2. Navigate to: Your App Service > Configuration > Connection strings\n" +
-                    "3. Add or update connection string:\n" +
-                    "   - Name: DefaultConnection\n" +
-                    "   - Value: Your SQL Server connection string\n" +
-                    "   - Type: SQLServer\n" +
-                    "4. Click 'Save'\n" +
-                    "5. Restart the application\n\n" +
-                    "Example connection string format:\n" +
-                    "Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=YourDatabase;\n" +
-                    "Persist Security Info=False;User ID=yourusername;Password=yourpassword;\n" +
-                    "MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;\n" +
-                    "Connection Timeout=30;Max Pool Size=100;Min Pool Size=5;Pooling=true\n\n" +
-                    "ALTERNATIVE (Environment Variable):\n" +
-                    "------------------------------------\n" +
-                    "Set environment variable: ConnectionStrings__DefaultConnection=<your-connection-string>\n\n" +
-                    "SECURITY NOTE:\n" +
-                    "-------------\n" +
-                    "- NEVER commit production credentials to source control\n" +
-                    "- Use Azure App Service Configuration or Azure Key Vault\n" +
-                    "- The hardcoded password has been removed from appsettings.Production.json for security\n\n" +
-                    "For detailed setup instructions, see:\n" +
-                    "- AZURE_CONNECTION_STRING_SETUP.md\n" +
-                    "- TROUBLESHOOTING_HTTP_500_30.md\n\n" +
-                    "==============================================";
-                
+                var errorMsg = "Connection string 'DefaultConnection' not found.";
                 if (builder.Environment.EnvironmentName != "Testing")
                 {
                     Log.Fatal(errorMsg);
-                    Console.WriteLine("\n" + errorMsg + "\n");
                 }
                 throw new InvalidOperationException(errorMsg);
             }
