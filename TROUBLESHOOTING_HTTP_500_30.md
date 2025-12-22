@@ -2,6 +2,40 @@
 
 This guide helps diagnose and fix the common "HTTP Error 500.30 - ASP.NET Core app failed to start" error when deploying to Azure App Service or IIS.
 
+## 🚀 Automated Diagnostics (Recommended First Step)
+
+**NEW**: We have an automated workflow that fetches and analyzes logs from your Azure deployment!
+
+### How to Run Automated Diagnostics
+
+1. Go to the [Actions tab](../../actions/workflows/fetch-diagnose-app-errors.yml)
+2. Click "Run workflow"
+3. (Optional) Adjust the time range if needed (default: last 60 minutes)
+4. Click "Run workflow" button
+5. Wait for the workflow to complete (~1 minute)
+6. Check the workflow summary for extracted startup errors
+7. Download artifacts to see detailed logs
+
+### What the Workflow Does
+
+The automated diagnostics workflow:
+- ✅ Fetches the latest stdout logs from Azure App Service
+- ✅ Extracts startup errors and exceptions automatically
+- ✅ Displays the actual error in the workflow summary
+- ✅ Creates a `startup-errors-extracted.txt` file with the root cause
+- ✅ Collects all related logs for deeper analysis
+- ✅ Provides actionable troubleshooting guidance
+
+**Benefits:**
+- 🎯 **See the actual error immediately** without manual log hunting
+- ⚡ **Fast diagnosis** - results in ~1 minute
+- 📋 **Comprehensive** - collects all relevant logs in one place
+- 🔍 **Automated error extraction** - no need to parse logs manually
+
+If the automated workflow shows errors, follow the specific guidance provided. If you need manual troubleshooting, continue with the steps below.
+
+---
+
 ## Quick Fix Checklist
 
 If you're seeing HTTP 500.30, work through this checklist:
