@@ -134,12 +134,12 @@ jobs:
           cd ..
         fi
         
-        # Fetch recent log stream (last 100 lines)
+        # Fetch recent log stream (last 500 lines for better error capture)
         echo "Fetching recent log stream..."
         az webapp log tail \
           --name "$APP_NAME" \
           --resource-group "$RESOURCE_GROUP" \
-          --only-show-errors 2>/dev/null | head -100 > logs/recent-log-stream.txt || echo "⚠️ Could not fetch log stream"
+          --only-show-errors 2>/dev/null | head -500 > logs/recent-log-stream.txt || echo "⚠️ Could not fetch log stream"
         
         echo "log_collection_complete=true" >> $GITHUB_OUTPUT
     
@@ -157,6 +157,127 @@ jobs:
           --name "$APP_NAME" \
           --resource-group "$RESOURCE_GROUP" \
           --only-show-errors 2>/dev/null > logs/container-logs.txt || echo "⚠️ Container logs not available"
+    
+    - name: Extract Stdout Startup Errors
+      id: extract-errors
+      if: steps.azure-login.outcome == 'success' && steps.app-details.outputs.resource_group_exists == 'true'
+      continue-on-error: true
+      run: |
+        echo "Extracting startup errors from stdout logs..."
+        APP_NAME="${{ github.event.inputs.app_name || env.AZURE_WEBAPP_NAME }}"
+        RESOURCE_GROUP="${{ github.event.inputs.resource_group || env.AZURE_RESOURCE_GROUP }}"
+        
+        # Try to find the most recent stdout log files
+        # Azure stores stdout logs in LogFiles/stdout/ directory
+        # First, try to access via kudu/scm
+        echo "Attempting to fetch stdout logs via kudu..."
+        
+        # Get the kudu credentials
+        KUDU_CREDS=$(az webapp deployment list-publishing-credentials \
+          --name "$APP_NAME" \
+          --resource-group "$RESOURCE_GROUP" \
+          --query "{username:publishingUserName, password:publishingPassword}" \
+          -o json 2>/dev/null || echo "")
+        
+        if [ -n "$KUDU_CREDS" ] && [ "$KUDU_CREDS" != "" ]; then
+          KUDU_USER=$(echo "$KUDU_CREDS" | jq -r '.username // empty' 2>/dev/null || echo "")
+          KUDU_PASS=$(echo "$KUDU_CREDS" | jq -r '.password // empty' 2>/dev/null || echo "")
+          
+          if [ -n "$KUDU_USER" ] && [ -n "$KUDU_PASS" ]; then
+            echo "✓ Retrieved kudu credentials"
+            
+            # Try to list stdout log files via kudu API
+            KUDU_URL="https://${APP_NAME}.scm.azurewebsites.net"
+            echo "Accessing kudu at: $KUDU_URL"
+            
+            # List files in LogFiles/stdout directory
+            STDOUT_FILES=$(curl -s -u "$KUDU_USER:$KUDU_PASS" \
+              "$KUDU_URL/api/vfs/LogFiles/stdout/" 2>/dev/null || echo "")
+            
+            if [ -n "$STDOUT_FILES" ]; then
+              echo "✓ Found stdout log directory"
+              
+              # Parse the JSON response to get the most recent log file
+              # The files are typically named like: stdout_20231222_123456_12345.log
+              LATEST_LOG=$(echo "$STDOUT_FILES" | jq -r 'sort_by(.mtime) | reverse | .[0].name // empty' 2>/dev/null || echo "")
+              
+              if [ -n "$LATEST_LOG" ]; then
+                echo "✓ Latest stdout log file: $LATEST_LOG"
+                
+                # Download the latest stdout log
+                curl -s -u "$KUDU_USER:$KUDU_PASS" \
+                  "$KUDU_URL/api/vfs/LogFiles/stdout/$LATEST_LOG" \
+                  > logs/latest-stdout.log 2>/dev/null || echo "⚠️ Could not download stdout log"
+                
+                if [ -f logs/latest-stdout.log ] && [ -s logs/latest-stdout.log ]; then
+                  echo "✓ Downloaded latest stdout log ($(wc -l < logs/latest-stdout.log) lines)"
+                  
+                  # Extract critical error information
+                  echo "" > logs/startup-errors-extracted.txt
+                  echo "=====================================" >> logs/startup-errors-extracted.txt
+                  echo "STARTUP ERROR EXTRACTION" >> logs/startup-errors-extracted.txt
+                  echo "=====================================" >> logs/startup-errors-extracted.txt
+                  echo "Source: $LATEST_LOG" >> logs/startup-errors-extracted.txt
+                  echo "Time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> logs/startup-errors-extracted.txt
+                  echo "" >> logs/startup-errors-extracted.txt
+                  
+                  # Look for critical error patterns
+                  ERROR_FOUND=false
+                  
+                  # Check for HTTP 500.30 errors
+                  if grep -i "500.30\|failed to start" logs/latest-stdout.log > /tmp/error_500_30.txt 2>/dev/null; then
+                    echo "❌ HTTP 500.30 ERROR DETECTED" >> logs/startup-errors-extracted.txt
+                    echo "" >> logs/startup-errors-extracted.txt
+                    cat /tmp/error_500_30.txt >> logs/startup-errors-extracted.txt
+                    echo "" >> logs/startup-errors-extracted.txt
+                    ERROR_FOUND=true
+                  fi
+                  
+                  # Check for exceptions
+                  if grep -i "exception\|error\|fail" logs/latest-stdout.log | tail -20 > /tmp/error_exceptions.txt 2>/dev/null; then
+                    if [ -s /tmp/error_exceptions.txt ]; then
+                      echo "=====================================" >> logs/startup-errors-extracted.txt
+                      echo "RECENT ERRORS/EXCEPTIONS (Last 20 lines):" >> logs/startup-errors-extracted.txt
+                      echo "" >> logs/startup-errors-extracted.txt
+                      cat /tmp/error_exceptions.txt >> logs/startup-errors-extracted.txt
+                      echo "" >> logs/startup-errors-extracted.txt
+                      ERROR_FOUND=true
+                    fi
+                  fi
+                  
+                  # Get the last 50 lines of the log for context
+                  echo "=====================================" >> logs/startup-errors-extracted.txt
+                  echo "LAST 50 LINES OF STDOUT LOG:" >> logs/startup-errors-extracted.txt
+                  echo "" >> logs/startup-errors-extracted.txt
+                  tail -50 logs/latest-stdout.log >> logs/startup-errors-extracted.txt
+                  
+                  if [ "$ERROR_FOUND" = "true" ]; then
+                    echo "has_startup_errors=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "has_startup_errors=false" >> $GITHUB_OUTPUT
+                  fi
+                  
+                  echo "✓ Error extraction completed"
+                else
+                  echo "⚠️ Stdout log file is empty or could not be downloaded"
+                  echo "has_startup_errors=unknown" >> $GITHUB_OUTPUT
+                fi
+              else
+                echo "⚠️ No stdout log files found in directory"
+                echo "has_startup_errors=unknown" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "⚠️ Could not access stdout log directory"
+              echo "has_startup_errors=unknown" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "⚠️ Could not parse kudu credentials"
+            echo "has_startup_errors=unknown" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "⚠️ Could not retrieve kudu credentials"
+          echo "has_startup_errors=unknown" >> $GITHUB_OUTPUT
+        fi
     
     - name: Fetch Event Logs
       if: steps.azure-login.outcome == 'success' && steps.app-details.outputs.resource_group_exists == 'true'
@@ -347,24 +468,29 @@ jobs:
           echo "- **Time Range**: Last ${{ github.event.inputs.time_range || '60' }} minutes"
           echo "- **Logs Collected**: ${{ steps.fetch-logs.outputs.log_collection_complete }}"
           echo "- **Errors Detected**: ${{ steps.analyze-errors.outputs.errors_detected }}"
+          echo "- **Startup Errors Extracted**: ${{ steps.extract-errors.outputs.has_startup_errors }}"
           echo ""
           echo "## Files in This Artifact"
-          echo "1. **error-analysis.txt** - Automated error pattern analysis"
-          echo "2. **recent-log-stream.txt** - Recent application logs (last 100 lines)"
-          echo "3. **DIAGNOSTIC_SUMMARY.md** - This file"
-          echo "4. **app-logs.zip** - Full log archive (if available)"
-          echo "5. **container-logs.txt** - Container/Docker logs (if available)"
-          echo "6. **activity-logs.json** - Azure activity logs (if available)"
-          echo "7. **app-settings.json** - Application settings (secrets masked)"
-          echo "8. **connection-strings.json** - Connection string names (values masked)"
+          echo "1. **startup-errors-extracted.txt** - 🔥 **START HERE** - Extracted startup errors from stdout logs"
+          echo "2. **latest-stdout.log** - Complete stdout log from Azure App Service"
+          echo "3. **error-analysis.txt** - Automated error pattern analysis"
+          echo "4. **recent-log-stream.txt** - Recent application logs (last 500 lines)"
+          echo "5. **DIAGNOSTIC_SUMMARY.md** - This file"
+          echo "6. **app-logs.zip** - Full log archive (if available)"
+          echo "7. **container-logs.txt** - Container/Docker logs (if available)"
+          echo "8. **activity-logs.json** - Azure activity logs (if available)"
+          echo "9. **app-settings.json** - Application settings (secrets masked)"
+          echo "10. **connection-strings.json** - Connection string names (values masked)"
           echo ""
           echo "## Quick Actions"
           echo ""
           echo "### If Health Check Failed"
-          echo "1. Check **error-analysis.txt** for detected issues"
-          echo "2. Review **recent-log-stream.txt** for error details"
-          echo "3. Verify database connection in Azure Portal"
-          echo "4. Check all environment variables are set correctly"
+          echo "1. **PRIORITY**: Check **startup-errors-extracted.txt** for the actual startup error"
+          echo "2. Review **latest-stdout.log** for full error context"
+          echo "3. Check **error-analysis.txt** for detected issues"
+          echo "4. Review **recent-log-stream.txt** for error details"
+          echo "5. Verify database connection in Azure Portal"
+          echo "6. Check all environment variables are set correctly"
           echo ""
           echo "### If No Errors Detected"
           echo "1. Review logs manually for warnings or performance issues"
@@ -464,11 +590,37 @@ jobs:
           echo "- **Health**: ${{ steps.health-check.outputs.health_status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
+          # Display extracted startup errors if available
+          if [ "${{ steps.extract-errors.outputs.has_startup_errors }}" = "true" ]; then
+            echo "### 🔥 Startup Errors Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Critical startup errors were extracted from stdout logs:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Display the extracted errors in the summary
+            if [ -f logs/startup-errors-extracted.txt ]; then
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              # Show first 50 lines of extracted errors
+              head -50 logs/startup-errors-extracted.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "📥 **Download the full error log**: Check the \`startup-errors-extracted.txt\` file in the artifacts below." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ Error extraction completed but file not found. Check artifacts for details." >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.extract-errors.outputs.has_startup_errors }}" = "false" ]; then
+            echo "### ✅ No Startup Errors in Stdout Logs" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The stdout logs were checked but no obvious startup errors were found." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
           if [ "${{ steps.analyze-errors.outputs.errors_detected }}" = "true" ]; then
-            echo "### ⚠️ Errors Detected" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ Additional Errors Detected" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Common error patterns were found in the logs. Please review the artifact for details." >> $GITHUB_STEP_SUMMARY
-          else
+          elif [ "${{ steps.extract-errors.outputs.has_startup_errors }}" != "true" ]; then
             echo "### ✅ No Common Errors Detected" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "No common error patterns found. Review logs manually for detailed analysis." >> $GITHUB_STEP_SUMMARY
@@ -483,6 +635,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "All logs have been collected and uploaded as workflow artifacts." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**🔥 IMPORTANT**: Download artifacts and check \`startup-errors-extracted.txt\` first for the actual startup error!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Download artifacts**: [azure-app-logs-${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
         fi
