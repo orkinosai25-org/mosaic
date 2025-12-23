@@ -30,15 +30,29 @@ public class StripeService : IStripeService
         _customerService = customerService;
         _subscriptionService = subscriptionService;
 
-        _secretKey = _configuration["Payment:Stripe:SecretKey"] 
-            ?? throw new InvalidOperationException("Stripe SecretKey not configured");
+        _secretKey = _configuration["Payment:Stripe:SecretKey"] ?? string.Empty;
         _webhookSecret = _configuration["Payment:Stripe:WebhookSecret"] ?? string.Empty;
 
-        StripeConfiguration.ApiKey = _secretKey;
+        // Only configure Stripe if SecretKey is provided
+        // This allows the service to be registered without breaking startup when Stripe is not configured
+        if (!string.IsNullOrWhiteSpace(_secretKey))
+        {
+            StripeConfiguration.ApiKey = _secretKey;
+            _logger.LogInformation("Stripe payment service initialized");
+        }
+        else
+        {
+            _logger.LogWarning("Stripe SecretKey not configured. Payment functionality will be disabled. Set Payment__Stripe__SecretKey environment variable to enable Stripe integration.");
+        }
     }
 
     public async Task<string> CreateCustomerAsync(string email, string name, int userId)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
+        }
+
         try
         {
             var options = new CustomerCreateOptions
@@ -83,6 +97,11 @@ public class StripeService : IStripeService
         SubscriptionTier tier, 
         BillingInterval interval)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
+        }
+
         try
         {
             var options = new SubscriptionCreateOptions
@@ -136,6 +155,11 @@ public class StripeService : IStripeService
         string newPriceId, 
         SubscriptionTier newTier)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
+        }
+
         try
         {
             var stripeSubscriptionService = new Stripe.SubscriptionService();
@@ -181,6 +205,11 @@ public class StripeService : IStripeService
 
     public async Task<bool> CancelSubscriptionAsync(string subscriptionId, bool cancelAtPeriodEnd = true)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
+        }
+
         try
         {
             var stripeSubscriptionService = new Stripe.SubscriptionService();
@@ -211,6 +240,12 @@ public class StripeService : IStripeService
 
     public async Task<Core.Entities.Subscriptions.Subscription?> GetSubscriptionAsync(string subscriptionId)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            _logger.LogWarning("Stripe is not configured. Cannot get subscription.");
+            return null;
+        }
+
         try
         {
             var stripeSubscriptionService = new Stripe.SubscriptionService();
@@ -235,6 +270,11 @@ public class StripeService : IStripeService
         string successUrl, 
         string cancelUrl)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
+        }
+
         try
         {
             var options = new SessionCreateOptions
@@ -270,6 +310,11 @@ public class StripeService : IStripeService
 
     public async Task<string> CreateBillingPortalSessionAsync(string customerId, string returnUrl)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
+        }
+
         try
         {
             var options = new Stripe.BillingPortal.SessionCreateOptions
@@ -293,6 +338,11 @@ public class StripeService : IStripeService
 
     public string GetPriceId(SubscriptionTier tier, BillingInterval interval)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
+        }
+
         var key = $"Payment:Stripe:PriceIds:{tier}_{interval}";
         var priceId = _configuration[key];
         
@@ -308,6 +358,12 @@ public class StripeService : IStripeService
 
     public bool VerifyWebhookSignature(string payload, string signature)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            _logger.LogWarning("Stripe is not configured. Cannot verify webhook signature.");
+            return false;
+        }
+
         try
         {
             var stripeEvent = EventUtility.ConstructEvent(
@@ -326,6 +382,12 @@ public class StripeService : IStripeService
 
     public async Task ProcessWebhookEventAsync(string eventType, string eventJson)
     {
+        if (string.IsNullOrWhiteSpace(_secretKey))
+        {
+            _logger.LogWarning("Stripe is not configured. Cannot process webhook event.");
+            return;
+        }
+
         try
         {
             _logger.LogInformation("Processing webhook event: {EventType}", eventType);
