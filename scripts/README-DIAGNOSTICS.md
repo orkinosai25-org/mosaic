@@ -342,9 +342,9 @@ When using this script for investigations:
 ## Related Documentation
 
 - [Azure App Service Diagnostics](https://docs.microsoft.com/azure/app-service/overview-diagnostics)
-- [Troubleshooting Guide](../TROUBLESHOOTING_HTTP_500_30.md)
-- [Database Migration Troubleshooting](../docs/DATABASE_MIGRATION_TROUBLESHOOTING.md)
-- [Deployment Verification](../DEPLOYMENT_VERIFICATION_GUIDE.md)
+- [Troubleshooting Guide](../TROUBLESHOOTING_HTTP_500_30.md) (if available)
+- [Deployment Verification](../DEPLOYMENT_VERIFICATION_GUIDE.md) (if available)
+- [Scripts Documentation](./README.md)
 
 ## Support
 

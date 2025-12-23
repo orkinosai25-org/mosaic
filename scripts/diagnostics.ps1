@@ -58,7 +58,19 @@ $reportFile = Join-Path $OutputPath "diagnostic-report-$timestamp.txt"
 $htmlReportFile = Join-Path $OutputPath "diagnostic-report-$timestamp.html"
 
 # Create output directory
-New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
+if (-not (Test-Path $OutputPath)) {
+    try {
+        New-Item -ItemType Directory -Path $OutputPath -Force -ErrorAction Stop | Out-Null
+        Write-Host "✓ Created output directory: $OutputPath" -ForegroundColor Green
+    } catch {
+        Write-Host "✗ ERROR: Failed to create output directory: $OutputPath" -ForegroundColor Red
+        Write-Host "  Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "  Please check permissions and try again." -ForegroundColor Yellow
+        exit 1
+    }
+} else {
+    Write-Host "✓ Output directory exists: $OutputPath" -ForegroundColor Green
+}
 
 # Initialize report data
 $diagnosticData = @{
@@ -108,13 +120,25 @@ function Get-SafeValue {
         return "[Not Set]"
     }
     
-    # Mask sensitive values
-    if ($Value -match "password|secret|key|token" -and $Value.Length -gt 10) {
+    # Mask sensitive values (case-insensitive)
+    if ($Value -imatch "password|secret|key|token" -and $Value.Length -gt 10) {
         $visible = $Value.Substring(0, 8)
         return "$visible********"
     }
     
     return $Value
+}
+
+function Get-MaskedConnectionString {
+    param([string]$ConnectionString)
+    
+    if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
+        return $ConnectionString
+    }
+    
+    # Mask common password patterns in connection strings (case-insensitive)
+    $masked = $ConnectionString -ireplace "(password|pwd)=([^;]+)", "`$1=********"
+    return $masked
 }
 
 # ============================================================================
@@ -196,11 +220,7 @@ foreach ($file in $appsettingsFiles) {
             if ($content.ConnectionStrings) {
                 foreach ($cs in $content.ConnectionStrings.PSObject.Properties) {
                     if ($cs.Name -notlike "_*") {
-                        $maskedValue = if ($cs.Value -match "password=([^;]+)") {
-                            $cs.Value -replace "password=([^;]+)", "password=********"
-                        } else {
-                            $cs.Value
-                        }
+                        $maskedValue = Get-MaskedConnectionString -ConnectionString $cs.Value
                         Write-DiagnosticInfo "  ConnectionString.$($cs.Name): $maskedValue" -Color Gray
                     }
                 }
@@ -262,7 +282,7 @@ $sensitivePatterns = @(
 Get-ChildItem Env: | ForEach-Object {
     $isSensitive = $false
     foreach ($pattern in $sensitivePatterns) {
-        if ($_.Name -like "*$pattern*") {
+        if ($_.Name -ilike "*$pattern*") {
             $isSensitive = $true
             break
         }
@@ -447,7 +467,7 @@ if (-not $SkipConnectivityTests) {
     
     if (-not [string]::IsNullOrWhiteSpace($connectionString)) {
         $dbTestData.Tested = $true
-        $maskedCs = $connectionString -replace "password=([^;]+)", "password=********"
+        $maskedCs = Get-MaskedConnectionString -ConnectionString $connectionString
         $dbTestData.ConnectionString = $maskedCs
         Write-DiagnosticInfo "Connection String: $maskedCs" -Color Gray
         
@@ -522,14 +542,17 @@ if (-not $SkipConnectivityTests) {
         
         try {
             # Test blob connectivity using REST API
-            if ($blobConnectionString -match "AccountName=([^;]+)" -and $blobConnectionString -match "AccountKey=([^;]+)") {
+            if ($blobConnectionString -match "AccountName=([^;]+)") {
                 $accountName = $matches[1]
                 Write-DiagnosticInfo "Testing connection to Azure Blob Storage..." -Color Gray
                 
-                # Simple test: Try to list containers (requires Azure.Storage.Blobs SDK, skip if not available)
-                Write-DiagnosticInfo "✓ Blob connection string is configured" -Color Green
-                $blobTestData.Success = $true
-                $blobTestData.Note = "Full connectivity test requires Azure SDK"
+                # Check for AccountKey after storing AccountName
+                if ($blobConnectionString -match "AccountKey=([^;]+)") {
+                    # Simple test: Try to list containers (requires Azure.Storage.Blobs SDK, skip if not available)
+                    Write-DiagnosticInfo "✓ Blob connection string is configured" -Color Green
+                    $blobTestData.Success = $true
+                    $blobTestData.Note = "Full connectivity test requires Azure SDK"
+                }
             }
         } catch {
             $blobTestData.Success = $false
