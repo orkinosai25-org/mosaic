@@ -4,6 +4,98 @@ This directory contains utility scripts for common development and troubleshooti
 
 ## Available Scripts
 
+### 🚨 HTTP 500.30 Prevention & Startup Scripts (NEW!)
+
+These scripts help prevent and diagnose HTTP Error 500.30 (ASP.NET Core app failed to start).
+
+#### pre-startup-check.sh
+
+**Purpose:** Validates configuration and environment before application startup to catch issues early.
+
+**Usage:**
+```bash
+# Check current directory
+./scripts/pre-startup-check.sh .
+
+# Check specific directory (e.g., publish output)
+./scripts/pre-startup-check.sh /path/to/publish
+```
+
+**What it checks:**
+- ✅ web.config exists and has stdout logging enabled
+- ✅ logs directory exists for stdout capture
+- ✅ Application DLL exists
+- ✅ Required directories (wwwroot, App_Data) exist
+- ✅ Azure-specific: Connection strings, .NET runtime, file permissions
+
+**When to use:**
+- Before deploying to Azure App Service
+- After publishing to validate deployment artifacts
+- When troubleshooting startup failures
+- As part of CI/CD pre-deployment validation
+
+#### verify-startup.sh
+
+**Purpose:** Verifies application health after startup with automatic retries.
+
+**Usage:**
+```bash
+# Default: http://localhost:5000, 10 retries, 5s delay
+./scripts/verify-startup.sh
+
+# Custom URL and retry settings
+./scripts/verify-startup.sh http://localhost:8080 15 3
+```
+
+**Parameters:**
+1. Application URL (default: http://localhost:5000)
+2. Max retries (default: 10)
+3. Retry delay in seconds (default: 5)
+
+**What it does:**
+- Tests /api/health endpoint with retries
+- Tests /api/health/ready endpoint
+- Provides detailed health check responses
+- Returns exit codes: 0=healthy, 1=failed
+
+**When to use:**
+- After starting the application locally
+- In CI/CD post-deployment verification
+- When troubleshooting startup issues
+- To validate health endpoints are working
+
+#### start-application.sh
+
+**Purpose:** Complete startup orchestration with error handling and recovery.
+
+**Usage:**
+```bash
+# Start from current directory
+./scripts/start-application.sh
+
+# Start from specific directory
+./scripts/start-application.sh /path/to/publish
+```
+
+**What it does:**
+1. Creates required directories (logs, App_Data)
+2. Runs pre-startup diagnostics
+3. Starts Python backend (if present)
+4. Starts .NET application
+5. Provides detailed logging and error messages
+
+**When to use:**
+- For local testing with full diagnostics
+- When you need a complete startup sequence
+- To test deployment artifacts locally
+- For troubleshooting startup issues
+
+**Related Documentation:**
+- [TROUBLESHOOTING_HTTP_500_30.md](../TROUBLESHOOTING_HTTP_500_30.md) - Comprehensive HTTP 500.30 guide
+- [HTTP_500_30_FIX_SUMMARY.md](../HTTP_500_30_FIX_SUMMARY.md) - Implementation summary
+
+---
+
 ### 🚨 emergency-diagnostics.ps1 (PowerShell - USE WHEN APP IS BROKEN!)
 
 **Purpose:** Simplified emergency diagnostic runner for immediate troubleshooting when your application is broken and you need answers NOW.
