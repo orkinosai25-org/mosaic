@@ -46,12 +46,29 @@ public class StripeService : IStripeService
         }
     }
 
-    public async Task<string> CreateCustomerAsync(string email, string name, int userId)
+    /// <summary>
+    /// Validates that Stripe is properly configured
+    /// </summary>
+    /// <param name="allowNull">If true, returns false instead of throwing for methods that can return null</param>
+    /// <exception cref="InvalidOperationException">Thrown when Stripe is not configured and allowNull is false</exception>
+    private bool EnsureStripeConfigured(bool allowNull = false)
     {
         if (string.IsNullOrWhiteSpace(_secretKey))
         {
+            if (allowNull)
+            {
+                _logger.LogWarning("Stripe is not configured. Cannot proceed with operation.");
+                return false;
+            }
+            
             throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
         }
+        return true;
+    }
+
+    public async Task<string> CreateCustomerAsync(string email, string name, int userId)
+    {
+        EnsureStripeConfigured();
 
         try
         {
@@ -97,10 +114,7 @@ public class StripeService : IStripeService
         SubscriptionTier tier, 
         BillingInterval interval)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
-        {
-            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
-        }
+        EnsureStripeConfigured();
 
         try
         {
@@ -155,10 +169,7 @@ public class StripeService : IStripeService
         string newPriceId, 
         SubscriptionTier newTier)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
-        {
-            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
-        }
+        EnsureStripeConfigured();
 
         try
         {
@@ -205,10 +216,7 @@ public class StripeService : IStripeService
 
     public async Task<bool> CancelSubscriptionAsync(string subscriptionId, bool cancelAtPeriodEnd = true)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
-        {
-            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
-        }
+        EnsureStripeConfigured();
 
         try
         {
@@ -240,9 +248,8 @@ public class StripeService : IStripeService
 
     public async Task<Core.Entities.Subscriptions.Subscription?> GetSubscriptionAsync(string subscriptionId)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
+        if (!EnsureStripeConfigured(allowNull: true))
         {
-            _logger.LogWarning("Stripe is not configured. Cannot get subscription.");
             return null;
         }
 
@@ -270,10 +277,7 @@ public class StripeService : IStripeService
         string successUrl, 
         string cancelUrl)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
-        {
-            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
-        }
+        EnsureStripeConfigured();
 
         try
         {
@@ -310,10 +314,7 @@ public class StripeService : IStripeService
 
     public async Task<string> CreateBillingPortalSessionAsync(string customerId, string returnUrl)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
-        {
-            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
-        }
+        EnsureStripeConfigured();
 
         try
         {
@@ -338,10 +339,7 @@ public class StripeService : IStripeService
 
     public string GetPriceId(SubscriptionTier tier, BillingInterval interval)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
-        {
-            throw new InvalidOperationException("Stripe is not configured. Set Payment__Stripe__SecretKey to enable payment functionality.");
-        }
+        EnsureStripeConfigured();
 
         var key = $"Payment:Stripe:PriceIds:{tier}_{interval}";
         var priceId = _configuration[key];
@@ -358,7 +356,7 @@ public class StripeService : IStripeService
 
     public bool VerifyWebhookSignature(string payload, string signature)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey) || string.IsNullOrWhiteSpace(_webhookSecret))
+        if (!EnsureStripeConfigured(allowNull: true) || string.IsNullOrWhiteSpace(_webhookSecret))
         {
             _logger.LogWarning("Stripe is not configured or WebhookSecret is missing. Cannot verify webhook signature.");
             return false;
@@ -382,9 +380,8 @@ public class StripeService : IStripeService
 
     public async Task ProcessWebhookEventAsync(string eventType, string eventJson)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
+        if (!EnsureStripeConfigured(allowNull: true))
         {
-            _logger.LogWarning("Stripe is not configured. Cannot process webhook event.");
             return;
         }
 
