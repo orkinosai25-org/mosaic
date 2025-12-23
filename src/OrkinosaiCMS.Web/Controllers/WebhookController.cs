@@ -63,6 +63,15 @@ public class WebhookController : ControllerBase
 
             return Ok();
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Stripe is not configured") || ex.Message.Contains("webhook"))
+        {
+            _logger.LogWarning("Stripe webhook received but Stripe is not configured or webhook secret missing");
+            return StatusCode(503, new { 
+                error = "Payment system not configured", 
+                message = "Stripe webhook integration is not configured. Please set the Payment__Stripe__WebhookSecret environment variable or Azure App Service configuration setting.",
+                configRequired = new[] { "Payment__Stripe__WebhookSecret" }
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing Stripe webhook");

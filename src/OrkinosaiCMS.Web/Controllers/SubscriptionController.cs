@@ -253,6 +253,15 @@ public class SubscriptionController : ControllerBase
 
             return Ok(new CheckoutSessionResponseDto { SessionUrl = sessionUrl });
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Stripe is not configured"))
+        {
+            _logger.LogWarning("Stripe checkout attempted but Stripe is not configured");
+            return StatusCode(503, new { 
+                error = "Payment system not configured", 
+                message = "Stripe payment integration is not configured. Please set the Payment__Stripe__SecretKey, Payment__Stripe__PublishableKey, and Payment__Stripe__WebhookSecret environment variables or Azure App Service configuration settings.",
+                configRequired = new[] { "Payment__Stripe__SecretKey", "Payment__Stripe__PublishableKey", "Payment__Stripe__WebhookSecret" }
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating checkout session for user {UserEmail}", userEmail);
@@ -326,6 +335,15 @@ public class SubscriptionController : ControllerBase
                 Limits = MapTierLimits(limits)
             });
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Stripe is not configured"))
+        {
+            _logger.LogWarning("Stripe subscription update attempted but Stripe is not configured");
+            return StatusCode(503, new { 
+                error = "Payment system not configured", 
+                message = "Stripe payment integration is not configured. Please set the Payment__Stripe__SecretKey, Payment__Stripe__PublishableKey, and Payment__Stripe__WebhookSecret environment variables or Azure App Service configuration settings.",
+                configRequired = new[] { "Payment__Stripe__SecretKey", "Payment__Stripe__PublishableKey", "Payment__Stripe__WebhookSecret" }
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating subscription for user {UserEmail}", userEmail);
@@ -374,6 +392,15 @@ public class SubscriptionController : ControllerBase
 
             return StatusCode(500, "Failed to cancel subscription");
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Stripe is not configured"))
+        {
+            _logger.LogWarning("Stripe subscription cancellation attempted but Stripe is not configured");
+            return StatusCode(503, new { 
+                error = "Payment system not configured", 
+                message = "Stripe payment integration is not configured. Please set the Payment__Stripe__SecretKey, Payment__Stripe__PublishableKey, and Payment__Stripe__WebhookSecret environment variables or Azure App Service configuration settings.",
+                configRequired = new[] { "Payment__Stripe__SecretKey", "Payment__Stripe__PublishableKey", "Payment__Stripe__WebhookSecret" }
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error canceling subscription for user {UserEmail}", userEmail);
@@ -415,6 +442,15 @@ public class SubscriptionController : ControllerBase
             );
 
             return Ok(new BillingPortalResponseDto { PortalUrl = portalUrl });
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Stripe is not configured"))
+        {
+            _logger.LogWarning("Stripe billing portal attempted but Stripe is not configured");
+            return StatusCode(503, new { 
+                error = "Payment system not configured", 
+                message = "Stripe payment integration is not configured. Please set the Payment__Stripe__SecretKey, Payment__Stripe__PublishableKey, and Payment__Stripe__WebhookSecret environment variables or Azure App Service configuration settings.",
+                configRequired = new[] { "Payment__Stripe__SecretKey", "Payment__Stripe__PublishableKey", "Payment__Stripe__WebhookSecret" }
+            });
         }
         catch (Exception ex)
         {
