@@ -45,6 +45,10 @@ public class DiagnosticsService : IDiagnosticsService
         "apikey", "api_key", "clientsecret", "client_secret", "credential"
     };
     
+    // Configuration constants for diagnostic behavior
+    private const int MaxLogFilesToCheck = 3;  // Number of recent log files to search
+    private const int ConnectionStringMinLength = 50;  // Minimum length to trigger connection string detection
+    
     public DiagnosticsService(
         IConfiguration configuration,
         IWebHostEnvironment environment,
@@ -131,7 +135,8 @@ public class DiagnosticsService : IDiagnosticsService
     private bool IsSensitiveValue(string value)
     {
         // Redact values that look like connection strings, keys, or tokens
-        if (value.Length > 50 && (
+        // Use ConnectionStringMinLength threshold to avoid false positives on short strings
+        if (value.Length > ConnectionStringMinLength && (
             value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Password=", StringComparison.OrdinalIgnoreCase) ||
             value.Contains("Pwd=", StringComparison.OrdinalIgnoreCase) ||
@@ -238,7 +243,7 @@ public class DiagnosticsService : IDiagnosticsService
             // Find the most recent log file
             var logFiles = Directory.GetFiles(logDirectory, "*.log")
                 .OrderByDescending(f => File.GetLastWriteTimeUtc(f))
-                .Take(3)  // Check last 3 log files
+                .Take(MaxLogFilesToCheck)  // Check last N log files for complete recent history
                 .ToList();
             
             if (!logFiles.Any())
@@ -303,8 +308,14 @@ public class DiagnosticsService : IDiagnosticsService
             {
                 var timestampStr = match.Groups[1].Value;
                 var level = match.Groups[2].Value;
-                var source = match.Groups.Count > 3 ? match.Groups[3].Value : "";
-                var message = match.Groups.Count > 4 ? match.Groups[4].Value : line;
+                // Group 3 is optional source context (may be empty)
+                var source = match.Groups.Count >= 4 && !string.IsNullOrEmpty(match.Groups[3].Value) 
+                    ? match.Groups[3].Value 
+                    : "";
+                // Group 4 is the message (when source is present) or the content after level (when source is absent)
+                var message = match.Groups.Count >= 5 && !string.IsNullOrEmpty(match.Groups[4].Value)
+                    ? match.Groups[4].Value 
+                    : line;
                 
                 if (DateTime.TryParse(timestampStr, out var timestamp))
                 {

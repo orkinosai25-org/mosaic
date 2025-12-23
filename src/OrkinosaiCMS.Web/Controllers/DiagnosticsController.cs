@@ -192,8 +192,10 @@ public class DiagnosticsController : ControllerBase
                 });
             }
             
-            // Get more logs and filter to errors
-            var allLogs = await _diagnosticsService.GetRecentLogsAsync(maxLines * 3);
+            // Fetch extra logs to ensure we get enough errors after filtering
+            // Multiplier of 3 provides reasonable buffer while avoiding excessive data retrieval
+            const int LogFetchMultiplier = 3;
+            var allLogs = await _diagnosticsService.GetRecentLogsAsync(maxLines * LogFetchMultiplier);
             var errors = allLogs
                 .Where(log => log.Level.Contains("ERR", StringComparison.OrdinalIgnoreCase) || 
                              log.Level.Contains("FTL", StringComparison.OrdinalIgnoreCase) ||

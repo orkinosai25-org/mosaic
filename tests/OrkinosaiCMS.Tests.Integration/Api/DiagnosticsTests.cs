@@ -14,6 +14,10 @@ public class DiagnosticsTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
+    
+    // Test credentials - matches the seeded test user in CustomWebApplicationFactory
+    private const string TestAdminUsername = "testadmin";
+    private const string TestAdminPassword = "TestPassword123!";
 
     public DiagnosticsTests(CustomWebApplicationFactory factory)
     {
@@ -262,7 +266,6 @@ public class DiagnosticsTests : IClassFixture<CustomWebApplicationFactory>
     private async Task<HttpClient> GetAuthenticatedAdminClient()
     {
         // The test admin user is seeded in CustomWebApplicationFactory
-        // Username: testadmin, Password: TestPassword123!
         
         // Create authenticated client
         var authenticatedClient = _factory.CreateClient();
@@ -270,8 +273,8 @@ public class DiagnosticsTests : IClassFixture<CustomWebApplicationFactory>
         // Perform login to get authentication cookie
         var loginRequest = new
         {
-            username = "testadmin",
-            password = "TestPassword123!"
+            username = TestAdminUsername,
+            password = TestAdminPassword
         };
         
         var loginResponse = await authenticatedClient.PostAsJsonAsync("/api/authentication/login", loginRequest);
