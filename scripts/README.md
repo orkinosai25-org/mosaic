@@ -4,6 +4,39 @@ This directory contains utility scripts for common development and troubleshooti
 
 ## Available Scripts
 
+### 🚨 emergency-diagnostics.ps1 (PowerShell - USE WHEN APP IS BROKEN!)
+
+**Purpose:** Simplified emergency diagnostic runner for immediate troubleshooting when your application is broken and you need answers NOW.
+
+**Usage:**
+```powershell
+# Emergency diagnostics (fastest way to get answers)
+pwsh scripts/emergency-diagnostics.ps1
+
+# Auto-open HTML report after completion
+pwsh scripts/emergency-diagnostics.ps1 -OpenReport
+
+# Skip connectivity tests if app is completely down
+pwsh scripts/emergency-diagnostics.ps1 -SkipTests
+```
+
+**What it does:**
+- Runs full diagnostics with optimal settings for troubleshooting
+- Shows critical issues prominently in console output
+- Provides immediate actionable recommendations
+- Returns exit codes based on health status (0=healthy, 1=unhealthy, 2=degraded)
+- Automatically generates HTML report for detailed analysis
+
+**When to use:**
+- 🔥 **RIGHT NOW** if your app is broken
+- When you need immediate answers without reading documentation
+- For quick health checks during incidents
+- As the first step in any troubleshooting workflow
+
+**🚀 Quick Start:** See [QUICK-START-DIAGNOSTICS.md](./QUICK-START-DIAGNOSTICS.md)
+
+---
+
 ### diagnostics.ps1 (PowerShell - Recommended for Troubleshooting)
 
 **Purpose:** Comprehensive diagnostic tool to collect application health information, logs, configuration, and test connectivity. Designed to help platform engineers and Copilot Agent rapidly diagnose issues even when the main application is non-functional.
@@ -39,6 +72,7 @@ Get-Help ./scripts/diagnostics.ps1 -Full
 9. Git deployment information (commit hash, branch)
 10. Crash analysis with stack traces from recent errors
 11. Comprehensive health check summary
+12. **Actionable recommendations** with priority levels (Critical/Important/Suggestions)
 
 **Output:**
 - Text report: `diagnostic-output/diagnostic-report-YYYYMMDD-HHMMSS.txt`
