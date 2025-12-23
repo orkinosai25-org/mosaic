@@ -90,8 +90,12 @@ try {
     Write-Host ""
     
     # Show recommendations count
-    $criticalCount = if ($result.Recommendations.Critical) { $result.Recommendations.Critical.Count } else { 0 }
-    $importantCount = if ($result.Recommendations.Important) { $result.Recommendations.Important.Count } else { 0 }
+    $criticalCount = if ($result.Recommendations -and $result.Recommendations.Critical) { 
+        $result.Recommendations.Critical.Count 
+    } else { 0 }
+    $importantCount = if ($result.Recommendations -and $result.Recommendations.Important) { 
+        $result.Recommendations.Important.Count 
+    } else { 0 }
     
     if ($criticalCount -gt 0) {
         Write-Host "🔴 CRITICAL ISSUES: $criticalCount" -ForegroundColor Red
@@ -142,8 +146,9 @@ try {
         } elseif ($IsMacOS) {
             & open $result.HtmlReportFile
         } elseif ($IsLinux) {
-            & xdg-open $result.HtmlReportFile 2>/dev/null
-            if ($LASTEXITCODE -ne 0) {
+            try {
+                & xdg-open $result.HtmlReportFile -ErrorAction Stop
+            } catch {
                 Write-Host "   ℹ️  Cannot auto-open on this system. Please open manually:" -ForegroundColor Yellow
                 Write-Host "      $($result.HtmlReportFile)" -ForegroundColor Gray
             }
