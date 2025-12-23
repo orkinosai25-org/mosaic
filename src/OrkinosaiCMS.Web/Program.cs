@@ -516,6 +516,9 @@ try
     builder.Services.AddScoped<ICustomerService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.CustomerService>();
     builder.Services.AddScoped<ISubscriptionService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.SubscriptionService>();
     builder.Services.AddScoped<IStripeService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.StripeService>();
+    
+    // Register Diagnostics Service for troubleshooting
+    builder.Services.AddScoped<IDiagnosticsService, DiagnosticsService>();
 
     // Add Health Checks for deployment verification
     // Uses custom DatabaseHealthCheck to validate database state including migrations
