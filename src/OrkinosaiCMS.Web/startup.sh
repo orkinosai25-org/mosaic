@@ -2,6 +2,7 @@
 # Startup script for Azure App Service
 # Starts Python backend and .NET application
 # All configuration is read from appsettings.json
+# Enhanced with pre-startup diagnostics to prevent HTTP 500.30 errors
 
 set -e
 
@@ -10,6 +11,13 @@ echo "Zoota AI Backend Startup Script"
 echo "================================"
 echo "Starting deployment at: $(date)"
 echo ""
+
+# Enable error logging to a file in Azure
+if [ -d "/home/LogFiles" ]; then
+    exec 1> >(tee -a /home/LogFiles/startup.log)
+    exec 2> >(tee -a /home/LogFiles/startup_errors.log >&2)
+    echo "Startup logs will be written to /home/LogFiles/startup.log"
+fi
 
 # Detect environment
 if [ -d "/home/site/wwwroot" ]; then
@@ -31,6 +39,28 @@ mkdir -p "$LOG_DIR"
 
 # Change to application directory
 cd "$APP_DIR"
+
+# Run pre-startup diagnostics if available
+# This helps catch configuration issues before application startup
+if [ -f "pre-startup-check.sh" ]; then
+    echo "Running pre-startup diagnostics..."
+    echo ""
+    bash pre-startup-check.sh "$APP_DIR" || {
+        echo ""
+        echo "⚠️  WARNING: Pre-startup diagnostics found issues"
+        echo "⚠️  Attempting to continue, but startup may fail"
+        echo ""
+    }
+elif [ -f "scripts/pre-startup-check.sh" ]; then
+    echo "Running pre-startup diagnostics..."
+    echo ""
+    bash scripts/pre-startup-check.sh "$APP_DIR" || {
+        echo ""
+        echo "⚠️  WARNING: Pre-startup diagnostics found issues"
+        echo "⚠️  Attempting to continue, but startup may fail"
+        echo ""
+    }
+fi
 
 # Check if appsettings.json exists
 if [ ! -f "appsettings.json" ]; then
@@ -194,9 +224,35 @@ echo "Starting .NET Application"
 echo "================================"
 
 if [ -f "OrkinosaiCMS.Web.dll" ]; then
+    echo "✓ Found OrkinosaiCMS.Web.dll"
+    echo ""
+    
+    # Ensure logs directory exists for stdout logging
+    mkdir -p logs
+    
+    # Ensure App_Data directory exists for Data Protection keys
+    mkdir -p App_Data/DataProtection-Keys
+    
     echo "Starting ASP.NET Core application..."
+    echo "If the application fails to start, check:"
+    echo "  - stdout logs in: $LOG_DIR/stdout/"
+    echo "  - application logs in: App_Data/Logs/"
+    echo "  - Azure log stream (if on Azure)"
+    echo ""
+    
+    # Execute the .NET application
+    # Using exec to replace the shell process with dotnet
     exec dotnet OrkinosaiCMS.Web.dll
 else
     echo "ERROR: OrkinosaiCMS.Web.dll not found!"
+    echo ""
+    echo "This indicates a deployment problem. Expected files:"
+    echo "  - OrkinosaiCMS.Web.dll (main application)"
+    echo "  - web.config (for Azure/IIS hosting)"
+    echo "  - appsettings.json (configuration)"
+    echo ""
+    echo "Current directory contents:"
+    ls -la
+    echo ""
     exit 1
 fi
