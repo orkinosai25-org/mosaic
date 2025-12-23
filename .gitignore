@@ -461,3 +461,8 @@ src/OrkinosaiCMS.Web/logs/*.txt
 
 # Data Protection keys (contain sensitive cryptographic keys)
 **/App_Data/DataProtection-Keys/*.xml
+
+# Diagnostic script output
+diagnostic-output/
+**/diagnostic-report-*.txt
+**/diagnostic-report-*.html
