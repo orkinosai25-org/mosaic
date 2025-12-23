@@ -817,6 +817,178 @@ if ($failCount -eq 0 -and $warnCount -eq 0) {
 Add-DiagnosticSection -Title "Health Check Summary" -Data $healthSummary
 
 # ============================================================================
+# SECTION 12: Actionable Recommendations
+# ============================================================================
+Write-DiagnosticHeader "SECTION 12: Actionable Recommendations"
+
+$recommendations = @{
+    Critical = @()
+    Important = @()
+    Suggestions = @()
+}
+
+# Analyze results and provide recommendations
+if (-not $dbTestData.Success -and $dbTestData.Tested) {
+    $recommendations.Critical += @{
+        Issue = "Database Connection Failed"
+        Impact = "Application cannot access database - likely non-functional"
+        Actions = @(
+            "Verify connection string in appsettings.json or environment variable",
+            "Check SQL Server firewall allows your IP address",
+            "Confirm database credentials are correct",
+            "Test connection: sqlcmd -S server -U user -P pass -Q 'SELECT 1'"
+        )
+        Priority = "IMMEDIATE"
+    }
+    Write-DiagnosticInfo "🔴 CRITICAL: Database connection failed" -Color Red
+}
+
+if ($crashData.FoundCrashes) {
+    $recommendations.Critical += @{
+        Issue = "Application Crashes Detected"
+        Impact = "App is experiencing runtime exceptions"
+        Actions = @(
+            "Review stack traces in Section 10 above",
+            "Check most recent log file for full error details",
+            "Common causes: Missing config, failed migrations, null references",
+            "Run: Get-Content (ls src/*/App_Data/Logs/*.log | sort LastWriteTime -Descending | select -First 1).FullName -Tail 100"
+        )
+        Priority = "IMMEDIATE"
+    }
+    Write-DiagnosticInfo "🔴 CRITICAL: Application crashes found in logs" -Color Red
+}
+
+if ($configOk -eq 0) {
+    $recommendations.Critical += @{
+        Issue = "Configuration Files Missing"
+        Impact = "Application cannot start without configuration"
+        Actions = @(
+            "Verify appsettings.json exists in src/OrkinosaiCMS.Web/",
+            "Check if files were deployed correctly",
+            "Copy from appsettings.Production.json if needed",
+            "Ensure build includes configuration files"
+        )
+        Priority = "IMMEDIATE"
+    }
+    Write-DiagnosticInfo "🔴 CRITICAL: Configuration files not found" -Color Red
+}
+
+if ($logData.RecentErrors.Count -gt 0 -and -not $crashData.FoundCrashes) {
+    $recommendations.Important += @{
+        Issue = "Recent Errors in Application Logs"
+        Impact = "Application experiencing issues but may be functional"
+        Actions = @(
+            "Review error details in Section 4 above",
+            "Check if errors are transient or persistent",
+            "Look for patterns (e.g., repeated database timeouts)",
+            "Consider increasing log retention if errors are frequent"
+        )
+        Priority = "HIGH"
+    }
+    Write-DiagnosticInfo "🟡 WARNING: Recent errors detected in logs" -Color Yellow
+}
+
+if (-not $blobTestData.Success -and ($blobTestData.Tested -or $blobTestData.AccountName -ne "[Not configured]")) {
+    $recommendations.Important += @{
+        Issue = "Azure Blob Storage Not Accessible"
+        Impact = "File uploads and media features may not work"
+        Actions = @(
+            "Set environment variable: AzureBlobStorageConnectionString",
+            "Verify storage account key is correct",
+            "Check storage account exists and is accessible",
+            "Confirm network allows access to blob.core.windows.net"
+        )
+        Priority = "HIGH"
+    }
+    Write-DiagnosticInfo "🟡 WARNING: Blob storage configuration incomplete" -Color Yellow
+}
+
+if ($stripeData.Configured -and $stripeData.TestMode) {
+    $recommendations.Suggestions += @{
+        Issue = "Stripe Test Mode Enabled"
+        Impact = "Payment processing will not use real transactions"
+        Actions = @(
+            "Verify this is expected for current environment",
+            "For production: Set live Stripe keys (pk_live_, sk_live_)",
+            "Update environment variables or appsettings.json",
+            "Test payment flow after switching to live mode"
+        )
+        Priority = "INFO"
+    }
+    Write-DiagnosticInfo "ℹ INFO: Stripe is in test mode" -Color Cyan
+}
+
+if ($logData.Files.Count -eq 0 -and -not $SkipLogCollection) {
+    $recommendations.Suggestions += @{
+        Issue = "No Application Logs Found"
+        Impact = "Cannot diagnose issues without logs"
+        Actions = @(
+            "Verify logging is configured in appsettings.json (Serilog section)",
+            "Check App_Data/Logs/ directory has write permissions",
+            "Confirm application has started at least once",
+            "Review Serilog configuration for file sink"
+        )
+        Priority = "MEDIUM"
+    }
+    Write-DiagnosticInfo "ℹ INFO: No log files found" -Color Cyan
+}
+
+# Display recommendations
+Write-Host ""
+if ($recommendations.Critical.Count -gt 0) {
+    Write-DiagnosticInfo "🔴 CRITICAL ISSUES (Fix Immediately):" -Color Red
+    $priority = 1
+    foreach ($rec in $recommendations.Critical) {
+        Write-Host ""
+        Write-DiagnosticInfo "  $priority. $($rec.Issue)" -Color Red
+        Write-DiagnosticInfo "     Impact: $($rec.Impact)" -Color Gray
+        Write-DiagnosticInfo "     Actions:" -Color Gray
+        foreach ($action in $rec.Actions) {
+            Write-DiagnosticInfo "       • $action" -Color White
+        }
+        $priority++
+    }
+}
+
+if ($recommendations.Important.Count -gt 0) {
+    Write-Host ""
+    Write-DiagnosticInfo "🟡 IMPORTANT ISSUES (Address Soon):" -Color Yellow
+    $priority = 1
+    foreach ($rec in $recommendations.Important) {
+        Write-Host ""
+        Write-DiagnosticInfo "  $priority. $($rec.Issue)" -Color Yellow
+        Write-DiagnosticInfo "     Impact: $($rec.Impact)" -Color Gray
+        Write-DiagnosticInfo "     Actions:" -Color Gray
+        foreach ($action in $rec.Actions) {
+            Write-DiagnosticInfo "       • $action" -Color White
+        }
+        $priority++
+    }
+}
+
+if ($recommendations.Suggestions.Count -gt 0) {
+    Write-Host ""
+    Write-DiagnosticInfo "ℹ SUGGESTIONS (Consider):" -Color Cyan
+    $priority = 1
+    foreach ($rec in $recommendations.Suggestions) {
+        Write-Host ""
+        Write-DiagnosticInfo "  $priority. $($rec.Issue)" -Color Cyan
+        Write-DiagnosticInfo "     Impact: $($rec.Impact)" -Color Gray
+        Write-DiagnosticInfo "     Actions:" -Color Gray
+        foreach ($action in $rec.Actions) {
+            Write-DiagnosticInfo "       • $action" -Color White
+        }
+        $priority++
+    }
+}
+
+if ($recommendations.Critical.Count -eq 0 -and $recommendations.Important.Count -eq 0 -and $recommendations.Suggestions.Count -eq 0) {
+    Write-DiagnosticInfo "✓ No specific recommendations - system appears healthy!" -Color Green
+}
+
+Add-DiagnosticSection -Title "Actionable Recommendations" -Data $recommendations
+
+# ============================================================================
 # Generate Reports
 # ============================================================================
 Write-DiagnosticHeader "Generating Diagnostic Reports"
@@ -959,6 +1131,13 @@ if ($GenerateHtmlReport) {
     Write-DiagnosticInfo "HTML Report: $htmlReportFile" -Color Cyan
 }
 
+Write-Host ""
+Write-DiagnosticInfo "📖 Next Steps:" -Color Yellow
+Write-DiagnosticInfo "  1. Review the recommendations in Section 12 above" -Color White
+Write-DiagnosticInfo "  2. Check QUICK-START-DIAGNOSTICS.md for common fixes" -Color White
+Write-DiagnosticInfo "  3. Share report with team if issues persist" -Color White
+Write-Host ""
+
 # Return summary object for programmatic use
 return @{
     Success = $true
@@ -967,4 +1146,5 @@ return @{
     HtmlReportFile = if ($GenerateHtmlReport) { $htmlReportFile } else { $null }
     Timestamp = $diagnosticData.Timestamp
     Sections = $diagnosticData.Sections.Count
+    Recommendations = $recommendations
 }
