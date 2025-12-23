@@ -40,27 +40,26 @@ mkdir -p "$LOG_DIR"
 # Change to application directory
 cd "$APP_DIR"
 
+# Function to run pre-startup diagnostics
+run_diagnostics() {
+    local script_path=$1
+    if [ -f "$script_path" ]; then
+        echo "Running pre-startup diagnostics..."
+        echo ""
+        bash "$script_path" "$APP_DIR" || {
+            echo ""
+            echo "⚠️  WARNING: Pre-startup diagnostics found issues"
+            echo "⚠️  Attempting to continue, but startup may fail"
+            echo ""
+        }
+        return 0
+    fi
+    return 1
+}
+
 # Run pre-startup diagnostics if available
 # This helps catch configuration issues before application startup
-if [ -f "pre-startup-check.sh" ]; then
-    echo "Running pre-startup diagnostics..."
-    echo ""
-    bash pre-startup-check.sh "$APP_DIR" || {
-        echo ""
-        echo "⚠️  WARNING: Pre-startup diagnostics found issues"
-        echo "⚠️  Attempting to continue, but startup may fail"
-        echo ""
-    }
-elif [ -f "scripts/pre-startup-check.sh" ]; then
-    echo "Running pre-startup diagnostics..."
-    echo ""
-    bash scripts/pre-startup-check.sh "$APP_DIR" || {
-        echo ""
-        echo "⚠️  WARNING: Pre-startup diagnostics found issues"
-        echo "⚠️  Attempting to continue, but startup may fail"
-        echo ""
-    }
-fi
+run_diagnostics "pre-startup-check.sh" || run_diagnostics "scripts/pre-startup-check.sh"
 
 # Check if appsettings.json exists
 if [ ! -f "appsettings.json" ]; then
