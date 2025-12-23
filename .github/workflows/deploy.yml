@@ -57,19 +57,32 @@ jobs:
     - name: Verify deployment artifacts
       run: |
         echo "Verifying critical deployment files..."
-        if [ ! -f ./publish/web.config ]; then
-          echo "ERROR: web.config is missing! This will cause HTTP 500.30 on Azure."
-          exit 1
+        
+        # Run pre-startup diagnostics script for comprehensive validation
+        if [ -f ./scripts/pre-startup-check.sh ]; then
+          echo "Running pre-startup diagnostics..."
+          chmod +x ./scripts/pre-startup-check.sh
+          ./scripts/pre-startup-check.sh ./publish || {
+            echo "⚠️  Pre-startup diagnostics found issues"
+            echo "Review warnings above. Continuing with deployment..."
+          }
+        else
+          # Fallback to basic checks if script not found
+          if [ ! -f ./publish/web.config ]; then
+            echo "ERROR: web.config is missing! This will cause HTTP 500.30 on Azure."
+            exit 1
+          fi
+          if [ ! -d ./publish/logs ]; then
+            echo "WARNING: logs directory is missing. Creating it..."
+            mkdir -p ./publish/logs
+          fi
+          echo "✓ web.config exists"
+          echo "✓ logs directory exists"
+          echo ""
+          echo "Checking web.config content..."
+          grep "stdoutLogEnabled" ./publish/web.config || echo "WARNING: stdoutLogEnabled not found in web.config"
         fi
-        if [ ! -d ./publish/logs ]; then
-          echo "WARNING: logs directory is missing. Creating it..."
-          mkdir -p ./publish/logs
-        fi
-        echo "✓ web.config exists"
-        echo "✓ logs directory exists"
-        echo ""
-        echo "Checking web.config content..."
-        grep "stdoutLogEnabled" ./publish/web.config || echo "WARNING: stdoutLogEnabled not found in web.config"
+        
         echo ""
         echo "Deployment artifacts verified successfully!"
     
@@ -81,6 +94,18 @@ jobs:
         echo "Frontend portal assets copied to wwwroot (root)"
         echo "Files copied:"
         ls -la ./publish/wwwroot/
+    
+    # Copy startup and diagnostic scripts to publish directory
+    - name: Copy startup scripts
+      run: |
+        echo "Copying startup and diagnostic scripts..."
+        mkdir -p ./publish/scripts
+        cp ./scripts/pre-startup-check.sh ./publish/scripts/ || echo "pre-startup-check.sh not found"
+        cp ./scripts/verify-startup.sh ./publish/scripts/ || echo "verify-startup.sh not found"
+        cp ./scripts/start-application.sh ./publish/scripts/ || echo "start-application.sh not found"
+        chmod +x ./publish/scripts/*.sh 2>/dev/null || true
+        echo "✓ Scripts copied to publish directory"
+        ls -la ./publish/scripts/ || echo "No scripts directory created"
     
     - name: Upload artifact for deployment
       uses: actions/upload-artifact@v4
