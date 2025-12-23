@@ -34,6 +34,14 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
+  <!-- Include startup script in publish output -->
+  <ItemGroup>
+    <Content Include="startup.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- Create logs directory structure in publish output for stdout logging -->
   <Target Name="CreateLogsDirectory" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)logs" />
