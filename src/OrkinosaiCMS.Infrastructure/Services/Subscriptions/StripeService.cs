@@ -358,9 +358,9 @@ public class StripeService : IStripeService
 
     public bool VerifyWebhookSignature(string payload, string signature)
     {
-        if (string.IsNullOrWhiteSpace(_secretKey))
+        if (string.IsNullOrWhiteSpace(_secretKey) || string.IsNullOrWhiteSpace(_webhookSecret))
         {
-            _logger.LogWarning("Stripe is not configured. Cannot verify webhook signature.");
+            _logger.LogWarning("Stripe is not configured or WebhookSecret is missing. Cannot verify webhook signature.");
             return false;
         }
 
