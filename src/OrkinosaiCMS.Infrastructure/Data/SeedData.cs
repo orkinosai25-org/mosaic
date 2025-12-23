@@ -1025,8 +1025,8 @@ public static class SeedData
                 {
                     try
                     {
-                        // Note: Using string interpolation here is safe as tableName comes from a controlled array
-                        // However, for defense in depth, we validate the table name
+                        // Note: Using parameterized query to prevent SQL injection
+                        // We also validate the table name for defense in depth
                         if (!IsValidTableName(tableName))
                         {
                             logger?.LogWarning("Skipping invalid table name: {TableName}", tableName);
@@ -1034,7 +1034,7 @@ public static class SeedData
                         }
                         
                         var exists = await context.Database.SqlQueryRaw<int>(
-                            $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '{tableName}'")
+                            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = {0}", tableName)
                             .FirstOrDefaultAsync();
                         
                         if (exists > 0)
