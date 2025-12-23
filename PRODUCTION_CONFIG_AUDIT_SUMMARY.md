@@ -1,6 +1,6 @@
 # Production Configuration Audit & Fix Summary
 
-**Date:** 2025-12-23  
+**Date:** 2024-12-23  
 **Issue:** Audit and Fix Production Connection String in appsettings.Production.json and Code  
 **Status:** ✅ COMPLETED
 
@@ -110,7 +110,7 @@ _secretKey = _configuration["Payment:Stripe:SecretKey"]
   "Jwt": {
     "_comment": "JWT Bearer authentication for API clients, mobile apps, and external integrations (following Oqtane's pattern)",
     "_securityWarning": "CRITICAL: SecretKey must be at least 32 characters. In production, set via environment variable (Authentication__Jwt__SecretKey) or Azure Key Vault.",
-    "SecretKey": "your-super-secret-jwt-key-min-32-chars-change-in-production",
+    "SecretKey": "",
     "Issuer": "OrkinosaiCMS",
     "Audience": "OrkinosaiCMS.API",
     "ExpirationMinutes": 480,
