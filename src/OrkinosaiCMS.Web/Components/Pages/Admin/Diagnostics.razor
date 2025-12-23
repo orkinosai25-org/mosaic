@@ -1,0 +1,773 @@
+@page "/admin/diagnostics"
+@attribute [Authorize(Roles = "Administrator")]
+@layout OrkinosaiCMS.Web.Components.Layout.Admin.AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@using System.Text.Json
+@inject HttpClient Http
+@inject IConfiguration Configuration
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Diagnostics - Mosaic CMS</PageTitle>
+
+<div class="diagnostics-page">
+    <div class="diagnostics-header">
+        <h1>🔍 System Diagnostics</h1>
+        <p>View application configuration, logs, errors, and system status for troubleshooting</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-indicator">
+            <div class="spinner"></div>
+            <p>Loading diagnostic information...</p>
+        </div>
+    }
+    else if (error != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error loading diagnostics:</strong> @error
+        </div>
+    }
+    else
+    {
+        <div class="diagnostics-tabs">
+            <button class="tab-button @(activeTab == "status" ? "active" : "")" @onclick="@(() => SetActiveTab("status"))">
+                ✅ Status
+            </button>
+            <button class="tab-button @(activeTab == "config" ? "active" : "")" @onclick="@(() => SetActiveTab("config"))">
+                ⚙️ Configuration
+            </button>
+            <button class="tab-button @(activeTab == "environment" ? "active" : "")" @onclick="@(() => SetActiveTab("environment"))">
+                🌍 Environment
+            </button>
+            <button class="tab-button @(activeTab == "logs" ? "active" : "")" @onclick="@(() => SetActiveTab("logs"))">
+                📋 Logs
+            </button>
+            <button class="tab-button @(activeTab == "errors" ? "active" : "")" @onclick="@(() => SetActiveTab("errors"))">
+                ❌ Errors
+            </button>
+        </div>
+
+        <div class="diagnostics-content">
+            @switch (activeTab)
+            {
+                case "status":
+                    <div class="diagnostics-section">
+                        <div class="section-header">
+                            <h2>Application Status</h2>
+                            <button class="btn-copy" @onclick="@(() => CopyToClipboard(statusData))">📋 Copy</button>
+                        </div>
+                        
+                        @if (statusData != null)
+                        {
+                            <div class="status-grid">
+                                @foreach (var item in GetStatusItems())
+                                {
+                                    <div class="status-item">
+                                        <span class="status-label">@item.Key:</span>
+                                        <span class="status-value">@item.Value</span>
+                                    </div>
+                                }
+                            </div>
+                            
+                            @if (healthChecks != null && healthChecks.Any())
+                            {
+                                <h3 style="margin-top: 2rem;">Health Checks</h3>
+                                <div class="health-checks">
+                                    @foreach (var check in healthChecks)
+                                    {
+                                        <div class="health-check-item @GetHealthCheckClass(check.status)">
+                                            <span class="health-check-name">@check.name</span>
+                                            <span class="health-check-status">@check.status</span>
+                                            @if (!string.IsNullOrEmpty(check.description))
+                                            {
+                                                <span class="health-check-description">@check.description</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            
+                            <div class="raw-data">
+                                <h3>Raw Data</h3>
+                                <pre>@FormatJson(statusData)</pre>
+                            </div>
+                        }
+                    </div>
+                    break;
+
+                case "config":
+                    <div class="diagnostics-section">
+                        <div class="section-header">
+                            <h2>Configuration</h2>
+                            <button class="btn-copy" @onclick="@(() => CopyToClipboard(configData))">📋 Copy</button>
+                        </div>
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> Sensitive values (passwords, secrets, keys) have been redacted for security.
+                        </div>
+                        
+                        @if (configData != null)
+                        {
+                            <div class="raw-data">
+                                <pre>@FormatJson(configData)</pre>
+                            </div>
+                        }
+                    </div>
+                    break;
+
+                case "environment":
+                    <div class="diagnostics-section">
+                        <div class="section-header">
+                            <h2>Environment Variables</h2>
+                            <button class="btn-copy" @onclick="@(() => CopyToClipboard(environmentData))">📋 Copy</button>
+                        </div>
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> Sensitive values (passwords, secrets, keys) have been redacted for security.
+                        </div>
+                        
+                        @if (environmentData != null)
+                        {
+                            <div class="env-vars">
+                                @foreach (var kvp in GetEnvironmentVariables())
+                                {
+                                    <div class="env-var-item">
+                                        <span class="env-var-key">@kvp.Key</span>
+                                        <span class="env-var-value">@kvp.Value</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                    break;
+
+                case "logs":
+                    <div class="diagnostics-section">
+                        <div class="section-header">
+                            <h2>Recent Logs</h2>
+                            <button class="btn-copy" @onclick="@(() => CopyToClipboard(logsData))">📋 Copy</button>
+                        </div>
+                        
+                        @if (logsData != null && logs != null && logs.Any())
+                        {
+                            <div class="logs-container">
+                                @foreach (var log in logs)
+                                {
+                                    <div class="log-entry @GetLogLevelClass(log.level)">
+                                        <span class="log-timestamp">[@log.timestamp]</span>
+                                        <span class="log-level">[@log.level]</span>
+                                        @if (!string.IsNullOrEmpty(log.source))
+                                        {
+                                            <span class="log-source">[@log.source]</span>
+                                        }
+                                        <span class="log-message">@log.message</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p>No logs available.</p>
+                        }
+                    </div>
+                    break;
+
+                case "errors":
+                    <div class="diagnostics-section">
+                        <div class="section-header">
+                            <h2>Recent Errors</h2>
+                            <button class="btn-copy" @onclick="@(() => CopyToClipboard(errorsData))">📋 Copy</button>
+                        </div>
+                        
+                        @if (errorsData != null && errors != null && errors.Any())
+                        {
+                            <div class="errors-container">
+                                @foreach (var error in errors)
+                                {
+                                    <div class="error-entry">
+                                        <span class="error-timestamp">[@error.timestamp]</span>
+                                        <span class="error-level">[@error.level]</span>
+                                        @if (!string.IsNullOrEmpty(error.source))
+                                        {
+                                            <span class="error-source">[@error.source]</span>
+                                        }
+                                        <div class="error-message">@error.message</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success">
+                                <strong>Good news!</strong> No recent errors found.
+                            </div>
+                        }
+                    </div>
+                    break;
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .diagnostics-page {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .diagnostics-header {
+        margin-bottom: 2rem;
+    }
+
+    .diagnostics-header h1 {
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .diagnostics-header p {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+    }
+
+    .loading-indicator {
+        text-align: center;
+        padding: 4rem;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .diagnostics-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #e0e0e0;
+        flex-wrap: wrap;
+    }
+
+    .tab-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 1rem;
+        color: #7f8c8d;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .tab-button:hover {
+        color: #2c3e50;
+        background: #f8f9fa;
+    }
+
+    .tab-button.active {
+        color: #3498db;
+        border-bottom-color: #3498db;
+        font-weight: 600;
+    }
+
+    .diagnostics-content {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .diagnostics-section {
+        padding: 2rem;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .btn-copy {
+        padding: 0.5rem 1rem;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+    }
+
+    .btn-copy:hover {
+        background: #2980b9;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .status-item {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .status-label {
+        font-weight: 600;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .status-value {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        word-break: break-all;
+    }
+
+    .health-checks {
+        margin-top: 1rem;
+    }
+
+    .health-check-item {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+        border-left: 4px solid #95a5a6;
+        background: #f8f9fa;
+    }
+
+    .health-check-item.healthy {
+        border-left-color: #27ae60;
+        background: #d5f4e6;
+    }
+
+    .health-check-item.degraded {
+        border-left-color: #f39c12;
+        background: #fef5e7;
+    }
+
+    .health-check-item.unhealthy {
+        border-left-color: #e74c3c;
+        background: #fadbd8;
+    }
+
+    .health-check-name {
+        font-weight: 600;
+        margin-right: 1rem;
+    }
+
+    .health-check-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .health-check-description {
+        display: block;
+        margin-top: 0.5rem;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    .raw-data {
+        margin-top: 2rem;
+    }
+
+    .raw-data h3 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+
+    .raw-data pre {
+        background: #2c3e50;
+        color: #ecf0f1;
+        padding: 1.5rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .env-vars {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .env-var-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .env-var-key {
+        font-weight: 600;
+        color: #2c3e50;
+        word-break: break-word;
+    }
+
+    .env-var-value {
+        color: #7f8c8d;
+        font-family: monospace;
+        word-break: break-all;
+    }
+
+    .logs-container, .errors-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .log-entry, .error-entry {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.85rem;
+        border-left: 4px solid #95a5a6;
+    }
+
+    .log-entry.info {
+        border-left-color: #3498db;
+    }
+
+    .log-entry.warning {
+        border-left-color: #f39c12;
+        background: #fef5e7;
+    }
+
+    .log-entry.error, .error-entry {
+        border-left-color: #e74c3c;
+        background: #fadbd8;
+    }
+
+    .log-timestamp, .error-timestamp {
+        color: #7f8c8d;
+        margin-right: 0.5rem;
+    }
+
+    .log-level, .error-level {
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+
+    .log-source, .error-source {
+        color: #3498db;
+        margin-right: 0.5rem;
+    }
+
+    .log-message {
+        color: #2c3e50;
+    }
+
+    .error-message {
+        margin-top: 0.5rem;
+        color: #721c24;
+        font-weight: 500;
+    }
+
+    @@media (max-width: 768px) {
+        .diagnostics-page {
+            padding: 1rem;
+        }
+
+        .diagnostics-tabs {
+            overflow-x: auto;
+        }
+
+        .env-var-item {
+            grid-template-columns: 1fr;
+        }
+
+        .status-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private string? error = null;
+    private string activeTab = "status";
+    
+    private object? statusData;
+    private object? configData;
+    private object? environmentData;
+    private object? logsData;
+    private object? errorsData;
+    
+    private List<HealthCheckData>? healthChecks;
+    private List<LogEntryData>? logs;
+    private List<LogEntryData>? errors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDiagnostics();
+    }
+
+    private async Task LoadDiagnostics()
+    {
+        try
+        {
+            isLoading = true;
+            error = null;
+
+            // Create HttpClient with proper authentication
+            using var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri(NavigationManager.BaseUri)
+            };
+
+            // Load status
+            var statusResponse = await httpClient.GetAsync("/api/diagnostics/status");
+            if (statusResponse.IsSuccessStatusCode)
+            {
+                var statusJson = await statusResponse.Content.ReadAsStringAsync();
+                var statusResult = JsonSerializer.Deserialize<DiagnosticsResponse>(statusJson);
+                if (statusResult?.data != null)
+                {
+                    statusData = statusResult.data;
+                    
+                    // Extract health checks
+                    if (statusData is JsonElement statusElement)
+                    {
+                        if (statusElement.TryGetProperty("healthChecks", out var healthChecksElement))
+                        {
+                            healthChecks = JsonSerializer.Deserialize<List<HealthCheckData>>(healthChecksElement.GetRawText());
+                        }
+                    }
+                }
+            }
+
+            // Load config
+            var configResponse = await httpClient.GetAsync("/api/diagnostics/config");
+            if (configResponse.IsSuccessStatusCode)
+            {
+                var configJson = await configResponse.Content.ReadAsStringAsync();
+                var configResult = JsonSerializer.Deserialize<DiagnosticsResponse>(configJson);
+                configData = configResult?.data;
+            }
+
+            // Load environment
+            var envResponse = await httpClient.GetAsync("/api/diagnostics/environment");
+            if (envResponse.IsSuccessStatusCode)
+            {
+                var envJson = await envResponse.Content.ReadAsStringAsync();
+                var envResult = JsonSerializer.Deserialize<DiagnosticsResponse>(envJson);
+                environmentData = envResult?.data;
+            }
+
+            // Load logs
+            var logsResponse = await httpClient.GetAsync("/api/diagnostics/logs?maxLines=100");
+            if (logsResponse.IsSuccessStatusCode)
+            {
+                var logsJson = await logsResponse.Content.ReadAsStringAsync();
+                var logsResult = JsonSerializer.Deserialize<DiagnosticsLogsResponse>(logsJson);
+                if (logsResult?.data != null)
+                {
+                    logs = logsResult.data;
+                    logsData = logsResult;
+                }
+            }
+
+            // Load errors
+            var errorsResponse = await httpClient.GetAsync("/api/diagnostics/errors?maxLines=50");
+            if (errorsResponse.IsSuccessStatusCode)
+            {
+                var errorsJson = await errorsResponse.Content.ReadAsStringAsync();
+                var errorsResult = JsonSerializer.Deserialize<DiagnosticsLogsResponse>(errorsJson);
+                if (errorsResult?.data != null)
+                {
+                    errors = errorsResult.data;
+                    errorsData = errorsResult;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private string FormatJson(object? data)
+    {
+        if (data == null) return "null";
+        
+        try
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            return JsonSerializer.Serialize(data, options);
+        }
+        catch
+        {
+            return data.ToString() ?? "null";
+        }
+    }
+
+    private async Task CopyToClipboard(object? data)
+    {
+        if (data == null) return;
+        
+        try
+        {
+            var text = FormatJson(data);
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        }
+        catch
+        {
+            // Clipboard API might not be available
+        }
+    }
+
+    private List<KeyValuePair<string, string>> GetStatusItems()
+    {
+        var items = new List<KeyValuePair<string, string>>();
+        
+        if (statusData is JsonElement element)
+        {
+            var properties = new[] { "applicationName", "version", "environment", "dotnetVersion", "osVersion", "machineName", "uptime", "workingSet", "healthStatus" };
+            
+            foreach (var prop in properties)
+            {
+                if (element.TryGetProperty(prop, out var value))
+                {
+                    items.Add(new KeyValuePair<string, string>(
+                        prop.Replace("Name", " Name").Replace("Version", " Version").Replace("Status", " Status"),
+                        value.ToString()
+                    ));
+                }
+            }
+        }
+        
+        return items;
+    }
+
+    private List<KeyValuePair<string, string>> GetEnvironmentVariables()
+    {
+        var vars = new List<KeyValuePair<string, string>>();
+        
+        if (environmentData is JsonElement element)
+        {
+            foreach (var prop in element.EnumerateObject())
+            {
+                vars.Add(new KeyValuePair<string, string>(prop.Name, prop.Value.ToString()));
+            }
+        }
+        
+        return vars.OrderBy(kv => kv.Key).ToList();
+    }
+
+    private string GetHealthCheckClass(string status)
+    {
+        return status.ToLowerInvariant() switch
+        {
+            "healthy" => "healthy",
+            "degraded" => "degraded",
+            "unhealthy" => "unhealthy",
+            _ => ""
+        };
+    }
+
+    private string GetLogLevelClass(string level)
+    {
+        var levelUpper = level.ToUpperInvariant();
+        if (levelUpper.Contains("INF") || levelUpper.Contains("INFORMATION"))
+            return "info";
+        if (levelUpper.Contains("WRN") || levelUpper.Contains("WARN"))
+            return "warning";
+        if (levelUpper.Contains("ERR") || levelUpper.Contains("ERROR") || levelUpper.Contains("FTL") || levelUpper.Contains("FATAL"))
+            return "error";
+        return "";
+    }
+
+    private class DiagnosticsResponse
+    {
+        public bool success { get; set; }
+        public object? data { get; set; }
+    }
+
+    private class DiagnosticsLogsResponse
+    {
+        public bool success { get; set; }
+        public List<LogEntryData>? data { get; set; }
+    }
+
+    private class LogEntryData
+    {
+        public DateTime timestamp { get; set; }
+        public string level { get; set; } = "";
+        public string source { get; set; } = "";
+        public string message { get; set; } = "";
+    }
+
+    private class HealthCheckData
+    {
+        public string name { get; set; } = "";
+        public string status { get; set; } = "";
+        public string? description { get; set; }
+        public string? duration { get; set; }
+    }
+}
