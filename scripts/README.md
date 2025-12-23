@@ -4,6 +4,67 @@ This directory contains utility scripts for common development and troubleshooti
 
 ## Available Scripts
 
+### diagnostics.ps1 (PowerShell - Recommended for Troubleshooting)
+
+**Purpose:** Comprehensive diagnostic tool to collect application health information, logs, configuration, and test connectivity. Designed to help platform engineers and Copilot Agent rapidly diagnose issues even when the main application is non-functional.
+
+**Usage:**
+```powershell
+# Run full diagnostics with HTML report
+./scripts/diagnostics.ps1 -GenerateHtmlReport
+
+# Skip connectivity tests (faster, use when external services unavailable)
+./scripts/diagnostics.ps1 -SkipConnectivityTests
+
+# Custom output location
+./scripts/diagnostics.ps1 -OutputPath "C:\temp\diag" -GenerateHtmlReport
+
+# Skip log collection (use when logs are too large)
+./scripts/diagnostics.ps1 -SkipLogCollection
+
+# View help
+./scripts/diagnostics.ps1 -Help
+Get-Help ./scripts/diagnostics.ps1 -Full
+```
+
+**What it collects:**
+1. System information (OS, runtime, Azure/GitHub environment detection)
+2. Application settings from all appsettings.json files (with sensitive data masking)
+3. Environment variables (with sensitive data protection)
+4. Application logs from multiple locations (LogFiles/, App_Data/Logs/)
+5. Windows Event Logs (ASP.NET errors)
+6. Database connectivity test results
+7. Azure Blob Storage configuration validation
+8. Stripe payment configuration check
+9. Git deployment information (commit hash, branch)
+10. Crash analysis with stack traces from recent errors
+11. Comprehensive health check summary
+
+**Output:**
+- Text report: `diagnostic-output/diagnostic-report-YYYYMMDD-HHMMSS.txt`
+- HTML report: `diagnostic-output/diagnostic-report-YYYYMMDD-HHMMSS.html` (optional)
+
+**When to use:**
+- When the application is failing to start or crashing
+- Before contacting support or filing a bug report
+- To collect evidence for troubleshooting HTTP 500/503 errors
+- As part of scheduled health checks
+- In Azure App Service Kudu console for production diagnostics
+- In GitHub Actions for CI/CD diagnostics
+
+**Special features:**
+- Automatically masks sensitive data (passwords, keys, secrets)
+- Works in Azure App Service (Kudu), GitHub Actions, and local environments
+- Detects environment and adjusts checks accordingly
+- Color-coded output and HTML reports
+- Can be extended with new checks as issues are discovered
+
+**📖 Full documentation:** See [README-DIAGNOSTICS.md](./README-DIAGNOSTICS.md)
+
+**🔗 GitHub Actions Integration:** Trigger via workflow: `.github/workflows/run-diagnostics.yml`
+
+---
+
 ### copilot-agent-helper.sh (Recommended)
 
 **Purpose:** Main helper script that orchestrates all Copilot agent fixes, including base branch detection and PR summary generation.
