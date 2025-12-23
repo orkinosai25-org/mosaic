@@ -1033,8 +1033,8 @@ public static class SeedData
                             continue;
                         }
                         
-                        var exists = await context.Database.SqlQuery<int>(
-                            $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = {tableName}")
+                        var exists = await context.Database.SqlQueryRaw<int>(
+                            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = {0}", tableName)
                             .FirstOrDefaultAsync();
                         
                         if (exists > 0)

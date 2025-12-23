@@ -298,14 +298,14 @@
         {
             SafeLogError(ex, 
                 "Unexpected error during login for username: {Username} - Exception: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
-                loginModel.Username, ex.GetType().FullName, ex.Message, ex.StackTrace ?? "No stack trace available");
+                loginModel.Username, ex.GetType().FullName ?? "Unknown", ex.Message, ex.StackTrace ?? "No stack trace available");
             
             // Log inner exception if present
             if (ex.InnerException != null)
             {
                 SafeLogError(ex.InnerException, 
                     "Inner exception during login - Type: {ExceptionType}, Message: {Message}", 
-                    ex.InnerException.GetType().FullName, ex.InnerException.Message);
+                    ex.InnerException.GetType().FullName ?? "Unknown", ex.InnerException.Message);
             }
             
             errorMessage = "An unexpected error occurred during login. Please try again later or contact support if the issue persists.";
