@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrkinosaiCMS.Tests.Unit", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrkinosaiCMS.Tests.Integration", "tests\OrkinosaiCMS.Tests.Integration\OrkinosaiCMS.Tests.Integration.csproj", "{27DE5725-D268-4539-92C2-20DA81B4BAD7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrkinosaiCMS.Diagnostics", "src\OrkinosaiCMS.Diagnostics\OrkinosaiCMS.Diagnostics.csproj", "{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -173,6 +175,18 @@ Global
 		{27DE5725-D268-4539-92C2-20DA81B4BAD7}.Release|x64.Build.0 = Release|Any CPU
 		{27DE5725-D268-4539-92C2-20DA81B4BAD7}.Release|x86.ActiveCfg = Release|Any CPU
 		{27DE5725-D268-4539-92C2-20DA81B4BAD7}.Release|x86.Build.0 = Release|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Debug|x64.Build.0 = Debug|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Debug|x86.Build.0 = Debug|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Release|x64.ActiveCfg = Release|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Release|x64.Build.0 = Release|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Release|x86.ActiveCfg = Release|Any CPU
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -190,5 +204,6 @@ Global
 		{159F8904-A933-43F5-BD14-DC945B05772D} = {EC447DCF-ABFA-6E24-52A5-D7FD48A5C558}
 		{8ACC2F49-2B4D-41BC-A22B-AD742C67FA65} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{27DE5725-D268-4539-92C2-20DA81B4BAD7} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{34A01C1F-6DCD-4418-A14E-F402BCE3F1F5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal
