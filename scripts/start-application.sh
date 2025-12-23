@@ -105,6 +105,7 @@ if [ -d "PythonBackend" ]; then
         if ! command -v pip3 &> /dev/null; then
             echo -e "${YELLOW}⚠️  WARNING: pip3 not found${NC}"
             echo "Python dependencies cannot be installed"
+            echo "Skipping Python backend startup"
             cd ..
         else
             # Install dependencies
@@ -112,62 +113,63 @@ if [ -d "PythonBackend" ]; then
             pip3 install -r requirements.txt --quiet --no-cache-dir || {
                 echo -e "${YELLOW}⚠️  WARNING: Failed to install some Python dependencies${NC}"
             }
-        
-        # Ensure wsgi.py exists
-        if [ ! -f "wsgi.py" ]; then
-            echo "Creating wsgi.py..."
-            cat > wsgi.py << 'EOF'
+            
+            # Ensure wsgi.py exists
+            if [ ! -f "wsgi.py" ]; then
+                echo "Creating wsgi.py..."
+                cat > wsgi.py << 'EOF'
 from app import app
 application = app
 if __name__ == "__main__":
     app.run()
 EOF
-        fi
-        
-        # Kill existing gunicorn processes
-        # Try multiple methods to find processes as different systems have different tools
-        PORT_PID=""
-        if command -v lsof &> /dev/null; then
-            PORT_PID=$(lsof -ti:8000 2>/dev/null || true)
-        elif command -v ss &> /dev/null; then
-            # ss is more portable and available on most modern Linux systems
-            PORT_PID=$(ss -tlnp 2>/dev/null | grep :8000 | grep -oP 'pid=\K\d+' | head -1 || true)
-        elif command -v netstat &> /dev/null; then
-            PORT_PID=$(netstat -tlnp 2>/dev/null | grep :8000 | awk '{print $7}' | cut -d'/' -f1 | head -1 || true)
-        fi
-        
-        if [ -n "$PORT_PID" ]; then
-            echo "Stopping existing Python backend (PID: $PORT_PID)..."
-            kill -15 $PORT_PID 2>/dev/null || true
-            sleep 2
-        fi
-        
-        # Start gunicorn
-        echo "Starting Python backend on port 8000..."
-        gunicorn --bind 0.0.0.0:8000 \
-                 --workers 2 \
-                 --timeout 120 \
-                 --daemon \
-                 --access-logfile "$LOG_DIR/python_access.log" \
-                 --error-logfile "$LOG_DIR/python_error.log" \
-                 --log-level info \
-                 --pid "$LOG_DIR/gunicorn.pid" \
-                 wsgi:application && {
-            echo -e "${GREEN}✓ Python backend started${NC}"
-            
-            # Wait and verify
-            sleep 2
-            if curl -s http://localhost:8000/health > /dev/null 2>&1; then
-                echo -e "${GREEN}✓ Python backend is responding${NC}"
-            else
-                echo -e "${YELLOW}⚠️  WARNING: Python backend health check failed${NC}"
             fi
-        } || {
-            echo -e "${RED}❌ Failed to start Python backend${NC}"
-            echo "Check logs: $LOG_DIR/python_error.log"
-        }
-        
-        cd ..
+            
+            # Kill existing gunicorn processes
+            # Try multiple methods to find processes as different systems have different tools
+            PORT_PID=""
+            if command -v lsof &> /dev/null; then
+                PORT_PID=$(lsof -ti:8000 2>/dev/null || true)
+            elif command -v ss &> /dev/null; then
+                # ss is more portable and available on most modern Linux systems
+                PORT_PID=$(ss -tlnp 2>/dev/null | grep :8000 | grep -oP 'pid=\K\d+' | head -1 || true)
+            elif command -v netstat &> /dev/null; then
+                PORT_PID=$(netstat -tlnp 2>/dev/null | grep :8000 | awk '{print $7}' | cut -d'/' -f1 | head -1 || true)
+            fi
+            
+            if [ -n "$PORT_PID" ]; then
+                echo "Stopping existing Python backend (PID: $PORT_PID)..."
+                kill -15 $PORT_PID 2>/dev/null || true
+                sleep 2
+            fi
+            
+            # Start gunicorn
+            echo "Starting Python backend on port 8000..."
+            gunicorn --bind 0.0.0.0:8000 \
+                     --workers 2 \
+                     --timeout 120 \
+                     --daemon \
+                     --access-logfile "$LOG_DIR/python_access.log" \
+                     --error-logfile "$LOG_DIR/python_error.log" \
+                     --log-level info \
+                     --pid "$LOG_DIR/gunicorn.pid" \
+                     wsgi:application && {
+                echo -e "${GREEN}✓ Python backend started${NC}"
+                
+                # Wait and verify
+                sleep 2
+                if curl -s http://localhost:8000/health > /dev/null 2>&1; then
+                    echo -e "${GREEN}✓ Python backend is responding${NC}"
+                else
+                    echo -e "${YELLOW}⚠️  WARNING: Python backend health check failed${NC}"
+                fi
+            } || {
+                echo -e "${RED}❌ Failed to start Python backend${NC}"
+                echo "Check logs: $LOG_DIR/python_error.log"
+            }
+            
+            cd ..
+        fi
     fi
 else
     echo "No PythonBackend directory found (optional)"

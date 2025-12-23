@@ -63,17 +63,23 @@ get_health_details() {
     
     if [ "$HEALTH_RESPONSE" != "{}" ]; then
         echo "Health Check Response:"
-        # Try multiple JSON formatters in order of preference
-        if command -v jq &> /dev/null; then
-            echo "$HEALTH_RESPONSE" | jq . 2>/dev/null || echo "$HEALTH_RESPONSE"
-        elif command -v python3 &> /dev/null; then
-            echo "$HEALTH_RESPONSE" | python3 -m json.tool 2>/dev/null || echo "$HEALTH_RESPONSE"
-        elif command -v python &> /dev/null; then
-            echo "$HEALTH_RESPONSE" | python -m json.tool 2>/dev/null || echo "$HEALTH_RESPONSE"
-        else
+        
+        # Try multiple JSON formatters in order of preference, with fallback to raw output
+        format_json() {
+            local json="$1"
+            if command -v jq &> /dev/null; then
+                echo "$json" | jq . 2>/dev/null && return 0
+            elif command -v python3 &> /dev/null; then
+                echo "$json" | python3 -m json.tool 2>/dev/null && return 0
+            elif command -v python &> /dev/null; then
+                echo "$json" | python -m json.tool 2>/dev/null && return 0
+            fi
             # Fallback: just print the raw JSON
-            echo "$HEALTH_RESPONSE"
-        fi
+            echo "$json"
+            return 0
+        }
+        
+        format_json "$HEALTH_RESPONSE"
     else
         echo "  (No response received)"
     fi
