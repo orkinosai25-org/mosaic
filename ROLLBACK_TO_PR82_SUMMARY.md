@@ -96,6 +96,25 @@ curl https://orkinosai-cms.azurewebsites.net/api/health
 
 ## Security Considerations
 
+### Code Review Feedback Addressed
+
+**1. Database Password in Source Control**
+- **Status:** Acknowledged and intentional for this rollback
+- **Rationale:** Restoring the exact PR #82 state that was confirmed working
+- **Mitigation:** File includes clear security warnings about production deployments
+- **Recommendation:** Azure App Service Configuration overrides the connection string in production
+- **Action Required:** Post-deployment, configure connection string via Azure Portal for production
+
+**2. Connection Pooling Parameters**
+- **Status:** Handled automatically by Program.cs
+- **Implementation:** Code in Program.cs adds pooling parameters if not present:
+  - Max Pool Size=100
+  - Min Pool Size=5
+  - Pooling=true
+  - Connection Timeout=30
+- **Impact:** No functional issue; parameters are added at runtime
+- **Future Enhancement:** Could add parameters explicitly to connection string for clarity
+
 ### Current Approach (Restored from PR #82)
 - Connection string is in source control with warning comments
 - Azure App Service can override via Configuration settings
@@ -107,11 +126,17 @@ curl https://orkinosai-cms.azurewebsites.net/api/health
    - Configure connection string in Azure Portal > App Service > Configuration
    - Remove or use environment-specific override
    - Consider Azure Key Vault integration
+   - **Note:** Connection pooling parameters (Max Pool Size=100, Min Pool Size=5, Pooling=true) are automatically added by Program.cs if not present in the connection string
 
 2. **For Development:**
    - Current approach is acceptable
    - Clearly documented as DEV/TEST credentials
    - Easy for team to clone and run locally
+
+3. **Connection Pooling (Optional Enhancement):**
+   - Current state: Program.cs automatically adds pooling parameters
+   - Future improvement: Could add pooling parameters directly to connection string for clarity
+   - Not required for functionality: Automatic addition in Program.cs works correctly
 
 ## References
 
