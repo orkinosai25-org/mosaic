@@ -1,0 +1,110 @@
+name: Run Diagnostics Script
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_connectivity_tests:
+        description: 'Skip database and external service connectivity tests'
+        required: false
+        type: boolean
+        default: false
+      skip_log_collection:
+        description: 'Skip log file collection'
+        required: false
+        type: boolean
+        default: false
+      generate_html_report:
+        description: 'Generate HTML report in addition to text report'
+        required: false
+        type: boolean
+        default: true
+  
+  # Optional: Run on schedule (uncomment to enable)
+  # schedule:
+  #   - cron: '0 */6 * * *'  # Run every 6 hours
+
+jobs:
+  run-diagnostics:
+    name: Run PowerShell Diagnostics
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install PowerShell
+        shell: bash
+        run: |
+          # PowerShell is pre-installed on GitHub Actions runners
+          pwsh --version
+      
+      - name: Run Diagnostics Script
+        shell: pwsh
+        run: |
+          Write-Host "Starting diagnostic collection..." -ForegroundColor Cyan
+          cd scripts
+          
+          $params = @{}
+          
+          if ('${{ github.event.inputs.skip_connectivity_tests }}' -eq 'true') {
+            $params['SkipConnectivityTests'] = $true
+            Write-Host "✓ Skipping connectivity tests" -ForegroundColor Yellow
+          }
+          
+          if ('${{ github.event.inputs.skip_log_collection }}' -eq 'true') {
+            $params['SkipLogCollection'] = $true
+            Write-Host "✓ Skipping log collection" -ForegroundColor Yellow
+          }
+          
+          if ('${{ github.event.inputs.generate_html_report }}' -eq 'true') {
+            $params['GenerateHtmlReport'] = $true
+            Write-Host "✓ HTML report will be generated" -ForegroundColor Green
+          }
+          
+          Write-Host ""
+          Write-Host "Running diagnostics with parameters:" -ForegroundColor Cyan
+          $params | Format-Table -AutoSize
+          
+          # Run the diagnostics script
+          ./diagnostics.ps1 @params
+          
+          Write-Host ""
+          Write-Host "Diagnostics complete!" -ForegroundColor Green
+      
+      - name: Upload Diagnostic Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diagnostic-reports-${{ github.run_number }}
+          path: scripts/diagnostic-output/
+          retention-days: 7
+          if-no-files-found: warn
+      
+      - name: Display Report Summary
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host ""
+          Write-Host "=============================================" -ForegroundColor Cyan
+          Write-Host "DIAGNOSTIC REPORTS SUMMARY" -ForegroundColor Yellow
+          Write-Host "=============================================" -ForegroundColor Cyan
+          Write-Host ""
+          
+          $reportDir = "scripts/diagnostic-output"
+          if (Test-Path $reportDir) {
+            $files = Get-ChildItem $reportDir -File
+            Write-Host "Reports generated: $($files.Count)" -ForegroundColor Green
+            Write-Host ""
+            
+            foreach ($file in $files) {
+              Write-Host "  - $($file.Name) ($([math]::Round($file.Length/1KB, 2)) KB)" -ForegroundColor Gray
+            }
+            
+            Write-Host ""
+            Write-Host "📥 Download artifacts from the Actions tab to view full reports" -ForegroundColor Cyan
+            Write-Host "   Artifacts are retained for 7 days" -ForegroundColor Gray
+          } else {
+            Write-Host "⚠ No reports found in output directory" -ForegroundColor Red
+          }
