@@ -168,6 +168,8 @@ Or in Azure Portal:
 
 **Note:** Use test keys (`sk_test_`, `pk_test_`) for development/staging. Use live keys (`sk_live_`, `pk_live_`) only in production.
 
+**Stripe API Version:** The configured version `2024-11-20.acacia` uses Stripe's new versioning format where "acacia" is the release family name. This is valid and part of Stripe's biannual release process.
+
 ---
 
 ## 3. Verification Steps
