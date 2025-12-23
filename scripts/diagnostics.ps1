@@ -49,6 +49,12 @@ param(
     [switch]$GenerateHtmlReport
 )
 
+# Module-level configuration for sensitive data patterns
+$script:SensitivePatterns = @(
+    "PASSWORD", "SECRET", "KEY", "TOKEN", "CONNECTIONSTRING", 
+    "STRIPE", "AZURE", "API", "CREDENTIALS", "APIKEY", "ACCESSTOKEN", "CREDENTIAL"
+)
+
 $ErrorActionPreference = "Continue"
 $ProgressPreference = "SilentlyContinue"
 
@@ -120,10 +126,12 @@ function Get-SafeValue {
         return "[Not Set]"
     }
     
-    # Mask sensitive values (case-insensitive)
-    if ($Value -imatch "password|secret|key|token" -and $Value.Length -gt 10) {
-        $visible = $Value.Substring(0, 8)
-        return "$visible********"
+    # Mask sensitive values (case-insensitive) using module-level patterns
+    foreach ($pattern in $script:SensitivePatterns) {
+        if ($Value -ilike "*$pattern*" -and $Value.Length -gt 10) {
+            $visible = $Value.Substring(0, 8)
+            return "$visible********"
+        }
     }
     
     return $Value
@@ -194,7 +202,7 @@ $configData = @{
 }
 
 # Find and parse appsettings.json files
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
 $repoRoot = Split-Path -Parent $scriptDir
 
 $appsettingsFiles = @(
@@ -274,14 +282,9 @@ $envVars = @{
     Sensitive = @()
 }
 
-$sensitivePatterns = @(
-    "PASSWORD", "SECRET", "KEY", "TOKEN", "CONNECTIONSTRING", 
-    "STRIPE", "AZURE", "API", "CREDENTIALS"
-)
-
 Get-ChildItem Env: | ForEach-Object {
     $isSensitive = $false
-    foreach ($pattern in $sensitivePatterns) {
+    foreach ($pattern in $script:SensitivePatterns) {
         if ($_.Name -ilike "*$pattern*") {
             $isSensitive = $true
             break
@@ -412,11 +415,17 @@ if ([System.Environment]::OSVersion.Platform -eq "Win32NT") {
                      Select-Object -First 20
         
         foreach ($event in $appErrors) {
+            $message = if ($event.Message) { 
+                $event.Message.Substring(0, [Math]::Min(500, $event.Message.Length)) 
+            } else { 
+                "[No message]" 
+            }
+            
             $eventInfo = @{
                 TimeGenerated = $event.TimeGenerated
                 Source = $event.Source
                 EventID = $event.EventID
-                Message = $event.Message.Substring(0, [Math]::Min(500, $event.Message.Length))
+                Message = $message
             }
             $eventLogData.ApplicationErrors += $eventInfo
             Write-DiagnosticInfo "  [$($event.TimeGenerated)] $($event.Source) - $($event.EventID)" -Color Red
@@ -535,24 +544,22 @@ if (-not $SkipConnectivityTests) {
         $blobTestData.Tested = $true
         
         # Extract account name from connection string
+        $accountName = $null
         if ($blobConnectionString -match "AccountName=([^;]+)") {
-            $blobTestData.AccountName = $matches[1]
-            Write-DiagnosticInfo "Storage Account: $($matches[1])" -Color Gray
+            $accountName = $matches[1]
+            $blobTestData.AccountName = $accountName
+            Write-DiagnosticInfo "Storage Account: $accountName" -Color Gray
         }
         
         try {
             # Test blob connectivity using REST API
-            if ($blobConnectionString -match "AccountName=([^;]+)") {
-                $accountName = $matches[1]
+            if ($accountName -and $blobConnectionString -match "AccountKey=([^;]+)") {
                 Write-DiagnosticInfo "Testing connection to Azure Blob Storage..." -Color Gray
                 
-                # Check for AccountKey after storing AccountName
-                if ($blobConnectionString -match "AccountKey=([^;]+)") {
-                    # Simple test: Try to list containers (requires Azure.Storage.Blobs SDK, skip if not available)
-                    Write-DiagnosticInfo "✓ Blob connection string is configured" -Color Green
-                    $blobTestData.Success = $true
-                    $blobTestData.Note = "Full connectivity test requires Azure SDK"
-                }
+                # Simple test: Try to list containers (requires Azure.Storage.Blobs SDK, skip if not available)
+                Write-DiagnosticInfo "✓ Blob connection string is configured" -Color Green
+                $blobTestData.Success = $true
+                $blobTestData.Note = "Full connectivity test requires Azure SDK"
             }
         } catch {
             $blobTestData.Success = $false
