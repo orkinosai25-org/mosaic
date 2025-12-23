@@ -298,7 +298,7 @@
         {
             SafeLogError(ex, 
                 "Unexpected error during login for username: {Username} - Exception: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}", 
-                loginModel.Username, ex.GetType().FullName, ex.Message, ex.StackTrace);
+                loginModel.Username, ex.GetType().FullName, ex.Message, ex.StackTrace ?? "No stack trace available");
             
             // Log inner exception if present
             if (ex.InnerException != null)

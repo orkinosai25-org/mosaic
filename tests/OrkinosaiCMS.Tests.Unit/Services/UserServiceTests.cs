@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Entities.Sites;
@@ -41,18 +42,28 @@ public class UserServiceTests
         _loggerMock = new Mock<ILogger<UserService>>();
         
         // Create UserManager mock - UserManager requires an IUserStore and several other dependencies
-        // We pass null for the optional dependencies as they're not needed in our tests
+        // We provide mocks for required dependencies
         var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
+        var optionsMock = new Mock<IOptions<IdentityOptions>>();
+        optionsMock.Setup(o => o.Value).Returns(new IdentityOptions());
+        var passwordHasherMock = new Mock<IPasswordHasher<ApplicationUser>>();
+        var userValidators = new List<IUserValidator<ApplicationUser>> { new Mock<IUserValidator<ApplicationUser>>().Object };
+        var passwordValidators = new List<IPasswordValidator<ApplicationUser>> { new Mock<IPasswordValidator<ApplicationUser>>().Object };
+        var lookupNormalizerMock = new Mock<ILookupNormalizer>();
+        var identityErrorDescriber = new IdentityErrorDescriber();
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        var userManagerLoggerMock = new Mock<ILogger<UserManager<ApplicationUser>>>();
+        
         _userManagerMock = new Mock<UserManager<ApplicationUser>>(
             userStoreMock.Object, 
-            null /* IOptions<IdentityOptions> */,
-            null /* IPasswordHasher<ApplicationUser> */,
-            null /* IEnumerable<IUserValidator<ApplicationUser>> */,
-            null /* IEnumerable<IPasswordValidator<ApplicationUser>> */,
-            null /* ILookupNormalizer */,
-            null /* IdentityErrorDescriber */,
-            null /* IServiceProvider */,
-            null /* ILogger<UserManager<ApplicationUser>> */
+            optionsMock.Object,
+            passwordHasherMock.Object,
+            userValidators,
+            passwordValidators,
+            lookupNormalizerMock.Object,
+            identityErrorDescriber,
+            serviceProviderMock.Object,
+            userManagerLoggerMock.Object
         );
 
         _userService = new UserService(
