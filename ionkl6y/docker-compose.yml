@@ -1,0 +1,34 @@
+version: '3.8'
+
+# Isolated Mosaic CMS Deployment
+# This docker-compose file deploys Mosaic CMS in isolation for testing
+
+services:
+  mosaic-cms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mosaic-cms-isolated
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      # No database connection - API only mode
+      - AzureBlobStorage__ConnectionString=${AZURE_BLOB_CONNECTION_STRING:-}
+      - AzureBlobStorage__ContainerName=${AZURE_BLOB_CONTAINER:-mosaic-cms}
+    networks:
+      - mosaic-isolated
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  mosaic-isolated:
+    driver: bridge
+    name: mosaic-isolated-network
