@@ -33,25 +33,7 @@ public class ThemeProvider : IThemeProvider
 
             foreach (var theme in themes)
             {
-                var descriptor = new ThemeDescriptor
-                {
-                    Name = theme.Name,
-                    DisplayName = theme.Name, // Theme doesn't have DisplayName, use Name
-                    Description = theme.Description ?? string.Empty,
-                    Author = theme.Author ?? string.Empty,
-                    Version = theme.Version ?? "1.0.0",
-                    PreviewImageUrl = theme.ThumbnailUrl ?? string.Empty, // Use ThumbnailUrl
-                    SupportsLightMode = true,
-                    SupportsDarkMode = true // Assume both modes supported
-                };
-
-                // Parse master pages and layouts from theme configuration
-                if (!string.IsNullOrEmpty(theme.DefaultSettings))
-                {
-                    // Theme configuration would be parsed here
-                    // For now, use default empty lists
-                }
-
+                var descriptor = MapToDescriptor(theme);
                 descriptors.Add(descriptor);
                 _themeCache[theme.Name] = descriptor;
             }
@@ -83,18 +65,7 @@ public class ThemeProvider : IThemeProvider
                 return null;
             }
 
-            var descriptor = new ThemeDescriptor
-            {
-                Name = theme.Name,
-                DisplayName = theme.Name, // Theme doesn't have DisplayName, use Name
-                Description = theme.Description ?? string.Empty,
-                Author = theme.Author ?? string.Empty,
-                Version = theme.Version ?? "1.0.0",
-                PreviewImageUrl = theme.ThumbnailUrl ?? string.Empty, // Use ThumbnailUrl
-                SupportsLightMode = true,
-                SupportsDarkMode = true // Assume both modes supported
-            };
-
+            var descriptor = MapToDescriptor(theme);
             _themeCache[themeName] = descriptor;
             return descriptor;
         }
@@ -139,9 +110,10 @@ public class ThemeProvider : IThemeProvider
                 return false;
             }
 
-            // This would update the site's active theme
-            // Implementation depends on your Site entity structure
-            // For now, return true as a placeholder
+            // Apply theme to site using existing service method
+            await _themeService.ApplyThemeToSiteAsync(siteId, theme.Id);
+            
+            _logger.LogInformation("Theme '{ThemeName}' set as active for site {SiteId}", themeName, siteId);
             return true;
         }
         catch (Exception ex)
@@ -204,5 +176,26 @@ public class ThemeProvider : IThemeProvider
         // Resolve theme asset paths (CSS, JS, images)
         // Following Umbraco pattern: /themes/{themeName}/assets/{assetPath}
         return $"/themes/{themeName}/assets/{assetPath.TrimStart('/')}";
+    }
+
+    /// <summary>
+    /// Maps a Theme entity to a ThemeDescriptor.
+    /// Helper method to avoid code duplication and provide consistent mapping.
+    /// </summary>
+    private ThemeDescriptor MapToDescriptor(OrkinosaiCMS.Core.Entities.Sites.Theme theme)
+    {
+        return new ThemeDescriptor
+        {
+            // Theme entity uses Name field for both internal name and display
+            // Using Name as DisplayName as a fallback until Theme entity is updated with DisplayName property
+            Name = theme.Name,
+            DisplayName = theme.Name,
+            Description = theme.Description ?? string.Empty,
+            Author = theme.Author ?? string.Empty,
+            Version = theme.Version ?? "1.0.0",
+            PreviewImageUrl = theme.ThumbnailUrl ?? string.Empty,
+            SupportsLightMode = true,
+            SupportsDarkMode = true // Theme entity doesn't have mode properties, assume both supported
+        };
     }
 }

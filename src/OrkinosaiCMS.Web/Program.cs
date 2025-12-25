@@ -8,6 +8,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using OrkinosaiCMS.Cnms.Extensions;
 using OrkinosaiCMS.Core.Entities.Identity;
 using OrkinosaiCMS.Core.Interfaces.Repositories;
 using OrkinosaiCMS.Core.Interfaces.Services;
@@ -511,6 +512,17 @@ try
     builder.Services.AddScoped<IPermissionService, PermissionService>();
     builder.Services.AddScoped<IThemeService, ThemeService>();
     builder.Services.AddScoped<ISiteService, SiteService>();
+    
+    // Register Core CMS Module (cnms) - Theme, Layout, Master Pages, and Extensibility
+    // Provides Oqtane and Umbraco-inspired architecture for robust CMS functionality
+    builder.Services.AddCoreCmsModule(options =>
+    {
+        options.EnableThemeCaching = true;
+        options.EnableLayoutValidation = true;
+        options.DefaultTheme = "default";
+        options.DefaultMasterPage = "standard";
+        options.DefaultLayout = "single-column";
+    });
     
     // Register Subscription Services
     builder.Services.AddScoped<ICustomerService, OrkinosaiCMS.Infrastructure.Services.Subscriptions.CustomerService>();

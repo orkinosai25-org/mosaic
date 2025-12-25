@@ -4,6 +4,7 @@
     <ProjectReference Include="..\OrkinosaiCMS.Core\OrkinosaiCMS.Core.csproj" />
     <ProjectReference Include="..\OrkinosaiCMS.Infrastructure\OrkinosaiCMS.Infrastructure.csproj" />
     <ProjectReference Include="..\OrkinosaiCMS.Shared\OrkinosaiCMS.Shared.csproj" />
+    <ProjectReference Include="..\OrkinosaiCMS.Cnms\OrkinosaiCMS.Cnms.csproj" />
     <ProjectReference Include="..\Modules\OrkinosaiCMS.Modules.Content\OrkinosaiCMS.Modules.Content.csproj" />
     <ProjectReference Include="..\Modules\OrkinosaiCMS.Modules.Hero\OrkinosaiCMS.Modules.Hero.csproj" />
     <ProjectReference Include="..\Modules\OrkinosaiCMS.Modules.Features\OrkinosaiCMS.Modules.Features.csproj" />
